@@ -13,6 +13,10 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    plugins: ["@typescript-eslint/eslint-plugin"],
+    extends: ["plugin:@typescript-eslint/recommended", "prettier"],
+  },
 ]);
 
 export default eslintConfig;

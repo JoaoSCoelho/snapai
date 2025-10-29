@@ -1,0 +1,23 @@
+// electron/tsconfig.json
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        // CORREÇÃO CRÍTICA: Use NodeNext para suportar 'import.meta' no Electron (Node.js)
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        // Mantenha as correções de build anteriores
+        "outDir": "../dist/electron",
+        "rootDir": ".",
+        "noEmit": false,
+        "esModuleInterop": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": [
+        "**/*.ts" // Inclui todos os arquivos TS dentro de electron/
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
