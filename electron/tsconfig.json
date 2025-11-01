@@ -6,16 +6,28 @@
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         // Mantenha as correções de build anteriores
-        "outDir": "../dist/electron",
-        "rootDir": ".",
+        "outDir": "../dist",
+        "rootDir": "../",
         "noEmit": false,
         "esModuleInterop": true,
+        "allowJs": true,
+        "jsx": "react-jsx",
+        "resolveJsonModule": true,
         "strict": true,
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ]
+        },
+        "noEmitOnError": false
     },
     "include": [
-        "**/*.ts" // Inclui todos os arquivos TS dentro de electron/
+        "../**/*.ts", // Inclui todos os arquivos TS
+        "../**/*.tsx", // Inclui todos os arquivos TS
+        "../src/api/**/*.ts", // Inclui todos os arquivos TSX
+        "../src/api/**/*.tsx", // Inclui todos os arquivos TSX
     ],
     "exclude": [
         "node_modules"

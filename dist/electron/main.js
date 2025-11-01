@@ -3,8 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("tsconfig-paths/register");
 const electron_1 = require("electron");
 const path_1 = __importDefault(require("path"));
+const ElectronInterface_1 = require("../src/api/ElectronInterface");
 function createWindow() {
     const isDev = process.env.NODE_ENV === "development";
     const win = new electron_1.BrowserWindow({
@@ -22,12 +24,7 @@ function createWindow() {
     win.loadURL(startUrl);
     if (isDev)
         win.webContents.openDevTools();
-    setInterval(() => {
-        win.webContents.send("ping", "ping");
-    }, 1000);
-    electron_1.ipcMain.on("pong", (_, msg) => {
-        console.log("Mensagem recebida do renderer:", msg);
-    });
+    ElectronInterface_1.ElectronInterface.getInstance().init(win, electron_1.ipcMain);
 }
 electron_1.app.whenReady().then(createWindow);
 electron_1.app.on("window-all-closed", () => {

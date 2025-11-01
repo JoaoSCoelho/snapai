@@ -1,5 +1,7 @@
+import "tsconfig-paths/register";
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
+import { ElectronInterface } from "../src/api/ElectronInterface";
 
 function createWindow() {
   const isDev = process.env.NODE_ENV === "development";
@@ -22,13 +24,7 @@ function createWindow() {
 
   if (isDev) win.webContents.openDevTools();
 
-  setInterval(() => {
-    win.webContents.send("ping", "ping");
-  }, 1000);
-
-  ipcMain.on("pong", (_, msg) => {
-    console.log("Mensagem recebida do renderer:", msg);
-  });
+  ElectronInterface.getInstance().init(win, ipcMain);
 }
 
 app.whenReady().then(createWindow);

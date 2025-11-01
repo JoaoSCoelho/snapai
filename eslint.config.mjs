@@ -16,6 +16,17 @@ const eslintConfig = defineConfig([
   {
     plugins: ["@typescript-eslint/eslint-plugin"],
     extends: ["plugin:@typescript-eslint/recommended", "prettier"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          vars: "all",
+          args: "after-used",
+          ignoreRestSiblings: true,
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": ["error", { ignoreRestArgs: true }],
+    },
   },
 ]);
 
