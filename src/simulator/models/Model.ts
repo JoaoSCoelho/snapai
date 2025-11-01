@@ -1,6 +1,7 @@
 import { ModelParametersSubsection } from "../configurations/layout/ModelParametersSubsection";
+import { Module } from "./Module";
 
-export abstract class Model {
+export abstract class Model extends Module {
   /**
    * **Child classes should implements this static method to get the parameters subsection layout.**
    *

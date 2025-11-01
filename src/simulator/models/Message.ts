@@ -1,4 +1,4 @@
-export abstract class Message {
+export class Message {
   public constructor(public readonly data: any) {}
 
   /**
@@ -8,5 +8,9 @@ export abstract class Message {
    */
   public clone(): Message {
     return structuredClone(this);
+  }
+
+  public getByteSize(): number {
+    return JSON.stringify(this.data).length;
   }
 }

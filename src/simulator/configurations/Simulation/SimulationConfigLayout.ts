@@ -97,7 +97,7 @@ export const SimulationConfigLayout = new Layout([
         CheckboxField.create({
           name: "nackMessagesEnabled",
           label: "NACK messages enabled",
-          occupedColumns: 6,
+          occupedColumns: 4,
           schema: z.boolean(),
           info: {
             title:
@@ -107,11 +107,21 @@ export const SimulationConfigLayout = new Layout([
         CheckboxField.create({
           name: "shouldSaveTrace",
           label: "Save trace",
-          occupedColumns: 6,
+          occupedColumns: 4,
           schema: z.boolean(),
           info: {
             title:
               "If this option is enabled, the simulation will save the positions of all nodes in all times (only in synchronous mode).",
+          },
+        }),
+        CheckboxField.create({
+          name: "registerStatisticsForEveryRound",
+          label: "Register statistics for every round",
+          occupedColumns: 4,
+          schema: z.boolean(),
+          info: {
+            title:
+              "If this option is enabled, the simulation will mantain in memory statistics for every round, otherwise it will only mantain statistics for the last round.",
           },
         }),
       ]),

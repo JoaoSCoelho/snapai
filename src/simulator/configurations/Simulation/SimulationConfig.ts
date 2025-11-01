@@ -10,6 +10,7 @@ export class SimulationConfig extends Config {
   private dimY: [number, number] = [0, 1000];
   private isAsynchronous = false;
   private shouldSaveTrace = false;
+  private registerStatisticsForEveryRound = false;
   private nackMessagesEnabled = true;
   private connectivityEnabled = true;
   private interferenceEnabled = true;
@@ -45,6 +46,10 @@ export class SimulationConfig extends Config {
     return this.shouldSaveTrace;
   }
 
+  public getRegisterStatisticsForEveryRound(): boolean {
+    return this.registerStatisticsForEveryRound;
+  }
+
   public getNackMessagesEnabled(): boolean {
     return this.nackMessagesEnabled;
   }
@@ -72,6 +77,7 @@ export class SimulationConfig extends Config {
       dimY: this.dimY,
       isAsynchronous: this.isAsynchronous,
       shouldSaveTrace: this.shouldSaveTrace,
+      registerStatisticsForEveryRound: this.registerStatisticsForEveryRound,
       nackMessagesEnabled: this.nackMessagesEnabled,
       connectivityEnabled: this.connectivityEnabled,
       interferenceEnabled: this.interferenceEnabled,

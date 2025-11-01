@@ -1,4 +1,5 @@
 import { Node } from "./Node";
+import { Simulation } from "./Simulation";
 
 export abstract class Timer {
   public node?: Node;

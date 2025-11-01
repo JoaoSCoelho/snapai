@@ -2,14 +2,15 @@ import { SimulationConfig } from "../configurations/Simulation/SimulationConfig"
 import { Message } from "./Message";
 import { Model } from "./Model";
 import { Node } from "./Node";
+import { Timer } from "./Timer";
 
 export type ProjectSchema = {
   name: string;
   simulationConfig: SimulationConfig;
-  models: Map<string, Model>;
-  nodes: Map<string, Node>;
-  messages: Map<string, Message>;
-  timers: Map<string, Timer>;
+  models: Map<string, typeof Model>;
+  nodes: Map<string, typeof Node>;
+  messages: Map<string, typeof Message>;
+  timers: Map<string, typeof Timer>;
 };
 
 export abstract class Project {

@@ -4,6 +4,7 @@ import { Listener } from "./listeners/Listener";
 import { GetProjectsNamesListener } from "./listeners/GetProjectsNamesListener";
 import { GetModelsNamesListener } from "./listeners/GetModelsNamesListener";
 import { FindGenericModelListener } from "./listeners/FindGenericModelListener";
+import { AppendSimulationLogListener } from "./listeners/AppendSimulationLogListener";
 
 export class ElectronInterface {
   private static instance: ElectronInterface;
@@ -52,7 +53,7 @@ export class ElectronInterface {
       new GetProjectsNamesListener(this.modulesSearchEngine),
       new GetModelsNamesListener(this.modulesSearchEngine),
       new FindGenericModelListener(this.modulesSearchEngine),
-      new AppendSimulationLogListener(this.modulesSearchEngine),
+      new AppendSimulationLogListener(),
     ];
   }
 

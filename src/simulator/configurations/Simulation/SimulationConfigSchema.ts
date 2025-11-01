@@ -21,6 +21,7 @@ export const simulationConfigSchema = z.object({
     }),
   isAsynchronous: z.boolean(),
   shouldSaveTrace: z.boolean(),
+  registerStatisticsForEveryRound: z.boolean(),
   nackMessagesEnabled: z.boolean(),
   connectivityEnabled: z.boolean(),
   interferenceEnabled: z.boolean(),

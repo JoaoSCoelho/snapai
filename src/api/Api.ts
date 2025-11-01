@@ -2,6 +2,7 @@ import { ModelType } from "@/simulator/utils/types";
 import { ApiTransaction } from "./ApiTransaction";
 import { ApiCache } from "./ApiCache";
 import { Model } from "@/simulator/models/Model";
+import { AppendSimulationLogDto } from "./dtos/AppendSimulationLogDto";
 
 export class Api {
   public static instance: Api;
@@ -72,6 +73,14 @@ export class Api {
     return await new ApiTransaction("getModelsNames", modelType).exec();
   }
 
+  /**
+   * Finds a generic model implementation by its identifier, if is only a name, it will search on defaults/{modelType}_models.
+   * In case of identifier have an ":", it will consider it as {project}:{model} and search on projects/{project}/{modelType}_models.
+   * @throws
+   * ModelNotFoundError if the generic model implementation was not found.
+   * @returns
+   * The generic model class to be instantiated.
+   */
   static async findGenericModel(
     modelIdentifier: string,
     modelType: ModelType,
@@ -80,5 +89,16 @@ export class Api {
       modelIdentifier,
       modelType,
     ]).exec();
+  }
+
+  /**
+   * Appends a log to the simulation log.
+   * @param data The data to be appended to the simulation log.
+   * @returns A promise that resolves when the log has been appended.
+   */
+  static async appendSimulationLogListener(
+    data: AppendSimulationLogDto,
+  ): Promise<boolean> {
+    return await new ApiTransaction("appendSimulationLog", data).exec();
   }
 }
