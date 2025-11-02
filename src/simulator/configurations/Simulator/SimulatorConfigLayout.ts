@@ -5,7 +5,7 @@ import { Section } from "../layout/Section";
 import { Subsection } from "../layout/Subsection";
 import { Line } from "../layout/Line";
 
-export const SimulatorConfigLayout = new Layout([
+export const simulatorConfigLayout = new Layout([
   new Section("Simulator Parameters", [
     new Subsection([
       new Line([

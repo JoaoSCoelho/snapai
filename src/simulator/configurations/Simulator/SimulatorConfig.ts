@@ -1,11 +1,16 @@
 import { Config } from "../Config";
+import { simulatorConfigLayout } from "./simulatorConfigLayout";
 import {
   SimulatorConfigSchema,
   simulatorConfigSchema,
-} from "./SimulatorConfigSchema";
+} from "./simulatorConfigSchema";
 
 export class SimulatorConfig extends Config {
   private static instance: SimulatorConfig;
+
+  public readonly validatorSchema = simulatorConfigSchema;
+  public readonly layout = simulatorConfigLayout;
+
   private readonly projectsPath = "src/simulator/projects";
   private readonly defaultsPath = "src/simulator/defaults";
   private readonly modelsPath = "src/simulator/models";

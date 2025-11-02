@@ -1,10 +1,14 @@
 import { Config } from "../Config";
+import { simulationConfigLayout } from "./simulationConfigLayout";
 import {
   SimulationConfigSchema,
   simulationConfigSchema,
-} from "./SimulationConfigSchema";
+} from "./simulationConfigSchema";
 
 export class SimulationConfig extends Config {
+  public readonly validatorSchema = simulationConfigSchema;
+  public readonly layout = simulationConfigLayout;
+
   private simulationName = "default_simulation";
   private dimX: [number, number] = [0, 1000];
   private dimY: [number, number] = [0, 1000];

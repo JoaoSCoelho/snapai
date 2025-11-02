@@ -8,7 +8,7 @@ import { Section } from "../layout/Section";
 import { Layout } from "../layout/Layout";
 import { ModelSection } from "../layout/ModelSection";
 
-export const SimulationConfigLayout = new Layout([
+export const simulationConfigLayout = new Layout([
   new Section("Simulation Parameters", [
     new Subsection([
       new Line([
