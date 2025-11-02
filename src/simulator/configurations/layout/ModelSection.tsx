@@ -12,7 +12,10 @@ import { ModelParametersSubsection } from "./ModelParametersSubsection";
 import { Api } from "@/api/Api";
 
 export class ModelSection extends Section {
-  public constructor(public readonly modelType: ModelType) {
+  public constructor(
+    public readonly modelType: ModelType,
+    nestedIn?: string[],
+  ) {
     const title = `${capitalizeFirstLetter(modelType).replace(/[_]/g, " ")} model Parameters`;
     const subsections = [
       new Subsection([
@@ -51,7 +54,7 @@ export class ModelSection extends Section {
         ]),
       ]),
     ];
-    super(title, subsections);
+    super(title, nestedIn, subsections);
   }
 
   public async getParametersSubsection(

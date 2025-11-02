@@ -20,7 +20,7 @@ export class AnglePairField extends NumberPairField {
     public readonly maxRight: number,
     public readonly isFloat: boolean,
     public readonly angleUnit: AngleUnit,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(
       name,
@@ -46,7 +46,7 @@ export class AnglePairField extends NumberPairField {
       maxLeft?: number;
       minRight?: number;
       maxRight?: number;
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new AnglePairField(

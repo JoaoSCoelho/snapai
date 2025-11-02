@@ -10,14 +10,10 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 
 export type ProjectSelectProps = {
-  projectsNames: string[] | undefined;
-  isLoadingProjectsNames: boolean;
+  projectsNames: string[];
 };
 
-export default function ProjectSelect({
-  projectsNames,
-  isLoadingProjectsNames,
-}: ProjectSelectProps) {
+export default function ProjectSelect({ projectsNames }: ProjectSelectProps) {
   const { selectedProject, setSelectedProject } = useConfigContext();
 
   const handleSelectProjectChange = (
@@ -30,7 +26,7 @@ export default function ProjectSelect({
     setSelectedProject(null);
   };
 
-  const selectProjectOptions = projectsNames?.map((project) => (
+  const selectProjectOptions = projectsNames.map((project) => (
     <MenuItem key={project} value={project}>
       {project}
     </MenuItem>
@@ -48,13 +44,7 @@ export default function ProjectSelect({
           label="Select Project"
           onChange={handleSelectProjectChange}
         >
-          {selectProjectOptions ?? (
-            <MenuItem disabled value="" selected>
-              {isLoadingProjectsNames
-                ? "Loading projects..."
-                : "Error loading projects"}
-            </MenuItem>
-          )}
+          {selectProjectOptions}
         </Select>
       </FormControl>
       {selectedProject && (

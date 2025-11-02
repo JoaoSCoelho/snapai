@@ -22,7 +22,7 @@ export class NumberPairField extends Field {
     public readonly minRight: number,
     public readonly maxRight: number,
     public readonly isFloat: boolean,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(name, label, occupedColumns, schema, required, info);
   }
@@ -36,7 +36,7 @@ export class NumberPairField extends Field {
       maxLeft?: number;
       minRight?: number;
       maxRight?: number;
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new NumberPairField(

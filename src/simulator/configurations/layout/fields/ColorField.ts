@@ -11,14 +11,14 @@ export class ColorField extends Field {
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(name, label, occupedColumns, schema, required, info);
   }
 
   public static create(
     field: Omit<ColorFieldSchema, "info"> & {
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new ColorField(

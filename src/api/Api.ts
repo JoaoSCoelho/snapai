@@ -96,7 +96,7 @@ export class Api {
    * @param data The data to be appended to the simulation log.
    * @returns A promise that resolves when the log has been appended.
    */
-  static async appendSimulationLogListener(
+  static async appendSimulationLog(
     data: AppendSimulationLogDto,
   ): Promise<boolean> {
     return await new ApiTransaction("appendSimulationLog", data).exec();

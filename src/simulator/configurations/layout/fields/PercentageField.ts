@@ -14,7 +14,7 @@ export class PercentageField extends NumberField {
     public readonly min: number,
     public readonly max: number,
     public readonly isFloat: boolean,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(
       name,
@@ -33,7 +33,7 @@ export class PercentageField extends NumberField {
     field: Omit<PercentageFieldSchema, "info" | "min" | "max"> & {
       min?: number;
       max?: number;
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new PercentageField(

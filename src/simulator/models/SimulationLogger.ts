@@ -1,5 +1,5 @@
-import { Api } from "@/api/Api";
 import { Simulation } from "./Simulation";
+import { prisma } from "@/api/prisma/client";
 
 export class SimulationLogger {
   public constructor(
@@ -12,13 +12,17 @@ export class SimulationLogger {
   }
 
   public log(message: string): void {
-    Api.appendSimulationLogListener({
-      simulationId: this.simulation.id,
-      project: this.simulation.project.name,
-      content: message,
-    }).then((success) => {
-      if (!success) console.warn("Failed to append log to simulation log.");
-    });
+    prisma.simulationLog
+      .create({
+        data: {
+          simulationId: this.simulation.id,
+          project: this.simulation.project.name,
+          content: message,
+        },
+      })
+      .catch((error: any) => {
+        console.warn("Failed to append log to simulation log.", error);
+      });
     if (this.useConsole) console.log(message);
   }
 }

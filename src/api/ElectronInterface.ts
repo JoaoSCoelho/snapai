@@ -5,6 +5,8 @@ import { GetProjectsNamesListener } from "./listeners/GetProjectsNamesListener";
 import { GetModelsNamesListener } from "./listeners/GetModelsNamesListener";
 import { FindGenericModelListener } from "./listeners/FindGenericModelListener";
 import { AppendSimulationLogListener } from "./listeners/AppendSimulationLogListener";
+import { SimulatorConfig } from "@/simulator/configurations/Simulator/SimulatorConfig";
+SimulatorConfig;
 
 export class ElectronInterface {
   private static instance: ElectronInterface;

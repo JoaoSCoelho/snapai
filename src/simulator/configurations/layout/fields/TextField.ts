@@ -16,7 +16,7 @@ export class TextField extends Field {
     public readonly required: boolean,
     public readonly minLength: number,
     public readonly maxLength: number,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(name, label, occupedColumns, schema, required, info);
   }
@@ -25,7 +25,7 @@ export class TextField extends Field {
     field: Omit<TextFieldSchema, "info" | "minLength" | "maxLength"> & {
       minLength?: number;
       maxLength?: number;
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new TextField(

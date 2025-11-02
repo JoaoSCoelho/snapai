@@ -17,7 +17,7 @@ export class MultiSelectField extends SelectField {
     public readonly options: { value: any; label: string }[],
     public readonly minSelected: number,
     public readonly maxSelected: number,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(name, label, occupedColumns, schema, required, options, info);
   }
@@ -29,7 +29,7 @@ export class MultiSelectField extends SelectField {
     > & {
       minSelected?: number;
       maxSelected?: number;
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new MultiSelectField(

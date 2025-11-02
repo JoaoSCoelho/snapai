@@ -1,0 +1,5 @@
+{
+    "projectsPath": "src/simulator/projects",
+    "defaultsPath": "src/simulator/defaults",
+    "modelsPath": "src/simulator/models"
+}

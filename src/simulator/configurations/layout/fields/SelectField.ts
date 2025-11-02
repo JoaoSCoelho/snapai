@@ -14,14 +14,14 @@ export class SelectField extends Field {
     public readonly schema: z.ZodType,
     public readonly required: boolean,
     public readonly options: { value: any; label: string }[],
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(name, label, occupedColumns, schema, required, info);
   }
 
   public static create(
     field: Omit<SelectFieldSchema, "info"> & {
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new SelectField(

@@ -1,3 +1,4 @@
+import z from "zod";
 import { Config } from "../Config";
 import { simulationConfigLayout } from "./simulationConfigLayout";
 import {
@@ -23,11 +24,12 @@ export class SimulationConfig extends Config {
     time: 1,
   };
 
-  public constructor() {
-    super();
-    const parsed = simulationConfigSchema.strict().safeParse(this.toJSON());
-    if (parsed.error)
-      throw new Error("Error parsing SimulationConfig", parsed.data);
+  public constructor(
+    configJsonFilePath: string,
+    populateData: z.infer<typeof simulationConfigSchema>,
+  ) {
+    super(configJsonFilePath, populateData);
+    this.parse(populateData);
   }
 
   public getSimulationName(): string {
@@ -74,7 +76,7 @@ export class SimulationConfig extends Config {
     return this.messageTransmissionModelParameters;
   }
 
-  public toJSON(): SimulationConfigSchema {
+  protected innerToJSON(): SimulationConfigSchema {
     return {
       simulationName: this.simulationName,
       dimX: this.dimX,

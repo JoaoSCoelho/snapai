@@ -1,5 +1,5 @@
 import { AppendSimulationLogDto } from "../dtos/AppendSimulationLogDto";
-import { prisma } from "../prisma/client";
+import { prisma } from "../prisma/client.js";
 import { Listener } from "./Listener";
 
 export class AppendSimulationLogListener extends Listener {

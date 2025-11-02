@@ -8,14 +8,14 @@ export type FieldSchema = {
   schema: z.ZodType;
   required: boolean;
   info: {
-    title: ReactNode;
+    title: string;
     helpText: ReactNode;
   };
 };
 
 export abstract class Field {
   public readonly info: {
-    title: ReactNode;
+    title: string;
     helpText: ReactNode;
   };
 
@@ -25,7 +25,7 @@ export abstract class Field {
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     this.info = {
       helpText: info.helpText ?? info.title,

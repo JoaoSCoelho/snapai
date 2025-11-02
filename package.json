@@ -20,6 +20,7 @@
     "@microlink/react-json-view": "^1.27.0",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
+    "@prisma/client": "^6.18.0",
     "@react-sigma/core": "^5.0.4",
     "@sigma/export-image": "^3.0.0",
     "dotenv": "^17.2.3",

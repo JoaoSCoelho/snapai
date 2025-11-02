@@ -18,7 +18,7 @@ export class AngleField extends NumberField {
     public readonly max: number,
     public readonly isFloat: boolean,
     public readonly angleUnit: AngleUnit,
-    info: { title: ReactNode; helpText?: ReactNode },
+    info: { title: string; helpText?: ReactNode },
   ) {
     super(
       name,
@@ -37,7 +37,7 @@ export class AngleField extends NumberField {
     field: Omit<AngleFieldSchema, "info" | "min" | "max"> & {
       min?: number;
       max?: number;
-      info: { title: ReactNode; helpText?: ReactNode };
+      info: { title: string; helpText?: ReactNode };
     },
   ) {
     return new AngleField(

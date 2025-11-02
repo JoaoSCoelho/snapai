@@ -4,6 +4,8 @@ import {
   SimulatorConfigSchema,
   simulatorConfigSchema,
 } from "./simulatorConfigSchema";
+import jsonConfig from "./simulatorConfig.json";
+import z from "zod";
 
 export class SimulatorConfig extends Config {
   private static instance: SimulatorConfig;
@@ -15,16 +17,20 @@ export class SimulatorConfig extends Config {
   private readonly defaultsPath = "src/simulator/defaults";
   private readonly modelsPath = "src/simulator/models";
 
-  private constructor() {
-    super();
-    const parsed = simulatorConfigSchema.strict().safeParse(this.toJSON());
-    if (parsed.error)
-      throw new Error("Error parsing SimulatorConfig", parsed.data);
+  public constructor(
+    configJsonFilePath: string,
+    populateData: z.infer<typeof simulatorConfigSchema>,
+  ) {
+    super(configJsonFilePath, populateData);
+    this.parse(populateData);
   }
 
   public static getInstance(): SimulatorConfig {
     if (!SimulatorConfig.instance) {
-      SimulatorConfig.instance = new SimulatorConfig();
+      SimulatorConfig.instance = new SimulatorConfig(
+        "src/simulator/configurations/Simulator/simulatorConfig.json",
+        jsonConfig as SimulatorConfigSchema,
+      );
     }
     return SimulatorConfig.instance;
   }
@@ -41,7 +47,7 @@ export class SimulatorConfig extends Config {
     return this.modelsPath;
   }
 
-  public toJSON(): SimulatorConfigSchema {
+  protected innerToJSON(): SimulatorConfigSchema {
     return {
       projectsPath: this.projectsPath,
       defaultsPath: this.defaultsPath,

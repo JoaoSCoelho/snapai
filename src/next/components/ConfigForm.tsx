@@ -1,51 +1,45 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import useSWR from "swr";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import clsx from "clsx";
 import dynamic from "next/dynamic";
-import { toast } from "sonner";
-import { v6 as uuidv6 } from "uuid";
 import { Button } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import {
-  simulationConfigSchema,
-  SimulationConfigSchema,
-} from "@/simulator/configurations/Simulation/SimulationConfigSchema";
 import { useForm } from "react-hook-form";
-import { SimulationConfigLayout } from "@/simulator/configurations/Simulation/SimulationConfigLayout";
 import { Layout } from "@/simulator/configurations/layout/Layout";
 import { useErrorModal } from "../contexts/ErrorModalContext";
 import { Section } from "@/simulator/configurations/layout/Section";
+import { Project } from "@/simulator/models/Project";
+import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
+import { ErrorSystem } from "../utils/ErrorSystem";
 
 const ReactJson = dynamic(() => import("@microlink/react-json-view"), {
   ssr: false,
 });
 
+export type ConfigFormSchema = {
+  simulationConfig: SimulationConfigSchema;
+  projectConfig: Record<string, any>;
+};
+
 export type SuperSection = {
   title: string;
   prefix: string;
   layout: Layout | null;
-  nestedPaths?: string[];
+  nestedIn?: string[];
 };
 
 type ConfigFormProps = {
-  projectName: string;
+  project: Project;
 };
-export default function ConfigForm({ projectName }: ConfigFormProps) {
+export default function ConfigForm({ project }: ConfigFormProps) {
   const [simulationConfigLayout, setSimulationConfigLayout] = useState<Layout>(
-    SimulationConfigLayout,
+    project.simulationConfig.layout,
   );
-  const [projectConfigLayout, setProjectConfigLayout] =
-    useState<Layout | null>();
-  const [configFormSchema, setConfigFormSchema] = useState<
-    z.ZodType<SimulationConfigSchema>
-  >(simulationConfigSchema);
-  const [modelNameFields, setModelNameFields] = useState<string[]>([]);
-  const [modelNameFieldsPathsAndSections, setModelNameFieldsPathsAndSections] =
-    useState<Record<string, Section>>({});
-  const [fetchKey, setFetchKey] = useState(uuidv6());
+  const [projectConfigLayout, setProjectConfigLayout] = useState<Layout | null>(
+    project.projectConfig?.layout ?? null,
+  );
   const { showModal } = useErrorModal();
 
   const {
@@ -55,68 +49,30 @@ export default function ConfigForm({ projectName }: ConfigFormProps) {
     formState: { errors: formErrors },
     reset,
     watch,
-  } = useForm<SimulationConfigSchema>({
-    resolver: configFormSchema
-      ? zodResolver(
-          configFormSchema as unknown as Parameters<
-            typeof zodResolver<
-              SimulationConfigSchema,
-              any,
-              SimulationConfigSchema
-            >
-          >[0],
-        )
-      : undefined,
+  } = useForm({
+    resolver: zodResolver(
+      z.object({
+        simulationConfig: project.simulationConfig.validatorSchema,
+        projectConfig: project.projectConfig?.validatorSchema,
+      }),
+    ),
   });
-
-  const {
-    data: configFormLayout,
-    error: configFormLayoutError,
-    isLoading: isLoadingConfigFormLayout,
-    mutate,
-  } = useSWR(`config_form_layout_${projectName}`, () =>
-    fetchConfigFormLayout(projectName),
-  );
-  const {
-    data: config,
-    error: configError,
-    isLoading: isLoadingConfig,
-  } = useSWR(`config_${projectName}_${fetchKey}`, () =>
-    fetchConfigForm(projectName),
-  );
 
   const superSections: SuperSection[] = useMemo(
     () => [
       {
-        id: "global-simulation-config",
         title: "Global Simulation Config",
         prefix: "global_simulation",
-        styleClasses: {
-          superSection: [],
-          superSectionTitle: [],
-          section: [],
-          sectionTitle: [],
-          subSection: [],
-          line: [],
-        },
         layout: simulationConfigLayout,
+        nestedIn: ["simulationConfig"],
       },
       ...(projectConfigLayout
         ? [
             {
-              id: "project-config",
               title: "Project Config",
               prefix: "project",
-              styleClasses: {
-                superSection: [],
-                superSectionTitle: [],
-                section: [],
-                sectionTitle: [],
-                subSection: [],
-                line: [],
-              },
               layout: projectConfigLayout,
-              nestedPaths: ["project_config"],
+              nestedIn: ["projectConfig"],
             },
           ]
         : []),
@@ -124,147 +80,10 @@ export default function ConfigForm({ projectName }: ConfigFormProps) {
     [simulationConfigLayout, projectConfigLayout],
   );
 
-  const updateModelSections = useCallback(
-    async (inputName: string | undefined) => {
-      if (!inputName || !modelNameFields.includes(inputName) || !config) return;
-
-      const modelName: string = watch(inputName);
-      const section = modelNameFieldsPathsAndSections[inputName];
-      const modelSubsectionLayout = await fetchModelSubsectionLayout(
-        modelName,
-        section.model_type!,
-      );
-
-      if (inputName.startsWith("project_config")) {
-        setProjectConfigLayout((projectConfigLayout) => ({
-          sections: [
-            ...(projectConfigLayout?.sections.map((section_) => {
-              return {
-                ...section_,
-                subsections: section_.subsections.map((subsection) =>
-                  getCorrectSubsection(subsection, section_),
-                ),
-              };
-            }) ?? []),
-          ],
-        }));
-      } else {
-        setSimulationConfigLayout((simulationConfigLayout) =>
-          simulationConfigLayout
-            ? {
-                sections: [
-                  ...(simulationConfigLayout.sections.map((section_) => {
-                    return {
-                      ...section_,
-                      subsections: section_.subsections.map((subsection) =>
-                        getCorrectSubsection(subsection, section_),
-                      ),
-                    };
-                  }) ?? []),
-                ],
-              }
-            : undefined,
-        );
-      }
-
-      function getCorrectSubsection(
-        subsection: Subsection,
-        section_: SectionType,
-      ): Subsection {
-        if (!subsection.model_parameters) return subsection;
-
-        const isTheTarget =
-          inputName!
-            .split(".")
-            .slice(0, -1)
-            .join(".")
-            .endsWith(
-              section.subsections[0].lines[0].fields[0].nested_paths.join("."),
-            ) &&
-          section_.model_type === section.model_type &&
-          subsection.model_parameters;
-
-        if (!isTheTarget) return subsection;
-        return modelSubsectionLayout;
-      }
-    },
-    [config, watch, modelNameFieldsPathsAndSections, modelNameFields],
-  );
-
-  useEffect(() => {
-    if (config && configFormLayout) {
-      reset({
-        ...watch(),
-        ...config,
-        project_config: { ...watch().project_config, ...config.project_config },
-      });
-
-      modelNameFields.forEach((inputName) => {
-        updateModelSections(inputName);
-      });
-    }
-  }, [config]);
-
-  // set defaults values when config form layout is loaded
-  useEffect(() => {
-    if (configFormLayout) {
-      const layouts = [
-        configFormLayout.simulation_config_layout,
-        ...(configFormLayout.project_config_layout
-          ? [
-              {
-                ...configFormLayout.project_config_layout,
-                nestedPaths: ["project_config"],
-              },
-            ]
-          : []),
-      ];
-
-      reset(FormLayoutHelper.getLayoutValues(layouts));
-
-      setSimulationConfigLayout(configFormLayout.simulation_config_layout);
-      setProjectConfigLayout(configFormLayout.project_config_layout);
-
-      const modelNameFieldsPathsAndSections =
-        FormLayoutHelper.getModelNameFieldsPathsAndSections(layouts);
-      setModelNameFields(Object.keys(modelNameFieldsPathsAndSections));
-      setModelNameFieldsPathsAndSections(modelNameFieldsPathsAndSections);
-      setFetchKey(uuidv6());
-    }
-  }, [configFormLayout]);
-
-  // set config form schema everyTime superSections change (superSections defines the structure of the form)
-  useEffect(() => {
-    const layouts = superSections
-      .map((superSection) =>
-        superSection.layout
-          ? { ...superSection.layout, nestedPaths: superSection.nestedPaths! }
-          : undefined,
-      )
-      .filter((x) => x) as LayoutWithNestedPaths[];
-
-    setConfigFormSchema(
-      FormLayoutHelper.buildSchema<z.ZodObject<ConfigFormSchema>>(layouts),
-    );
-
-    reset({
-      ...config,
-      ...watch(),
-      project_config: { ...config?.project_config, ...watch().project_config },
-    });
-  }, [superSections]);
-
-  useEffect(() => {
-    if (configFormLayoutError) {
-      console.error(configFormLayoutError);
-      toastError("Error loading config form layout");
-    }
-  }, [configFormLayoutError]);
-
   useEffect(() => {
     if (formErrors && Object.keys(formErrors).length > 0) {
       console.error(formErrors);
-      toastError("Error validating config form");
+      ErrorSystem.emitError(formErrors, "Error validating config form");
       showModal(
         <ReactJson
           src={formErrors}
@@ -280,44 +99,13 @@ export default function ConfigForm({ projectName }: ConfigFormProps) {
     }
   }, [formErrors]);
 
-  useEffect(() => {
-    if (configError) {
-      console.error(configError);
-      toastError("Error loading config data");
-    }
-  }, [configError]);
-
   const handleConfigSubmit = (data: ConfigFormSchema) => {
-    updateConfig(projectName, data)
-      .then(() => {
-        toast.success(
-          <>
-            Config of project <b>{projectName}</b> updated
-          </>,
-        );
-      })
-      .catch((error) => {
-        console.error(error);
-        toastError("Error updating config");
-        return;
-      });
+    // TODO
   };
 
   const onResetButtonClick = () => {
-    mutate(undefined, {
-      revalidate: true,
-    });
+    // TODO
   };
-
-  if (configFormLayoutError) return;
-
-  if (isLoadingConfigFormLayout || isLoadingConfig) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-3xl">
-        Loading form layout...
-      </div>
-    );
-  }
 
   return (
     <form
@@ -328,27 +116,17 @@ export default function ConfigForm({ projectName }: ConfigFormProps) {
       {superSections.map((superSection) => {
         return (
           <div
-            key={superSection.id}
-            id={superSection.id}
+            key={superSection.prefix + superSection.title}
+            id={superSection.prefix + superSection.title}
             className={clsx(
-              superSection.id,
               "w-full",
               "p-4",
               "rounded-md",
               "shadow-lg",
               "bg-stone-50",
-              ...superSection.styleClasses.superSection,
             )}
           >
-            <h2
-              className={clsx(
-                "text-3xl",
-                "mb-2",
-                ...superSection.styleClasses.superSectionTitle,
-              )}
-            >
-              {superSection.title}
-            </h2>
+            <h2 className={clsx("text-3xl", "mb-2")}>{superSection.title}</h2>
 
             {superSection.layout?.sections.map((section, sectionIndex) => {
               return (
@@ -357,7 +135,7 @@ export default function ConfigForm({ projectName }: ConfigFormProps) {
                   isLoadingConfig={isLoadingConfig}
                   register={register}
                   section={section}
-                  nestedPaths={superSection.nestedPaths}
+                  nestedIn={superSection.nestedIn}
                   superSection={superSection}
                   key={section.id + sectionIndex}
                   onModelNameChange={updateModelSections}
