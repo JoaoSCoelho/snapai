@@ -11,15 +11,17 @@ import { FormFieldProps } from "./FormField";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Controller } from "react-hook-form";
 import clsx from "clsx";
-import { NumberField as NumberFieldCls } from "@/simulator/configurations/layout/fields/NumberField";
+import { useState } from "react";
+import AngleDropdown from "./AngleDropdown";
+import { AngleField as AngleFieldCls } from "@/simulator/configurations/layout/fields/AngleField";
 
 type NumberFieldProps = FormFieldProps & {
-  field: NumberFieldCls;
+  field: AngleFieldCls;
   formControlAttr?: FormControlProps;
   inputAttr?: TextFieldProps;
 };
 
-export default function NumberField({
+export default function AngleField({
   field,
   containerAttr,
   formControlAttr,
@@ -29,6 +31,7 @@ export default function NumberField({
 }: NumberFieldProps) {
   const nameAsArray = [...(nestedIn ?? []), field.name];
   const fullName = nameAsArray.join(".");
+  const [focused, setFocused] = useState<boolean>(false);
 
   return (
     <div
@@ -51,6 +54,8 @@ export default function NumberField({
                 onChange={(e) => {
                   controllerField.onChange(Number(e.target.value));
                 }}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
                 value={controllerField.value}
                 slotProps={{
                   htmlInput: {
@@ -82,6 +87,20 @@ export default function NumberField({
                 {...inputAttr}
               />
             </FormControl>
+            {focused && (
+              <AngleDropdown
+                angle={controllerField.value}
+                isDegrees={field.angleUnit === "deg"}
+                is_float={field.isFloat}
+                max_value={field.max}
+                min_value={field.min}
+                onChange={(angle) => {
+                  controllerField.onChange(angle);
+                }}
+                onFocusAdjusments={() => setFocused(true)}
+                onBlurAdjusments={() => setFocused(false)}
+              />
+            )}
           </>
         )}
       ></Controller>

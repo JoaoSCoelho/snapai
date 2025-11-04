@@ -11,24 +11,15 @@ import {
   SelectProps,
   Tooltip,
 } from "@mui/material";
-import { SelectField } from "./SelectField";
 import { Controller } from "react-hook-form";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-
-export type NodeSelectField = Omit<
-  SelectField,
-  "type" | "value" | "options"
-> & {
-  type: "node_select";
-  value: string;
-  options: { value: string; label: string }[];
-};
+import { NodeSelectField as NodeSelectFieldCls } from "@/simulator/configurations/layout/fields/NodeSelectField";
+import { SearchEngine } from "@/simulator/utils/SearchEngine";
 
 export type NodeSelectFieldProps = FormFieldProps & {
-  field: NodeSelectField;
+  field: NodeSelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
-  onNodeNameChange?: (nodeName: string) => void;
 };
 
 export default function NodeSelectField({
@@ -37,75 +28,56 @@ export default function NodeSelectField({
   control,
   selectAttr,
   formControlAttr,
-  fieldIndex,
   containerAttr,
-  onNodeNameChange,
 }: NodeSelectFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), ...field.nested_paths, field.name];
-  const name = nameAsArray.join(".");
+  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const fullName = nameAsArray.join(".");
 
   return (
     <div
-      key={field.id + fieldIndex}
-      style={{ gridColumn: `span ${field.occuped_columns}` }}
+      style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
       <FormControl fullWidth {...formControlAttr}>
-        <InputLabel id={name + "__label"}>{field.label}</InputLabel>
+        <InputLabel id={fullName + "__label"}>{field.label}</InputLabel>
         <Controller
-          name={name}
+          name={fullName}
           control={control}
-          defaultValue={field.value ?? ""}
           rules={{ required: field.required }}
           render={({ field: controllerField, fieldState: { error } }) => (
             <>
               <Select
-                labelId={name + "__label"}
+                labelId={fullName + "__label"}
                 variant="outlined"
                 label={field.label}
-                id={field.id}
+                id={fullName}
                 {...controllerField}
                 {...selectAttr}
                 onChange={(e, child) => {
                   controllerField.onChange(e, child);
                   selectAttr?.onChange?.(e, child);
-                  onNodeNameChange?.(nameAsArray.join("."));
-                  field.afterChange?.(e.target.value);
                 }}
                 endAdornment={
-                  field.informative?.help_text && (
-                    <InputAdornment position="end">
-                      <Tooltip
-                        arrow
-                        placement="bottom-end"
-                        title={
-                          field.informative.as_html ? (
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: field.informative.help_text,
-                              }}
-                            ></span>
-                          ) : (
-                            field.informative.help_text
-                          )
-                        }
-                      >
-                        <IconButton disableTouchRipple sx={{ mr: "16px" }}>
-                          <HelpOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </InputAdornment>
-                  )
+                  <InputAdornment position="end">
+                    <Tooltip
+                      arrow
+                      placement="bottom-end"
+                      title={field.info.helpText}
+                    >
+                      <IconButton disableTouchRipple sx={{ mr: "16px" }}>
+                        <HelpOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
                 }
               >
-                {field.options.map((option, optionIndex) => (
-                  <MenuItem
-                    key={`${option.value}_${optionIndex}`}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </MenuItem>
-                ))}
+                {SearchEngine.getPrefixedNodesNames().map(
+                  (option, optionIndex) => (
+                    <MenuItem key={`${option}_${optionIndex}`} value={option}>
+                      {option}
+                    </MenuItem>
+                  ),
+                )}
               </Select>
               {error && <FormHelperText error>{error.message}</FormHelperText>}
             </>

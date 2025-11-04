@@ -8,7 +8,6 @@ export type SectionProps = {
   section: SectionCls;
   superSection?: SuperSection;
   control: Control<any>;
-  isLoadingConfig?: boolean;
   register: UseFormRegister<any>;
   nestedIn?: string[];
 };
@@ -17,7 +16,6 @@ export default function Section({
   superSection,
   section,
   control,
-  isLoadingConfig = false,
   register,
   nestedIn,
   ...props
@@ -44,7 +42,6 @@ export default function Section({
         return (
           <Subsection
             control={control}
-            isLoadingConfig={isLoadingConfig}
             register={register}
             section={section}
             subsection={subsection}

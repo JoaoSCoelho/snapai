@@ -23,10 +23,10 @@ import { MultiSelectField as MultiSelectFieldCls } from "@/simulator/configurati
 import { PercentageField as PercentageFieldCls } from "@/simulator/configurations/layout/fields/PercentageField";
 import { SelectField as SelectFieldCls } from "@/simulator/configurations/layout/fields/SelectField";
 import { NodeSelectField as NodeSelectFieldCls } from "@/simulator/configurations/layout/fields/NodeSelectField";
+import AngleField from "./AngleField";
 
 export type FormFieldProps = {
   field: Field;
-  fieldIndex: number;
   containerAttr?: HTMLAttributes<HTMLDivElement>;
   register: UseFormRegister<any>;
   control: Control<any>;
@@ -67,7 +67,7 @@ export default function FormField({
     return (
       <NumberPairField
         field={field as NumberPairFieldCls}
-        inputsAttr={{ disabled }}
+        inputAttr={{ disabled }}
         {...fieldAttrs}
       />
     );
@@ -123,7 +123,7 @@ export default function FormField({
     return (
       <AnglePairField
         field={field as AnglePairFieldCls}
-        inputsAttr={{ disabled }}
+        inputAttr={{ disabled }}
         {...fieldAttrs}
       />
     );
@@ -131,7 +131,7 @@ export default function FormField({
     return (
       <AngleField
         field={field as AngleFieldCls}
-        inputsAttr={{ disabled }}
+        inputAttr={{ disabled }}
         {...fieldAttrs}
       />
     );

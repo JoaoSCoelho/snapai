@@ -9,10 +9,10 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import { useForm } from "react-hook-form";
 import { Layout } from "@/simulator/configurations/layout/Layout";
 import { useErrorModal } from "../contexts/ErrorModalContext";
-import { Section } from "@/simulator/configurations/layout/Section";
 import { Project } from "@/simulator/models/Project";
 import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 import { ErrorSystem } from "../utils/ErrorSystem";
+import Section from "./Section";
 
 const ReactJson = dynamic(() => import("@microlink/react-json-view"), {
   ssr: false,
@@ -47,8 +47,6 @@ export default function ConfigForm({ project }: ConfigFormProps) {
     control,
     handleSubmit,
     formState: { errors: formErrors },
-    reset,
-    watch,
   } = useForm({
     resolver: zodResolver(
       z.object({
@@ -132,13 +130,11 @@ export default function ConfigForm({ project }: ConfigFormProps) {
               return (
                 <Section
                   control={control}
-                  isLoadingConfig={isLoadingConfig}
                   register={register}
                   section={section}
                   nestedIn={superSection.nestedIn}
                   superSection={superSection}
-                  key={section.id + sectionIndex}
-                  onModelNameChange={updateModelSections}
+                  key={section.title + sectionIndex}
                 />
               );
             })}

@@ -5,27 +5,20 @@ import {
   InputAdornment,
   TextField as MaterialTextField,
   TextFieldProps as MaterialTextFieldProps,
-  TextField as ColorField,
   Tooltip,
 } from "@mui/material";
 import { FormFieldProps } from "./FormField";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Field } from "@/simulator/configurations/layout/fields/Field";
-
-export type ColorField = Field & {
-  type: "color";
-  value: `#${string}`;
-};
+import { ColorField as ColorFieldCls } from "@/simulator/configurations/layout/fields/ColorField";
 
 export type ColorFieldProps = FormFieldProps & {
   inputAttr?: MaterialTextFieldProps;
   formControlAttr?: FormControlProps;
-  field: ColorField;
+  field: ColorFieldCls;
 };
 
 function ColorField({
   field,
-  fieldIndex,
   inputAttr,
   containerAttr,
   formControlAttr,
@@ -39,7 +32,6 @@ function ColorField({
 
   return (
     <div
-      key={fullName + fieldIndex}
       style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
@@ -47,7 +39,7 @@ function ColorField({
         <MaterialTextField
           variant="outlined"
           label={field.label}
-          type={field.type}
+          type="color"
           id={fullName}
           helperText={error}
           required={field.required}

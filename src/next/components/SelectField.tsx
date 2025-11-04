@@ -1,4 +1,3 @@
-import { Field } from "@/lib/fetchers";
 import { FormFieldProps } from "./FormField";
 import {
   FormControl,
@@ -14,15 +13,10 @@ import {
 } from "@mui/material";
 import { Controller } from "react-hook-form";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-
-export type SelectField = Field & {
-  type: "select";
-  value: unknown;
-  options: { value: unknown; label: string }[];
-};
+import { SelectField as SelectFieldCls } from "@/simulator/configurations/layout/fields/SelectField";
 
 export type SelectFieldProps = FormFieldProps & {
-  field: SelectField;
+  field: SelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
 };
@@ -33,61 +27,45 @@ export default function SelectField({
   control,
   selectAttr,
   formControlAttr,
-  fieldIndex,
   containerAttr,
 }: SelectFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), ...field.nested_paths, field.name];
-  const name = nameAsArray.join(".");
+  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const fullName = nameAsArray.join(".");
 
   return (
     <div
-      key={field.id + fieldIndex}
-      style={{ gridColumn: `span ${field.occuped_columns}` }}
+      style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
       <FormControl fullWidth {...formControlAttr}>
-        <InputLabel id={name + "__label"}>{field.label}</InputLabel>
+        <InputLabel id={fullName + "__label"}>{field.label}</InputLabel>
         <Controller
-          name={name}
+          name={fullName}
           control={control}
-          defaultValue={field.value ?? ""}
           rules={{ required: field.required }}
           render={({ field: controllerField, fieldState: { error } }) => (
             <>
               <Select
-                labelId={name + "__label"}
+                labelId={fullName + "__label"}
                 variant="outlined"
                 label={field.label}
-                id={field.id}
+                id={fullName}
                 value={controllerField.value ?? ""}
                 onChange={(e) => {
                   controllerField.onChange(e);
-                  field.afterChange?.(e.target.value);
                 }}
                 endAdornment={
-                  field.informative?.help_text && (
-                    <InputAdornment position="end">
-                      <Tooltip
-                        arrow
-                        placement="bottom-end"
-                        title={
-                          field.informative.as_html ? (
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: field.informative.help_text,
-                              }}
-                            ></span>
-                          ) : (
-                            field.informative.help_text
-                          )
-                        }
-                      >
-                        <IconButton disableTouchRipple sx={{ mr: "16px" }}>
-                          <HelpOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </InputAdornment>
-                  )
+                  <InputAdornment position="end">
+                    <Tooltip
+                      arrow
+                      placement="bottom-end"
+                      title={field.info.helpText}
+                    >
+                      <IconButton disableTouchRipple sx={{ mr: "16px" }}>
+                        <HelpOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
                 }
                 {...selectAttr}
               >

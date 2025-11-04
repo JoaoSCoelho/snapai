@@ -16,4 +16,8 @@ export class PingPongProject extends Project {
 
     this.addModel("PingPongMobilityModel", PingPongMobilityModel);
   }
+
+  public static create(): PingPongProject {
+    return new PingPongProject();
+  }
 }

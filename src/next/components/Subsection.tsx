@@ -12,14 +12,12 @@ export type SubsectionProps = {
   subsectionIndex: number;
   control: Control<any>;
   register: UseFormRegister<any>;
-  isLoadingConfig: boolean;
   nestedIn?: string[];
 };
 
 export default function Subsection({
   superSection,
   control,
-  isLoadingConfig,
   register,
   section,
   subsection,
@@ -42,7 +40,6 @@ export default function Subsection({
         return (
           <Line
             control={control}
-            isLoadingConfig={isLoadingConfig}
             line={line}
             lineIndex={lineIndex}
             register={register}

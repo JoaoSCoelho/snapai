@@ -1,4 +1,3 @@
-import { Field } from "@/lib/fetchers";
 import { FormFieldProps } from "./FormField";
 import { Controller, ControllerProps } from "react-hook-form";
 import {
@@ -14,60 +13,45 @@ import {
 } from "@mui/material";
 import clsx from "clsx";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-
-export type NumberPairField = Field & {
-  type: "number_pair";
-  value: [number, number];
-  is_float: boolean;
-  min_left_value: number | null;
-  max_left_value: number | null;
-  min_right_value: number | null;
-  max_right_value: number | null;
-  right_should_be_gte_left: boolean;
-};
+import { NumberPairField as NumberPairFieldCls } from "@/simulator/configurations/layout/fields/NumberPairField";
 
 export type NumberPairFieldProps = FormFieldProps & {
-  field: NumberPairField;
+  field: NumberPairFieldCls;
   controllerAttr?: ControllerProps;
-  inputsAttr?: TextFieldProps;
+  inputAttr?: TextFieldProps;
 };
 
 export default function NumberPairField({
   control,
   field,
-  fieldIndex,
   containerAttr,
-  inputsAttr,
+  inputAttr,
   nestedIn,
 }: NumberPairFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), ...field.nested_paths, field.name];
-  let leftGreaterThanRight: NodeJS.Timeout | null = null;
+  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const fullName = nameAsArray.join(".");
 
   return (
     <div
-      key={field.id + fieldIndex}
-      style={{ gridColumn: `span ${field.occuped_columns}` }}
+      style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
       <Controller
         control={control}
-        name={nameAsArray.join(".")}
-        defaultValue={field.value}
+        name={fullName}
         render={({ field: renderField, fieldState: { error } }) => {
           const [min, max] = renderField.value ?? ([0, 0] as [number, number]);
           const setMin = (val: number) => {
             renderField.onChange([val, max]);
-            field.afterChange?.([val, max]);
           };
           const setMax = (val: number) => {
             renderField.onChange([min, val]);
-            field.afterChange?.([min, val]);
           };
           return (
             <>
               <InputLabel
                 shrink
-                id={`input_label_${field.id}_index_${fieldIndex}`}
+                id={`input_label_${fullName}}`}
                 className={clsx(
                   "ml-2",
                   "block",
@@ -99,13 +83,13 @@ export default function NumberPairField({
                   }}
                   slotProps={{
                     htmlInput: {
-                      min: field.min_left_value,
-                      max: field.max_left_value,
+                      min: field.minLeft,
+                      max: field.maxLeft,
                     },
                   }}
                   onChange={(e) => setMin(Number(e.target.value))}
                   error={!!error}
-                  {...inputsAttr}
+                  {...inputAttr}
                 />
                 <Divider orientation="vertical" flexItem />
                 <TextField
@@ -117,26 +101,16 @@ export default function NumberPairField({
                   }}
                   slotProps={{
                     htmlInput: {
-                      min: field.min_right_value,
-                      max: field.max_right_value,
+                      min: field.minRight,
+                      max: field.maxRight,
                     },
                     input: {
-                      endAdornment: field.informative?.help_text && (
+                      endAdornment: (
                         <InputAdornment position="end">
                           <Tooltip
                             arrow
                             placement="bottom-end"
-                            title={
-                              field.informative.as_html ? (
-                                <span
-                                  dangerouslySetInnerHTML={{
-                                    __html: field.informative.help_text,
-                                  }}
-                                ></span>
-                              ) : (
-                                field.informative.help_text
-                              )
-                            }
+                            title={field.info.helpText}
                           >
                             <IconButton disableTouchRipple sx={{ mr: "-8px" }}>
                               <HelpOutlineIcon fontSize="small" />
@@ -148,7 +122,7 @@ export default function NumberPairField({
                   }}
                   onChange={(e) => setMax(Number(e.target.value))}
                   error={!!error}
-                  {...inputsAttr}
+                  {...inputAttr}
                 />
               </Box>
               {error?.message && (

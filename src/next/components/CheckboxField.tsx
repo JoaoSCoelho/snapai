@@ -13,15 +13,10 @@ import {
 import clsx from "clsx";
 import { Controller } from "react-hook-form";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Field } from "@/simulator/configurations/layout/fields/Field";
-
-export type CheckboxField = Field & {
-  type: "checkbox";
-  value: boolean;
-};
+import { CheckboxField as CheckboxFieldCls } from "@/simulator/configurations/layout/fields/CheckboxField";
 
 export type CheckboxFieldProps = FormFieldProps & {
-  field: CheckboxField;
+  field: CheckboxFieldCls;
   checkboxAttr?: CheckboxProps;
   formControlAttr?: FormControlProps;
   formControlLabelAttr?: FormControlLabelProps;
@@ -29,7 +24,6 @@ export type CheckboxFieldProps = FormFieldProps & {
 
 export default function CheckboxField({
   field,
-  fieldIndex,
   containerAttr,
   checkboxAttr,
   formControlAttr,
@@ -43,7 +37,6 @@ export default function CheckboxField({
 
   return (
     <div
-      key={fullName + fieldIndex}
       style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >

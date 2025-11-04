@@ -3,7 +3,7 @@ import z from "zod";
 import { Field, FieldSchema } from "./Field";
 
 export type SelectFieldSchema = FieldSchema & {
-  options: { value: any; label: string }[];
+  options: { value: string | number; label: string }[];
 };
 
 export class SelectField extends Field {
@@ -13,7 +13,7 @@ export class SelectField extends Field {
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    public readonly options: { value: any; label: string }[],
+    public readonly options: { value: string | number; label: string }[],
     info: { title: string; helpText?: ReactNode },
   ) {
     super(name, label, occupedColumns, schema, required, info);

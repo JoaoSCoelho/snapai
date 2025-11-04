@@ -1,8 +1,11 @@
+import { DefaultProject } from "./defaults/DefaultProject";
 import { Project } from "./models/Project";
 
 export class Simulator {
   public static readonly instance: Simulator = new Simulator();
-  public projects: Map<string, Project> = new Map<string, Project>();
+  public projects: Map<string, Project> = new Map<string, Project>([
+    ["default", DefaultProject.create()],
+  ]);
 
   private constructor() {}
 

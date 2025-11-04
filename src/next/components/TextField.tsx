@@ -1,4 +1,3 @@
-import { Field } from "@/lib/fetchers";
 import {
   FormControl,
   FormControlProps,
@@ -6,28 +5,20 @@ import {
   InputAdornment,
   TextField as MaterialTextField,
   TextFieldProps as MaterialTextFieldProps,
-  TextField,
   Tooltip,
 } from "@mui/material";
 import { FormFieldProps } from "./FormField";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-
-export type TextField = Field & {
-  type: "text";
-  value: string;
-  min_length: number;
-  max_length: number | null;
-};
+import { TextField as TextFieldCls } from "@/simulator/configurations/layout/fields/TextField";
 
 export type TextFieldProps = FormFieldProps & {
   inputAttr?: MaterialTextFieldProps;
   formControlAttr?: FormControlProps;
-  field: TextField;
+  field: TextFieldCls;
 };
 
 function TextField({
   field,
-  fieldIndex,
   inputAttr,
   containerAttr,
   formControlAttr,
@@ -35,46 +26,36 @@ function TextField({
   control,
   register,
 }: TextFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), ...field.nested_paths, field.name];
-  const error = control.getFieldState(nameAsArray.join(".")).error?.message;
+  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const fullName = nameAsArray.join(".");
+  const error = control.getFieldState(fullName).error?.message;
 
   return (
     <div
-      key={field.id + fieldIndex}
-      style={{ gridColumn: `span ${field.occuped_columns}` }}
+      style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
       <FormControl fullWidth {...formControlAttr}>
         <MaterialTextField
           variant="outlined"
           label={field.label}
-          type={field.type}
-          id={field.id}
+          type="text"
+          id={fullName}
           helperText={error}
           required={field.required}
           slotProps={{
             formHelperText: { error: true },
             htmlInput: {
-              minLength: field.min_length,
-              maxLength: field.max_length,
+              minLength: field.minLength,
+              maxLength: field.maxLength,
             },
             input: {
-              endAdornment: field.informative?.help_text && (
+              endAdornment: (
                 <InputAdornment position="end">
                   <Tooltip
                     arrow
                     placement="bottom-end"
-                    title={
-                      field.informative.as_html ? (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: field.informative.help_text,
-                          }}
-                        ></span>
-                      ) : (
-                        field.informative.help_text
-                      )
-                    }
+                    title={field.info.helpText}
                   >
                     <IconButton disableTouchRipple sx={{ mr: "-8px" }}>
                       <HelpOutlineIcon fontSize="small" />
@@ -84,9 +65,7 @@ function TextField({
               ),
             },
           }}
-          {...register(nameAsArray.join("."), {
-            onChange: (e) => field.afterChange?.(e.target.value),
-          })}
+          {...register(fullName)}
           {...inputAttr}
         />
       </FormControl>

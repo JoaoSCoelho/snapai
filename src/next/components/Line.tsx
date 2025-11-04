@@ -14,7 +14,6 @@ export type LineProps = {
   superSection?: SuperSection;
   register: UseFormRegister<ConfigFormSchema>;
   control: Control<ConfigFormSchema>;
-  isLoadingConfig: boolean;
   nestedIn?: string[];
 };
 
@@ -26,7 +25,6 @@ export default function Line({
   line,
   control,
   register,
-  isLoadingConfig,
   nestedIn,
   ...props
 }: LineProps) {
@@ -46,10 +44,8 @@ export default function Line({
             nestedIn={nestedIn}
             control={control}
             field={field}
-            fieldIndex={fieldIndex}
             register={register}
             key={field.name + fieldIndex}
-            disabled={isLoadingConfig}
             {...props}
           ></FormField>
         );

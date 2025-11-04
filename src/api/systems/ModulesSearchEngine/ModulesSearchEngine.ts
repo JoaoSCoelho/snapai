@@ -13,6 +13,9 @@ import { Model } from "@/simulator/models/Model";
 import { ConnectivityModel } from "@/simulator/models/ConnectivityModel";
 import { MessageTransmissionModel } from "@/simulator/models/MessageTransmissionModel";
 
+/**
+ * @deprecated
+ */
 export class ModulesSearchEngine {
   constructor(
     private readonly config: SimulatorConfig = SimulatorConfig.getInstance(),
@@ -241,104 +244,104 @@ export class ModulesSearchEngine {
     }
   }
 
-  /**
-   * Finds a distribution model implementation by its identifier, if is only a name, it will search on defaults/distribution_models.
-   * In case of identifier have an ":", it will consider it as {project}:{distribution_model} and search on projects/{project}/distribution_models.
-   * @throws
-   * ModelNotFoundError if the distribution model implementation was not found.
-   * @returns
-   * The DistributionModel class to be instantiated.
-   */
-  public async findDistributionModel(
-    distributionModelIdentifier: string,
-  ): Promise<typeof DistributionModel> {
-    return await this.findGenericModel(
-      distributionModelIdentifier,
-      "distribution",
-    );
-  }
+  // /**
+  //  * Finds a distribution model implementation by its identifier, if is only a name, it will search on defaults/distribution_models.
+  //  * In case of identifier have an ":", it will consider it as {project}:{distribution_model} and search on projects/{project}/distribution_models.
+  //  * @throws
+  //  * ModelNotFoundError if the distribution model implementation was not found.
+  //  * @returns
+  //  * The DistributionModel class to be instantiated.
+  //  */
+  // public async findDistributionModel(
+  //   distributionModelIdentifier: string,
+  // ): Promise<typeof DistributionModel> {
+  //   return await this.findGenericModel(
+  //     distributionModelIdentifier,
+  //     "distribution",
+  //   );
+  // }
 
-  /**
-   * Finds a reliability model implementation by its identifier, if is only a name, it will search on defaults/reliability_models.
-   * In case of identifier have an ":", it will consider it as {project}:{reliability_model} and search on projects/{project}/reliability_models.
-   * @throws
-   * ModelNotFoundError if the reliability model implementation was not found.
-   * @returns
-   * The ReliabilityModel class to be instantiated.
-   */
-  public async findReliabilityModel(
-    reliabilityModelIdentifier: string,
-  ): Promise<typeof ReliabilityModel> {
-    return await this.findGenericModel(
-      reliabilityModelIdentifier,
-      "reliability",
-    );
-  }
+  // /**
+  //  * Finds a reliability model implementation by its identifier, if is only a name, it will search on defaults/reliability_models.
+  //  * In case of identifier have an ":", it will consider it as {project}:{reliability_model} and search on projects/{project}/reliability_models.
+  //  * @throws
+  //  * ModelNotFoundError if the reliability model implementation was not found.
+  //  * @returns
+  //  * The ReliabilityModel class to be instantiated.
+  //  */
+  // public async findReliabilityModel(
+  //   reliabilityModelIdentifier: string,
+  // ): Promise<typeof ReliabilityModel> {
+  //   return await this.findGenericModel(
+  //     reliabilityModelIdentifier,
+  //     "reliability",
+  //   );
+  // }
 
-  /**
-   * Finds a mobility model implementation by its identifier, if is only a name, it will search on defaults/mobility_models.
-   * In case of identifier have an ":", it will consider it as {project}:{mobility_model} and search on projects/{project}/mobility_models.
-   * @throws
-   * ModelNotFoundError if the mobility model implementation was not found.
-   * @returns
-   * The MobilityModel class to be instantiated.
-   */
-  public async findMobilityModel(
-    mobilityModelIdentifier: string,
-  ): Promise<typeof MobilityModel> {
-    return await this.findGenericModel(mobilityModelIdentifier, "mobility");
-  }
+  // /**
+  //  * Finds a mobility model implementation by its identifier, if is only a name, it will search on defaults/mobility_models.
+  //  * In case of identifier have an ":", it will consider it as {project}:{mobility_model} and search on projects/{project}/mobility_models.
+  //  * @throws
+  //  * ModelNotFoundError if the mobility model implementation was not found.
+  //  * @returns
+  //  * The MobilityModel class to be instantiated.
+  //  */
+  // public async findMobilityModel(
+  //   mobilityModelIdentifier: string,
+  // ): Promise<typeof MobilityModel> {
+  //   return await this.findGenericModel(mobilityModelIdentifier, "mobility");
+  // }
 
-  /**
-   * Finds an interference model implementation by its identifier, if is only a name, it will search on defaults/interference_models.
-   * In case of identifier have an ":", it will consider it as {project}:{interference_model} and search on projects/{project}/interference_models.
-   * @throws
-   * ModelNotFoundError if the interference model implementation was not found.
-   * @returns
-   * The InterferenceModel class to be instantiated.
-   */
-  public async findInterferenceModel(
-    interferenceModelIdentifier: string,
-  ): Promise<typeof InterferenceModel> {
-    return await this.findGenericModel(
-      interferenceModelIdentifier,
-      "interference",
-    );
-  }
+  // /**
+  //  * Finds an interference model implementation by its identifier, if is only a name, it will search on defaults/interference_models.
+  //  * In case of identifier have an ":", it will consider it as {project}:{interference_model} and search on projects/{project}/interference_models.
+  //  * @throws
+  //  * ModelNotFoundError if the interference model implementation was not found.
+  //  * @returns
+  //  * The InterferenceModel class to be instantiated.
+  //  */
+  // public async findInterferenceModel(
+  //   interferenceModelIdentifier: string,
+  // ): Promise<typeof InterferenceModel> {
+  //   return await this.findGenericModel(
+  //     interferenceModelIdentifier,
+  //     "interference",
+  //   );
+  // }
 
-  /**
-   * Finds a connectivity model implementation by its identifier, if is only a name, it will search on defaults/connectivity_models.
-   * In case of identifier have an ":", it will consider it as {project}:{connectivity_model} and search on projects/{project}/connectivity_models.
-   * @throws
-   * ModelNotFoundError if the connectivity model implementation was not found.
-   * @returns
-   * The ConnectivityModel class to be instantiated.
-   */
-  public async findConnectivityModel(
-    connectivityModelIdentifier: string,
-  ): Promise<typeof ConnectivityModel> {
-    return await this.findGenericModel(
-      connectivityModelIdentifier,
-      "connectivity",
-    );
-  }
+  // /**
+  //  * Finds a connectivity model implementation by its identifier, if is only a name, it will search on defaults/connectivity_models.
+  //  * In case of identifier have an ":", it will consider it as {project}:{connectivity_model} and search on projects/{project}/connectivity_models.
+  //  * @throws
+  //  * ModelNotFoundError if the connectivity model implementation was not found.
+  //  * @returns
+  //  * The ConnectivityModel class to be instantiated.
+  //  */
+  // public async findConnectivityModel(
+  //   connectivityModelIdentifier: string,
+  // ): Promise<typeof ConnectivityModel> {
+  //   return await this.findGenericModel(
+  //     connectivityModelIdentifier,
+  //     "connectivity",
+  //   );
+  // }
 
-  /**
-   * Finds a message transmission model implementation by its identifier, if is only a name, it will search on defaults/message_transmission_models.
-   * In case of identifier have an ":", it will consider it as {project}:{message_transmission_model} and search on projects/{project}/message_transmission_models.
-   * @throws
-   * ModelNotFoundError if the message transmission model implementation was not found.
-   * @returns
-   * The MessageTransmissionModel class to be instantiated.
-   */
-  public async findMessageTransmissionModel(
-    messageTransmissionModelIdentifier: string,
-  ): Promise<typeof MessageTransmissionModel> {
-    return await this.findGenericModel(
-      messageTransmissionModelIdentifier,
-      "message_transmission",
-    );
-  }
+  // /**
+  //  * Finds a message transmission model implementation by its identifier, if is only a name, it will search on defaults/message_transmission_models.
+  //  * In case of identifier have an ":", it will consider it as {project}:{message_transmission_model} and search on projects/{project}/message_transmission_models.
+  //  * @throws
+  //  * ModelNotFoundError if the message transmission model implementation was not found.
+  //  * @returns
+  //  * The MessageTransmissionModel class to be instantiated.
+  //  */
+  // public async findMessageTransmissionModel(
+  //   messageTransmissionModelIdentifier: string,
+  // ): Promise<typeof MessageTransmissionModel> {
+  //   return await this.findGenericModel(
+  //     messageTransmissionModelIdentifier,
+  //     "message_transmission",
+  //   );
+  // }
 
   /**
    * Finds a generic model implementation by its identifier, if is only a name, it will search on defaults/{modelType}_models.

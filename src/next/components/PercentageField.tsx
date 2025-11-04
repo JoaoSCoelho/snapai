@@ -8,22 +8,17 @@ import {
   Tooltip,
 } from "@mui/material";
 import { FormFieldProps } from "./FormField";
-import { NumberField } from "./NumberField";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-
-export type PercentageField = Omit<NumberField, "type"> & {
-  type: "percentage";
-};
+import { PercentageField as PercentageFieldCls } from "@/simulator/configurations/layout/fields/PercentageField";
 
 type PercentageFieldProps = FormFieldProps & {
-  field: PercentageField;
+  field: PercentageFieldCls;
   formControlAttr?: FormControlProps;
   inputAttr?: TextFieldProps;
 };
 
 export default function PercentageField({
   field,
-  fieldIndex,
   register,
   containerAttr,
   formControlAttr,
@@ -31,13 +26,13 @@ export default function PercentageField({
   control,
   nestedIn,
 }: PercentageFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), ...field.nested_paths, field.name];
-  const error = control.getFieldState(nameAsArray.join("."))?.error?.message;
+  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const fullName = nameAsArray.join(".");
+  const error = control.getFieldState(fullName)?.error?.message;
 
   return (
     <div
-      key={field.id + fieldIndex}
-      style={{ gridColumn: `span ${field.occuped_columns}` }}
+      style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
       <FormControl fullWidth {...formControlAttr}>
@@ -48,48 +43,33 @@ export default function PercentageField({
           slotProps={{
             formHelperText: { error: true },
             htmlInput: {
-              step: field.is_float ? "any" : "1",
-              min: field.min_value,
-              max: field.max_value,
+              step: field.isFloat ? "any" : "1",
+              min: field.min,
+              max: field.max,
             },
             input: {
               endAdornment: (
                 <>
                   <InputAdornment position="end">%</InputAdornment>
-                  {field.informative?.help_text && (
-                    <InputAdornment position="end">
-                      <Tooltip
-                        arrow
-                        placement="bottom-end"
-                        title={
-                          field.informative.as_html ? (
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: field.informative.help_text,
-                              }}
-                            ></span>
-                          ) : (
-                            field.informative.help_text
-                          )
-                        }
-                      >
-                        <IconButton disableTouchRipple sx={{ mr: "-8px" }}>
-                          <HelpOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </InputAdornment>
-                  )}
+                  <InputAdornment position="end">
+                    <Tooltip
+                      arrow
+                      placement="bottom-end"
+                      title={field.info.helpText}
+                    >
+                      <IconButton disableTouchRipple sx={{ mr: "-8px" }}>
+                        <HelpOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
                 </>
               ),
             },
           }}
           helperText={error}
-          id={field.id}
+          id={fullName}
           required={field.required}
-          {...register(nameAsArray.join("."), {
-            valueAsNumber: true,
-            onChange: (e) => field.afterChange?.(Number(e.target.value)),
-          })}
+          {...register(fullName, { valueAsNumber: true })}
           {...inputAttr}
         />
       </FormControl>

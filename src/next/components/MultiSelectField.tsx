@@ -14,18 +14,10 @@ import {
 import { Controller } from "react-hook-form";
 import clsx from "clsx";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Field } from "@/simulator/configurations/layout/fields/Field";
-
-export type MultiSelectField = Field & {
-  type: "multiselect";
-  value: unknown[];
-  options: { value: unknown; label: string }[];
-  min_selected: number;
-  max_selected: number | null;
-};
+import { MultiSelectField as MultiSelectFieldCls } from "@/simulator/configurations/layout/fields/MultiSelectField";
 
 export type MultiSelectFieldProps = FormFieldProps & {
-  field: MultiSelectField;
+  field: MultiSelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
 };
@@ -36,7 +28,6 @@ export default function MultiSelectField({
   control,
   selectAttr,
   formControlAttr,
-  fieldIndex,
   containerAttr,
 }: MultiSelectFieldProps) {
   const nameAsArray = [...(nestedIn ?? []), field.name];
@@ -44,7 +35,6 @@ export default function MultiSelectField({
 
   return (
     <div
-      key={fullName + fieldIndex}
       style={{ gridColumn: `span ${field.occupedColumns}` }}
       {...containerAttr}
     >
@@ -53,7 +43,6 @@ export default function MultiSelectField({
         <Controller
           name={fullName}
           control={control}
-          defaultValue={field.value ?? []}
           rules={{ required: field.required }}
           render={({ field: controllerField, fieldState: { error } }) => (
             <>
@@ -86,7 +75,7 @@ export default function MultiSelectField({
                 {field.options.map((option, optionIndex) => (
                   <MenuItem
                     key={`${option.value}_${optionIndex}`}
-                    value={option.value as string | number}
+                    value={option.value}
                   >
                     {option.label}
                   </MenuItem>
