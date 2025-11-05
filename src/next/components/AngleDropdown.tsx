@@ -4,10 +4,10 @@ import AngleSlider from "./AngleSlider";
 
 export type AngleDropdownProps = {
   angle: number;
-  is_float: boolean;
+  isFloat: boolean;
   isDegrees: boolean;
-  min_value: number | null;
-  max_value: number | null;
+  minValue: number | null;
+  maxValue: number | null;
   onChange?: (angle: number) => any;
   onFocusAdjusments?: () => any;
   onBlurAdjusments?: () => any;
@@ -16,9 +16,9 @@ export type AngleDropdownProps = {
 const AngleDropdown = forwardRef<unknown, AngleDropdownProps>(
   (
     {
-      min_value,
-      max_value,
-      is_float,
+      minValue,
+      maxValue,
+      isFloat,
       angle,
       onChange,
       isDegrees,
@@ -27,7 +27,7 @@ const AngleDropdown = forwardRef<unknown, AngleDropdownProps>(
     },
     ref,
   ) => {
-    const step = is_float ? 0.01 : 1;
+    const step = isFloat ? 0.01 : 1;
     const [fineAdjustment, setFineAdjustment] = useState(step);
 
     return (
@@ -36,8 +36,8 @@ const AngleDropdown = forwardRef<unknown, AngleDropdownProps>(
           fineAdjustment={fineAdjustment}
           scrollStep={1}
           onChange={(angle) => {
-            if (min_value !== null && angle < min_value) angle = min_value;
-            if (max_value !== null && angle > max_value) angle = max_value;
+            if (minValue !== null && angle < minValue) angle = minValue;
+            if (maxValue !== null && angle > maxValue) angle = maxValue;
 
             onChange?.(angle);
           }}

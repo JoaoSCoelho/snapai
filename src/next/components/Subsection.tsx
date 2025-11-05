@@ -46,7 +46,7 @@ export default function Subsection({
             section={section}
             subsection={subsection}
             superSection={superSection}
-            nestedIn={nestedIn}
+            nestedIn={(nestedIn ?? []).concat(subsection.nestedIn)}
             key={`subsection_${subsection.title ?? "" + subsectionIndex}_line${lineIndex}`}
             {...props}
           />

@@ -66,7 +66,6 @@ export default function CheckboxField({
                 title={field.info.title}
                 control={
                   <Checkbox
-                    required={field.required}
                     id={fullName}
                     checked={controllerField.value ?? false}
                     onChange={(e) => {
@@ -75,12 +74,7 @@ export default function CheckboxField({
                     {...checkboxAttr}
                   />
                 }
-                label={
-                  <>
-                    {field.label}
-                    {field.required && <span className="opacity-60">*</span>}
-                  </>
-                }
+                label={field.label}
                 {...formControlLabelAttr}
               />
             );

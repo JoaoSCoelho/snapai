@@ -1,10 +1,12 @@
 "use client";
 import { useConfigContext } from "@/next/contexts/ConfigContext";
 import ProjectSelect from "@/next/components/ProjectSelect";
-import { Simulator } from "@/simulator";
+import { simulator } from "@/simulator";
+import ConfigForm from "@/next/components/ConfigForm";
+import { SearchEngine } from "@/simulator/utils/SearchEngine";
 
 export default function DashboardConfiguration() {
-  const projectsNames = Simulator.instance.projects.keys().toArray();
+  const projectsNames = simulator.projects.keys().toArray();
   const { selectedProject } = useConfigContext();
 
   return (
@@ -27,7 +29,12 @@ export default function DashboardConfiguration() {
         <div className="full-form-container grid-cols-12 grid gap-4 w-full">
           <ProjectSelect projectsNames={projectsNames} />
           <div className="form-container col-start-1 col-end-13">
-            {/*selectedProject && <ConfigForm project_name={selectedProject} />*/}
+            {selectedProject && (
+              <ConfigForm
+                key={selectedProject}
+                project={SearchEngine.getProjectByName(selectedProject)}
+              />
+            )}
           </div>
         </div>
       </main>

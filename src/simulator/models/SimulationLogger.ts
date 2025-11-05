@@ -1,5 +1,5 @@
 import { Simulation } from "./Simulation";
-import { prisma } from "@/api/prisma/client";
+import { prisma } from "@/prisma/client";
 
 export class SimulationLogger {
   public constructor(

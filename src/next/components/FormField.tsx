@@ -24,6 +24,8 @@ import { PercentageField as PercentageFieldCls } from "@/simulator/configuration
 import { SelectField as SelectFieldCls } from "@/simulator/configurations/layout/fields/SelectField";
 import { NodeSelectField as NodeSelectFieldCls } from "@/simulator/configurations/layout/fields/NodeSelectField";
 import AngleField from "./AngleField";
+import AnglePairField from "./AnglePairField";
+import { Section } from "@/simulator/configurations/layout/Section";
 
 export type FormFieldProps = {
   field: Field;
@@ -32,6 +34,7 @@ export type FormFieldProps = {
   control: Control<any>;
   disabled?: boolean;
   nestedIn?: string[];
+  section: Section;
 };
 
 export default function FormField({

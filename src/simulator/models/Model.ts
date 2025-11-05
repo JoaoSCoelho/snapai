@@ -5,6 +5,10 @@ import { Module } from "./Module";
 export abstract class Model extends Module {
   public static readonly type: ModelType;
 
+  public constructor(public readonly parameters: Record<string, any>) {
+    super();
+  }
+
   /**
    * **Child classes should implements this static method to get the parameters subsection layout.**
    *

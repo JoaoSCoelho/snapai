@@ -1,7 +1,7 @@
 import "tsconfig-paths/register";
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
-import { ElectronInterface } from "../src/api/ElectronInterface";
+import { ElectronInterface } from "../src/api-deprecated/ElectronInterface";
 
 function createWindow() {
   const isDev = process.env.NODE_ENV === "development";

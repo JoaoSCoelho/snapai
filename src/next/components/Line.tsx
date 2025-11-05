@@ -45,6 +45,7 @@ export default function Line({
             control={control}
             field={field}
             register={register}
+            section={section}
             key={field.name + fieldIndex}
             {...props}
           ></FormField>

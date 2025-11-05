@@ -1,4 +1,5 @@
-import { Api } from "@/api/Api";
+import { Simulator } from "@/simulator";
+import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import z from "zod";
 
 export const simulationConfigSchema = z.object({
@@ -27,14 +28,16 @@ export const simulationConfigSchema = z.object({
   interferenceEnabled: z.boolean(),
   messageTransmissionModel: z.string().refine(
     (value) => {
-      if (!Api.getInstance().cache.modelsNames.has("message_transmission"))
-        throw new Error("Cache modelsNames not initialized");
-      return Api.getInstance()
-        .cache.modelsNames.get("message_transmission")!
-        .has(value);
+      return Simulator.inited
+        ? SearchEngine.getPrefixedModelsNames("message_transmission").includes(
+            value,
+          )
+        : true;
     },
     {
-      error: "Should be a pre-created message transmission model",
+      error: (value) => ({
+        message: "Invalid message transmission model:" + value.input,
+      }),
     },
   ),
   messageTransmissionModelParameters: z.record(z.string(), z.any()),

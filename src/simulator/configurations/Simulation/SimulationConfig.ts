@@ -7,89 +7,77 @@ import {
 } from "./simulationConfigSchema";
 
 export class SimulationConfig extends Config {
-  public readonly validatorSchema = simulationConfigSchema;
-  public readonly layout = simulationConfigLayout;
-
-  private simulationName = "default_simulation";
-  private dimX: [number, number] = [0, 1000];
-  private dimY: [number, number] = [0, 1000];
-  private isAsynchronous = false;
-  private shouldSaveTrace = false;
-  private registerStatisticsForEveryRound = false;
-  private nackMessagesEnabled = true;
-  private connectivityEnabled = true;
-  private interferenceEnabled = true;
-  private messageTransmissionModel = "constant_time";
-  private messageTransmissionModelParameters: Record<string, any> = {
-    time: 1,
-  };
-
   public constructor(
-    configJsonFilePath: string,
-    populateData: z.infer<typeof simulationConfigSchema>,
+    public readonly configJsonFilePath: string,
+    public readonly data: z.infer<typeof simulationConfigSchema>,
   ) {
-    super(configJsonFilePath, populateData);
-    this.parse(populateData);
+    super(
+      configJsonFilePath,
+      data,
+      simulationConfigLayout,
+      simulationConfigSchema,
+    );
   }
 
   public getSimulationName(): string {
-    return this.simulationName;
+    return this.data.simulationName;
   }
 
   public getDimX(): number[] {
-    return this.dimX;
+    return this.data.dimX;
   }
 
   public getDimY(): number[] {
-    return this.dimY;
+    return this.data.dimY;
   }
 
   public getIsAsynchronous(): boolean {
-    return this.isAsynchronous;
+    return this.data.isAsynchronous;
   }
 
   public getShouldSaveTrace(): boolean {
-    return this.shouldSaveTrace;
+    return this.data.shouldSaveTrace;
   }
 
   public getRegisterStatisticsForEveryRound(): boolean {
-    return this.registerStatisticsForEveryRound;
+    return this.data.registerStatisticsForEveryRound;
   }
 
   public getNackMessagesEnabled(): boolean {
-    return this.nackMessagesEnabled;
+    return this.data.nackMessagesEnabled;
   }
 
   public getConnectivityEnabled(): boolean {
-    return this.connectivityEnabled;
+    return this.data.connectivityEnabled;
   }
 
   public getInterferenceEnabled(): boolean {
-    return this.interferenceEnabled;
+    return this.data.interferenceEnabled;
   }
 
   public getMessageTransmissionModel(): string {
-    return this.messageTransmissionModel;
+    return this.data.messageTransmissionModel;
   }
 
   public getMessageTransmissionModelParameters(): Record<string, any> {
-    return this.messageTransmissionModelParameters;
+    return this.data.messageTransmissionModelParameters;
   }
 
   protected innerToJSON(): SimulationConfigSchema {
     return {
-      simulationName: this.simulationName,
-      dimX: this.dimX,
-      dimY: this.dimY,
-      isAsynchronous: this.isAsynchronous,
-      shouldSaveTrace: this.shouldSaveTrace,
-      registerStatisticsForEveryRound: this.registerStatisticsForEveryRound,
-      nackMessagesEnabled: this.nackMessagesEnabled,
-      connectivityEnabled: this.connectivityEnabled,
-      interferenceEnabled: this.interferenceEnabled,
-      messageTransmissionModel: this.messageTransmissionModel,
+      simulationName: this.data.simulationName,
+      dimX: this.data.dimX,
+      dimY: this.data.dimY,
+      isAsynchronous: this.data.isAsynchronous,
+      shouldSaveTrace: this.data.shouldSaveTrace,
+      registerStatisticsForEveryRound:
+        this.data.registerStatisticsForEveryRound,
+      nackMessagesEnabled: this.data.nackMessagesEnabled,
+      connectivityEnabled: this.data.connectivityEnabled,
+      interferenceEnabled: this.data.interferenceEnabled,
+      messageTransmissionModel: this.data.messageTransmissionModel,
       messageTransmissionModelParameters:
-        this.messageTransmissionModelParameters,
+        this.data.messageTransmissionModelParameters,
     };
   }
 }

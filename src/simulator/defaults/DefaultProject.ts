@@ -2,6 +2,7 @@ import { SimulationConfig } from "../configurations/Simulation/SimulationConfig"
 import { SimulationConfigSchema } from "../configurations/Simulation/simulationConfigSchema";
 import { Project } from "../models/Project";
 import jsonConfig from "./defaultConfig.json";
+import { ConstantTime } from "./messageTransmissionModels/ConstantTime";
 
 export class DefaultProject extends Project {
   protected constructor() {
@@ -12,7 +13,7 @@ export class DefaultProject extends Project {
         jsonConfig as SimulationConfigSchema,
       ),
       undefined,
-      new Map(),
+      new Map([["ConstantTime", ConstantTime]]),
       new Map(),
       new Map(),
       new Map(),

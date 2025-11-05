@@ -1,1 +1,21 @@
-{}
+{
+    "simulationName": "PingPongSimulation",
+    "dimX": [
+        500,
+        1500
+    ],
+    "dimY": [
+        50,
+        10000
+    ],
+    "isAsynchronous": false,
+    "shouldSaveTrace": true,
+    "registerStatisticsForEveryRound": true,
+    "nackMessagesEnabled": false,
+    "connectivityEnabled": true,
+    "interferenceEnabled": false,
+    "messageTransmissionModel": "PingPong:PingPongMessageTransmissionModel",
+    "messageTransmissionModelParameters": {
+        "time": 10
+    }
+}

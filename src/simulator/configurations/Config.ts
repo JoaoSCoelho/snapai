@@ -2,34 +2,44 @@ import z from "zod";
 import { Layout } from "./layout/Layout";
 
 export abstract class Config {
-  public abstract readonly layout: Layout;
-  public abstract readonly validatorSchema: z.ZodObject;
-
   /**
    * Constructor for Config class.
    *
-   * **Recommended to call `this.parse(this.innerToJSON());` after `super()` call in non-abstract child classes.**
    * @param {string} configJsonFilePath - Path to the config JSON file (to write, so use relative path from root, i.e. `./src/simulator/configurations/config.json`)
-   * @param {z.infer<typeof this.validatorSchema>} populateData - Data to populate the config object with.
+   * @param {z.infer<typeof this.validatorSchema>} data - Config data.
    */
   public constructor(
     /** Path to the config JSON file (to write, so use relative path from root, i.e. `./src/simulator/configurations/config.json`) */
     public readonly configJsonFilePath: string,
-    populateData: z.infer<typeof this.validatorSchema>,
+    public readonly data: z.infer<typeof this.validatorSchema>,
+    public readonly layout: Layout,
+    public readonly validatorSchema: z.ZodObject,
   ) {
-    this.populate(populateData);
+    this.parse(data);
   }
 
   protected parse(data: z.infer<typeof this.validatorSchema>) {
-    return this.validatorSchema.strict().safeParse(data);
+    return this.validatorSchema.strict().parse(data);
   }
 
   /**
    * Populate the config object from an object.
    * @param data JSON object. e.g. {paramA: "John", paramB: 30}.
+   * @deprecated
    */
-  public populate(data: z.infer<typeof this.validatorSchema>): this {
+  private populate(data: z.infer<typeof this.validatorSchema>): this {
     Object.assign(this, data);
+    return this;
+  }
+
+  /**
+   * Sets the config data.
+   * @param data JSON object. e.g. {paramA: "John", paramB: 30}.
+   * @returns this.
+   */
+  public setData(data: z.infer<typeof this.validatorSchema>): this {
+    // @ts-ignore
+    this.data = data;
     return this;
   }
 
@@ -41,8 +51,6 @@ export abstract class Config {
    * @returns the JSON object.
    */
   public toJSON(): z.infer<typeof this.validatorSchema> {
-    const parsed = this.validatorSchema.strict().safeParse(this.innerToJSON());
-    if (parsed.error) throw new Error("Error parsing Config", parsed.data);
-    return this.innerToJSON();
+    return this.validatorSchema.strict().parse(this.innerToJSON());
   }
 }

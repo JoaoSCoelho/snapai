@@ -10,19 +10,16 @@ import z from "zod";
 export class SimulatorConfig extends Config {
   private static instance: SimulatorConfig;
 
-  public readonly validatorSchema = simulatorConfigSchema;
-  public readonly layout = simulatorConfigLayout;
-
-  private readonly projectsPath = "src/simulator/projects";
-  private readonly defaultsPath = "src/simulator/defaults";
-  private readonly modelsPath = "src/simulator/models";
-
   public constructor(
-    configJsonFilePath: string,
-    populateData: z.infer<typeof simulatorConfigSchema>,
+    public readonly configJsonFilePath: string,
+    public readonly data: z.infer<typeof simulatorConfigSchema>,
   ) {
-    super(configJsonFilePath, populateData);
-    this.parse(populateData);
+    super(
+      configJsonFilePath,
+      data,
+      simulatorConfigLayout,
+      simulatorConfigSchema,
+    );
   }
 
   public static getInstance(): SimulatorConfig {
@@ -36,22 +33,22 @@ export class SimulatorConfig extends Config {
   }
 
   public getProjectsPath(): string {
-    return this.projectsPath;
+    return this.data.projectsPath;
   }
 
   public getDefaultsPath(): string {
-    return this.defaultsPath;
+    return this.data.defaultsPath;
   }
 
   public getModelsPath(): string {
-    return this.modelsPath;
+    return this.data.modelsPath;
   }
 
   protected innerToJSON(): SimulatorConfigSchema {
     return {
-      projectsPath: this.projectsPath,
-      defaultsPath: this.defaultsPath,
-      modelsPath: this.modelsPath,
+      projectsPath: this.data.projectsPath,
+      defaultsPath: this.data.defaultsPath,
+      modelsPath: this.data.modelsPath,
     };
   }
 }

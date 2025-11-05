@@ -1,3 +1,1 @@
-export abstract class Module {
-  public abstract name: string;
-}
+export abstract class Module {}

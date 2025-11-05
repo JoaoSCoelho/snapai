@@ -91,9 +91,9 @@ export default function AngleField({
               <AngleDropdown
                 angle={controllerField.value}
                 isDegrees={field.angleUnit === "deg"}
-                is_float={field.isFloat}
-                max_value={field.max}
-                min_value={field.min}
+                isFloat={field.isFloat}
+                maxValue={field.max}
+                minValue={field.min}
                 onChange={(angle) => {
                   controllerField.onChange(angle);
                 }}
