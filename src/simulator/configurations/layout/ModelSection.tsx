@@ -8,100 +8,75 @@ import { Subsection } from "./Subsection";
 import { Line } from "./Line";
 import { ModelSelectField } from "./fields/ModelSelectField";
 import z from "zod";
-import { ModelParametersSubsection } from "./ModelParametersSubsection";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import { Simulator } from "@/simulator";
+import { ModelParametersSubsection } from "./ModelParametersSubsection";
 
 export class ModelSection extends Section {
-  public constructor(
-    public readonly modelType: ModelType,
-    nestedIn?: string[],
-  ) {
-    const title = `${capitalizeFirstLetter(modelType).replace(/[_]/g, " ")} model Parameters`;
-    const subsections = [
-      new Subsection([
-        new Line([
-          ModelSelectField.create({
-            name: `${underscoreToCamelCase(modelType)}Model`,
-            label: `${capitalizeFirstLetter(modelType).replace(/[_]/g, " ")} Model`,
-            occupedColumns: 12,
-            modelType: modelType,
-            required: true,
-            schema: z.string().refine(
-              (value) => {
-                return Simulator.inited
-                  ? SearchEngine.getPrefixedModelsNames(modelType).includes(
-                      value,
-                    )
-                  : true;
-              },
-              {
-                error: `Should be a pre-created ${modelType.replace(/[_]/g, " ")} model`,
-              },
-            ),
-            info: {
-              title: `The name of the ${modelType.replace(/[_]/g, " ")} model to be used`,
-              helpText: (
-                <>
-                  The name of the {modelType.replace(/[_]/g, " ")} model to be
-                  used. <br />
-                  Use the following format: "<b>projectName:modelName</b>" to
-                  use a model from a specific project or "<b>modelName</b>" to
-                  use a default model.
-                </>
-              ),
+  public constructor(public readonly modelType: ModelType) {
+    const subsection = new Subsection([
+      new Line([
+        ModelSelectField.create({
+          name: `${underscoreToCamelCase(modelType)}Model`,
+          label: `${capitalizeFirstLetter(modelType).replace(/[_]/g, " ")} Model`,
+          occupedColumns: 12,
+          modelType: modelType,
+          required: true,
+          schema: z.string().refine(
+            (value) => {
+              return Simulator.inited
+                ? SearchEngine.getPrefixedModelsNames(modelType).includes(value)
+                : true;
             },
-          }),
-        ]),
+            {
+              error: `Should be a pre-created ${modelType.replace(/[_]/g, " ")} model`,
+            },
+          ),
+          info: {
+            title: `The name of the ${modelType.replace(/[_]/g, " ")} model to be used`,
+            helpText: (
+              <>
+                The name of the {modelType.replace(/[_]/g, " ")} model to be
+                used. <br />
+                Use the following format: "<b>projectName:modelName</b>" to use
+                a model from a specific project or "<b>modelName</b>" to use a
+                default model.
+              </>
+            ),
+          },
+        }),
       ]),
-    ];
-    super(title, nestedIn, subsections);
+    ]);
+    super([subsection]);
   }
 
   /**
-   * Returns the full name of the model name field, which is the name of the field
-   * that contains the name of the model to be used, prefixed with the name of
-   * the section and subsections that contain it.
-   * @returns The full name of the model name field, prefixed with the name of the
-   * section and subsections that contain it.
+   * Returns the name of the field that contains the name of the model of type 'modelType'.
+   * This field is used to select the model to be used in the simulation.
+   * @returns The name of the field that contains the name of the model of type 'modelType'.
    */
-  public getModelNameFieldFullName(): string {
-    return [...this.nestedIn, this.subsections[0].lines[0].fields[0].name].join(
-      ".",
-    );
+  public getModelNameFieldName(): string {
+    return `${underscoreToCamelCase(this.modelType)}Model`;
   }
 
   /**
-   * Returns the full name of the ModelParametersSubsection, which is the name of the subsection
-   * that contains the parameters of the model, prefixed with the name of the section and subsections
-   * that contain it.
-   * @returns The full name of the ModelParametersSubsection, prefixed with the name of the
-   * section and subsections that contain it.
+   * Returns the prefix of the parameters subsection for a given model identifier.
+   * The prefix is the name of the field that contains the name of the model of type 'modelType',
+   * concatenated with "Parameters".
+   * @returns The prefix of the parameters subsection for a given model identifier.
    */
-  public getParametersSubsectionFullName(): string {
-    return [
-      ...this.nestedIn,
-      this.subsections[0].lines[0].fields[0].name + "Parameters",
-    ].join(".");
+  public getModelParametersPrefix(): string {
+    return this.getModelNameFieldName() + "Parameters";
   }
 
   /**
-   * Returns the name of the subsection that contains the ModelParametersSubsection of the model.
-   * The ModelParametersSubsection is nested in a subsection with this name.
-   * @returns The name of the subsection that contains the ModelParametersSubsection of the model.
-   */
-  public getParametersSubsectionNestedIn(): string {
-    return `${underscoreToCamelCase(this.modelType)}ModelParameters`;
-  }
-
-  /**
-   * Returns the ModelParametersSubsection of the model identified by modelIdentifier.
-   * If the model is not found, an error is thrown.
-   * If the model does not have a ModelParametersSubsection, undefined is returned.
-   * The ModelParametersSubsection is nested in a subsection with the name
-   * "${underscoreToCamelCase(this.modelType)}ModelParameters".
-   * @param modelIdentifier The identifier of the model to be searched.
-   * @returns The ModelParametersSubsection of the model, if it exists. Otherwise, undefined.
+   * Returns the parameters subsection for a given model identifier.
+   * If the model identifier is not found, it will throw an error.
+   * If the model identifier is found, but the model does not have a parameters subsection,
+   * it will return undefined.
+   * @param modelIdentifier The model identifier to get the parameters subsection for.
+   * @returns The parameters subsection for the given model identifier, or undefined if the model does not have a parameters subsection.
+   * @throws Error if the model identifier is not found.
    */
   public getParametersSubsection(
     modelIdentifier: string,
@@ -115,21 +90,40 @@ export class ModelSection extends Section {
 
     const parametersSubsection = modelClass.getParametersSubsection();
 
-    parametersSubsection && // @ts-ignore
-      (parametersSubsection.nestedIn = [
-        this.getParametersSubsectionNestedIn(),
-      ]);
-
-    return parametersSubsection;
+    return (
+      parametersSubsection &&
+      new ModelParametersSubsection(
+        parametersSubsection.lines,
+        parametersSubsection.title,
+        parametersSubsection.nestedIn
+          ? this.getModelParametersPrefix() +
+            "." +
+            parametersSubsection.nestedIn
+          : this.getModelParametersPrefix(),
+      )
+    );
   }
 
   /**
-   * Sets the ModelParametersSubsection of the model identified by modelIdentifier.
-   * If parametersSubsection is undefined, it will delete the ModelParametersSubsection of the model.
-   * If the model does not have a ModelParametersSubsection, it will return false.
-   * @param modelIdentifier The identifier of the model to be searched.
-   * @param parametersSubsection The ModelParametersSubsection to be set.
-   * @returns True if the ModelParametersSubsection was set, false if it was deleted.
+   * Returns the current parameters subsection for the current model.
+   * If the current model does not have a parameters subsection, it will return undefined.
+   * @returns The current parameters subsection for the current model, or undefined if the current model does not have a parameters subsection.
+   */
+  public getCurrentParametersSubsection():
+    | ModelParametersSubsection
+    | undefined {
+    return this.subsections[1] as ModelParametersSubsection;
+  }
+
+  /**
+   * Sets the parameters subsection for a given model identifier.
+   * If parametersSubsection is given, it will be set as the parameters subsection for the given model identifier.
+   * If parametersSubsection is not given, it will try to find the parameters subsection for the given model identifier using getParametersSubsection.
+   * If the parameters subsection is found, it will be set as the parameters subsection for the given model identifier.
+   * If the parameters subsection is not found, it will delete the parameters subsection for the given model identifier if it exists.
+   * @param modelIdentifier The model identifier to set the parameters subsection for.
+   * @param parametersSubsection The parameters subsection to set for the given model identifier.
+   * @returns True if the parameters subsection was successfully set, false otherwise.
    */
   public setParametersSubsection(
     modelIdentifier: string,

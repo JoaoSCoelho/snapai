@@ -1,4 +1,3 @@
-import { ConfigFormSchema, SuperSection } from "./ConfigForm";
 import clsx from "clsx";
 import { Control, UseFormRegister } from "react-hook-form";
 import { Subsection } from "@/simulator/configurations/layout/Subsection";
@@ -11,27 +10,24 @@ export type LineProps = {
   line: LineCls;
   lineIndex: number;
   section: Section;
-  superSection?: SuperSection;
-  register: UseFormRegister<ConfigFormSchema>;
-  control: Control<ConfigFormSchema>;
-  nestedIn?: string[];
+  register: UseFormRegister<any>;
+  control: Control;
+  onModelNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function Line({
   subsection,
   lineIndex,
-  superSection,
   section,
   line,
   control,
   register,
-  nestedIn,
   ...props
 }: LineProps) {
   return (
     <div
       className={clsx(
-        `${superSection?.prefix ?? ""}_line_${subsection.title}_index_${lineIndex}`,
+        `line_${subsection.title}_index_${lineIndex}`,
         "grid",
         "grid-cols-12",
         "gap-3",
@@ -41,11 +37,11 @@ export default function Line({
       {line.fields.map((field, fieldIndex) => {
         return (
           <FormField
-            nestedIn={nestedIn}
             control={control}
             field={field}
             register={register}
             section={section}
+            nestedIn={subsection.nestedIn}
             key={field.name + fieldIndex}
             {...props}
           ></FormField>

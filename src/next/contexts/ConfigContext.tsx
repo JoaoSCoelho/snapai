@@ -1,4 +1,7 @@
 "use client";
+import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
+import { Project } from "@/simulator/models/Project";
+import axios from "axios";
 import React, { createContext, useState, useContext } from "react";
 
 export type ConfigContextProps = {
@@ -8,6 +11,10 @@ export type ConfigContextProps = {
   setDimensions: React.Dispatch<
     React.SetStateAction<{ x: [number, number]; y: [number, number] }>
   >;
+  saveSimulationConfig: (
+    project: Project,
+    data: SimulationConfigSchema,
+  ) => Promise<void>;
 };
 
 const ConfigContext = createContext<ConfigContextProps | undefined>(undefined);
@@ -23,6 +30,17 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
     y: [number, number];
   }>({ x: [0, 0], y: [0, 0] });
 
+  const saveSimulationConfig = async (
+    project: Project,
+    data: SimulationConfigSchema,
+  ) => {
+    project.simulationConfig.setData(data);
+    await axios.post("/api/write-json", {
+      path: project.simulationConfig.configJsonFilePath,
+      data: data,
+    });
+  };
+
   return (
     <ConfigContext.Provider
       value={{
@@ -30,6 +48,7 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
         setSelectedProject,
         dimensions,
         setDimensions,
+        saveSimulationConfig,
       }}
     >
       {children}

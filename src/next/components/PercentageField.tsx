@@ -21,12 +21,12 @@ export default function PercentageField({
   field,
   register,
   containerAttr,
+  nestedIn,
   formControlAttr,
   inputAttr,
   control,
-  nestedIn,
 }: PercentageFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
   const error = control.getFieldState(fullName)?.error?.message;
 

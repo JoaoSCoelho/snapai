@@ -25,10 +25,10 @@ export default function NumberPairField({
   control,
   field,
   containerAttr,
-  inputAttr,
   nestedIn,
+  inputAttr,
 }: NumberPairFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
 
   return (

@@ -1,0 +1,7 @@
+-- CreateTable
+CREATE TABLE "ConfigContext" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "selectedProject" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);

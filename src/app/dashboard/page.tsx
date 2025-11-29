@@ -8,7 +8,10 @@ export default function Dashboard() {
         Start working with <span className="text-blue-600">SnapAI</span>
       </h1>
 
-      <Link href="/dashboard/configuration" className="text-lg font-semibold">
+      <Link
+        href="/dashboard/configuration/simulation"
+        className="text-lg font-semibold"
+      >
         <Button
           style={{
             padding: "1rem 2rem",

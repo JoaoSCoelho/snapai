@@ -33,13 +33,15 @@ export type FormFieldProps = {
   register: UseFormRegister<any>;
   control: Control<any>;
   disabled?: boolean;
-  nestedIn?: string[];
   section: Section;
+  nestedIn?: string;
+  onModelNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function FormField({
   field,
   disabled,
+  onModelNameChange,
   ...fieldAttrs
 }: FormFieldProps) {
   if (field instanceof TextFieldCls) {
@@ -79,6 +81,7 @@ export default function FormField({
       <ModelSelectField
         field={field as ModelSelectFieldCls}
         selectAttr={{ disabled }}
+        onModelNameChange={onModelNameChange}
         {...fieldAttrs}
       />
     );

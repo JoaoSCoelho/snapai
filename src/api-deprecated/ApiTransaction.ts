@@ -41,7 +41,6 @@ export class ApiTransaction {
   }
 
   public async exec(): Promise<any> {
-    console.log("sending");
     this.bridge.send("ping");
     return new Promise((resolve, reject) => {
       this.bridge.on(`RES OK ${this.identifier}:${this.id}`, (data: any) => {

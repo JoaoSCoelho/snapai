@@ -18,3 +18,10 @@ model SimulationLog {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model ConfigContext {
+  id              Int      @id @default(autoincrement())
+  selectedProject String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

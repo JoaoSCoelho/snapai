@@ -72,7 +72,6 @@ export class ElectronInterface {
       console.log(`-> Registered listener: ${listener.name}`);
 
       this.ipcMain.on(`REQ:${listener.name}`, async (_, id, data) => {
-        console.log(`REQ:${listener.name}`, id, data);
         try {
           const result = await listener.exec(id, data);
           this.win.webContents.send(`RES OK ${listener.name}:${id}`, result);

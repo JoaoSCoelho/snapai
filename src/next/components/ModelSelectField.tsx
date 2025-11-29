@@ -20,17 +20,19 @@ export type ModelSelectFieldProps = FormFieldProps & {
   field: ModelSelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
+  onModelNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function ModelSelectField({
-  nestedIn,
   field,
   control,
   selectAttr,
   formControlAttr,
+  nestedIn,
   containerAttr,
+  onModelNameChange,
 }: ModelSelectFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
 
   return (
@@ -54,6 +56,11 @@ export default function ModelSelectField({
                 {...controllerField}
                 {...selectAttr}
                 onChange={(e, child) => {
+                  onModelNameChange?.(
+                    field.name,
+                    fullName,
+                    e.target.value as string,
+                  );
                   controllerField.onChange(e, child);
                   selectAttr?.onChange?.(e, child);
                 }}

@@ -1,4 +1,3 @@
-import { SuperSection } from "./ConfigForm";
 import clsx from "clsx";
 import Subsection from "./Subsection";
 import { Control, UseFormRegister } from "react-hook-form";
@@ -6,24 +5,21 @@ import { Section as SectionCls } from "@/simulator/configurations/layout/Section
 
 export type SectionProps = {
   section: SectionCls;
-  superSection?: SuperSection;
   control: Control<any>;
   register: UseFormRegister<any>;
-  nestedIn?: string[];
+  onModelNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function Section({
-  superSection,
   section,
   control,
   register,
-  nestedIn,
   ...props
 }: SectionProps) {
   return (
     <div
       className={clsx(
-        `${superSection?.prefix ?? ""}_section_${section.title}`,
+        `section_${section.title}`,
         "rounded-md",
         "bg-white",
         "shadow-md",
@@ -34,7 +30,7 @@ export default function Section({
         "gap-6",
       )}
     >
-      {section.title ?? (
+      {section.title && (
         <h3 className={clsx("text-2xl", "mb-2")}>{section.title}</h3>
       )}
 
@@ -46,9 +42,7 @@ export default function Section({
             section={section}
             subsection={subsection}
             subsectionIndex={subsectionIndex}
-            superSection={superSection}
-            nestedIn={(nestedIn ?? []).concat(section.nestedIn)}
-            key={subsection.title ?? "" + subsectionIndex}
+            key={(subsection.title ?? "") + subsectionIndex}
             {...props}
           />
         );

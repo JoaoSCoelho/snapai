@@ -6,8 +6,9 @@ export class ModelParametersSubsection extends Subsection {
   public constructor(
     public readonly lines: Line[],
     public readonly title?: string,
+    public readonly nestedIn?: string,
   ) {
-    super(lines, title);
+    super(lines, title, nestedIn);
   }
 
   /**

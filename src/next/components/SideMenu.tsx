@@ -15,18 +15,42 @@ type MenuItem = {
   enabler?: (
     configContext: ConfigContextProps,
     currentPathname: string,
-  ) => boolean | string;
+  ) => true | string;
 };
 
 const menuItems: MenuItem[] = [
-  { href: "/dashboard/configuration", label: "Configuration", icon: "⚙️" },
+  {
+    href: "/dashboard/configuration/simulation",
+    label: "Simulation config.",
+    icon: "⚙️",
+  },
+  {
+    href: "/dashboard/configuration/simulation/models",
+    label: "Simulation config. models",
+    icon: "🎛️",
+    enabler: (configContext: ConfigContextProps) =>
+      configContext.selectedProject ? true : "Select a project first",
+  },
+  {
+    href: "/dashboard/configuration/project",
+    label: "Project config.",
+    icon: "🔧",
+    enabler: (configContext: ConfigContextProps) =>
+      configContext.selectedProject ? true : "Select a project first",
+  },
+  {
+    href: "/dashboard/configuration/project/models",
+    label: "Project config. models",
+    icon: "🧩",
+    enabler: (configContext: ConfigContextProps) =>
+      configContext.selectedProject ? true : "Select a project first",
+  },
   {
     href: "/dashboard/controls",
     label: "Controls",
     icon: "🎮",
-    enabler: (configContext: ConfigContextProps, currentPathname: string) => {
-      return configContext.selectedProject ? true : "Select a project first";
-    },
+    enabler: (configContext: ConfigContextProps) =>
+      configContext.selectedProject ? true : "Select a project first",
   },
 ];
 

@@ -11,11 +11,11 @@
   "isAsynchronous": false,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,
-  "nackMessagesEnabled": true,
-  "connectivityEnabled": true,
+  "nackMessagesEnabled": false,
+  "connectivityEnabled": false,
   "interferenceEnabled": true,
-  "messageTransmissionModel": "PingPong:PingPongMessageTransmissionModel",
+  "messageTransmissionModel": "default:ConstantTime",
   "messageTransmissionModelParameters": {
-    "time": 1
+    "time": 10
   }
 }

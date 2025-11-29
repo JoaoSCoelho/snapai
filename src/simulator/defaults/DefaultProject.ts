@@ -10,7 +10,7 @@ export class DefaultProject extends Project {
       "default",
       new SimulationConfig(
         "./src/simulator/defaults/defaultConfig.json",
-        jsonConfig as SimulationConfigSchema,
+        jsonConfig as unknown as SimulationConfigSchema,
       ),
       undefined,
       new Map([["ConstantTime", ConstantTime]]),

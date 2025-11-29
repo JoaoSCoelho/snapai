@@ -23,14 +23,14 @@ export type NodeSelectFieldProps = FormFieldProps & {
 };
 
 export default function NodeSelectField({
-  nestedIn,
   field,
   control,
   selectAttr,
   formControlAttr,
   containerAttr,
+  nestedIn,
 }: NodeSelectFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
 
   return (

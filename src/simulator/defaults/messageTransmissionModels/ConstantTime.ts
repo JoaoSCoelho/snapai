@@ -5,14 +5,12 @@ import { MessageTransmissionModel } from "@/simulator/models/MessageTransmission
 import { Packet } from "@/simulator/models/Packet";
 import z from "zod";
 
-export const constantTimeParametersSchema = z.object({
-  time: z.number().min(1),
-});
+export type ConstantTimeParameters = {
+  time: number;
+};
 
 export class ConstantTime extends MessageTransmissionModel {
-  constructor(
-    public readonly parameters: z.infer<typeof constantTimeParametersSchema>,
-  ) {
+  constructor(public readonly parameters: ConstantTimeParameters) {
     super(parameters);
   }
 

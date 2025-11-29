@@ -1,43 +1,10 @@
-"use client";
-import { useConfigContext } from "@/next/contexts/ConfigContext";
-import ProjectSelect from "@/next/components/ProjectSelect";
-import { simulator } from "@/simulator";
-import ConfigForm from "@/next/components/ConfigForm";
-import { SearchEngine } from "@/simulator/utils/SearchEngine";
+import { redirect } from "next/navigation";
 
 export default function DashboardConfiguration() {
-  const projectsNames = simulator.projects.keys().toArray();
-  const { selectedProject } = useConfigContext();
-
+  redirect("/dashboard/configuration/simulation");
   return (
-    <div className="w-full">
-      <div style={{ height: "40dvh" }} className="y-spacer"></div>
-      <main className="mx-auto max-w-5xl flex flex-col items-center justify-center px-4 ">
-        <h1 className="text-5xl font-bold text-gray-900 mb-8 text-center">
-          {selectedProject ? (
-            <>
-              Configuring project{" "}
-              <span className="text-blue-600">{selectedProject}</span>
-            </>
-          ) : (
-            <>
-              Initialize with <span className="text-blue-600">SnapAI</span> by
-              selecting a project
-            </>
-          )}
-        </h1>
-        <div className="full-form-container grid-cols-12 grid gap-4 w-full">
-          <ProjectSelect projectsNames={projectsNames} />
-          <div className="form-container col-start-1 col-end-13">
-            {selectedProject && (
-              <ConfigForm
-                key={selectedProject}
-                project={SearchEngine.getProjectByName(selectedProject)}
-              />
-            )}
-          </div>
-        </div>
-      </main>
-    </div>
+    <main className="flex flex-col w-full items-center justify-center min-h-screen px-4 col-start-3 col-end-13 text-xl">
+      <h1>Redirecting you to the simulation configuration...</h1>
+    </main>
   );
 }

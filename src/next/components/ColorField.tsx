@@ -22,11 +22,11 @@ function ColorField({
   inputAttr,
   containerAttr,
   formControlAttr,
-  nestedIn,
   control,
   register,
+  nestedIn,
 }: ColorFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
   const error = control.getFieldState(fullName)?.error?.message;
 

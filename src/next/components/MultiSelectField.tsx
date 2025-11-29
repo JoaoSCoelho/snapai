@@ -23,14 +23,14 @@ export type MultiSelectFieldProps = FormFieldProps & {
 };
 
 export default function MultiSelectField({
-  nestedIn,
   field,
   control,
   selectAttr,
   formControlAttr,
+  nestedIn,
   containerAttr,
 }: MultiSelectFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
 
   return (

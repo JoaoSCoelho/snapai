@@ -23,16 +23,6 @@ export abstract class Config {
   }
 
   /**
-   * Populate the config object from an object.
-   * @param data JSON object. e.g. {paramA: "John", paramB: 30}.
-   * @deprecated
-   */
-  private populate(data: z.infer<typeof this.validatorSchema>): this {
-    Object.assign(this, data);
-    return this;
-  }
-
-  /**
    * Sets the config data.
    * @param data JSON object. e.g. {paramA: "John", paramB: 30}.
    * @returns this.

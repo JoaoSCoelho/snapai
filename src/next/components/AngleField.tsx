@@ -26,10 +26,10 @@ export default function AngleField({
   containerAttr,
   formControlAttr,
   inputAttr,
-  control,
   nestedIn,
+  control,
 }: NumberFieldProps) {
-  const nameAsArray = [...(nestedIn ?? []), field.name];
+  const nameAsArray = [nestedIn, field.name];
   const fullName = nameAsArray.join(".");
   const [focused, setFocused] = useState<boolean>(false);
 
