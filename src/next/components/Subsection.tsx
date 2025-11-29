@@ -41,7 +41,7 @@ export default function Subsection({
             register={register}
             section={section}
             subsection={subsection}
-            key={`subsection_${subsection.title ?? "" + subsectionIndex}_line${lineIndex}`}
+            key={line.id}
             {...props}
           />
         );

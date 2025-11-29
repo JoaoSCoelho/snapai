@@ -6,6 +6,7 @@ import pingPongConfig from "./config/pingPongConfig.json";
 import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 import { PingPongConfig } from "./config/PingPongConfig";
 import { PingPongMessageTransmissionModel } from "./models/PingPongMessageTransmissionModel";
+import { PingPongConfigSchema } from "./config/pingPongConfigSchema";
 
 export class PingPongProject extends Project {
   protected constructor() {
@@ -13,11 +14,11 @@ export class PingPongProject extends Project {
       "PingPong",
       new SimulationConfig(
         "./src/simulator/projects/PingPong/config/simulationConfig.json",
-        simulationJsonConfig as SimulationConfigSchema,
+        simulationJsonConfig as unknown as SimulationConfigSchema,
       ),
       new PingPongConfig(
         "./src/simulator/projects/PingPong/config/pingPongConfig.json",
-        pingPongConfig,
+        pingPongConfig as PingPongConfigSchema,
       ),
     );
 

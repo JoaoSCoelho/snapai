@@ -11,9 +11,13 @@ import z from "zod";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import { Simulator } from "@/simulator";
 import { ModelParametersSubsection } from "./ModelParametersSubsection";
+import { Global } from "@/index";
 
 export class ModelSection extends Section {
-  public constructor(public readonly modelType: ModelType) {
+  public constructor(
+    public readonly modelType: ModelType,
+    public readonly id = ++Global.lastId,
+  ) {
     const subsection = new Subsection([
       new Line([
         ModelSelectField.create({
@@ -47,7 +51,7 @@ export class ModelSection extends Section {
         }),
       ]),
     ]);
-    super([subsection]);
+    super([subsection], undefined, id);
   }
 
   /**

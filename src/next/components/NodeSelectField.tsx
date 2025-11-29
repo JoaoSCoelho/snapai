@@ -30,7 +30,7 @@ export default function NodeSelectField({
   containerAttr,
   nestedIn,
 }: NodeSelectFieldProps) {
-  const nameAsArray = [nestedIn, field.name];
+  const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
 
   return (

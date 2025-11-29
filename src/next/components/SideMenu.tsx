@@ -7,6 +7,7 @@ import { Tooltip } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import clsx from "clsx";
 
 type MenuItem = {
   href: string;
@@ -25,23 +26,9 @@ const menuItems: MenuItem[] = [
     icon: "⚙️",
   },
   {
-    href: "/dashboard/configuration/simulation/models",
-    label: "Simulation config. models",
-    icon: "🎛️",
-    enabler: (configContext: ConfigContextProps) =>
-      configContext.selectedProject ? true : "Select a project first",
-  },
-  {
     href: "/dashboard/configuration/project",
     label: "Project config.",
     icon: "🔧",
-    enabler: (configContext: ConfigContextProps) =>
-      configContext.selectedProject ? true : "Select a project first",
-  },
-  {
-    href: "/dashboard/configuration/project/models",
-    label: "Project config. models",
-    icon: "🧩",
     enabler: (configContext: ConfigContextProps) =>
       configContext.selectedProject ? true : "Select a project first",
   },
@@ -75,6 +62,7 @@ function MenuItem({ item, currentPathname }: MenuItemProps) {
       const enabled = item.enabler(configContext, currentPathname);
       setIsEnabled(enabled === true);
       if (typeof enabled === "string") setTooltipText(enabled);
+      else setTooltipText(null);
     } else {
       setIsEnabled(true);
       setTooltipText(null);
@@ -89,9 +77,11 @@ function MenuItem({ item, currentPathname }: MenuItemProps) {
           cursor: isEnabled ? "pointer" : "not-allowed",
           opacity: isEnabled ? 1 : 0.5,
         }}
-        className={
-          "px-4 py-2 block" + (isActive ? " bg-blue-600 text-white" : "")
-        }
+        className={clsx(
+          "px-4 py-2 block select-none ",
+          isActive && "bg-blue-600 text-white",
+          isEnabled && "hover:bg-blue-200",
+        )}
       >
         <span>{item.icon}</span>
         <span className="aside-item-label ml-4">{item.label}</span>

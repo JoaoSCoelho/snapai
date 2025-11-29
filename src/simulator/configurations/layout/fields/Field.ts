@@ -1,3 +1,4 @@
+import { Global } from "@/index";
 import { ReactNode } from "react";
 import z from "zod";
 
@@ -18,6 +19,8 @@ export abstract class Field {
     title: string;
     helpText: ReactNode;
   };
+
+  public readonly id = ++Global.lastId;
 
   protected constructor(
     public readonly name: string,

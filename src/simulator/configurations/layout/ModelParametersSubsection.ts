@@ -1,14 +1,16 @@
 import z from "zod";
 import { Line } from "./Line";
 import { Subsection } from "./Subsection";
+import { Global } from "@/index";
 
 export class ModelParametersSubsection extends Subsection {
   public constructor(
     public readonly lines: Line[],
     public readonly title?: string,
     public readonly nestedIn?: string,
+    public readonly id = ++Global.lastId,
   ) {
-    super(lines, title, nestedIn);
+    super(lines, title, nestedIn, id);
   }
 
   /**

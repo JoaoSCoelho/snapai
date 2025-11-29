@@ -29,7 +29,7 @@ export default function AngleField({
   nestedIn,
   control,
 }: NumberFieldProps) {
-  const nameAsArray = [nestedIn, field.name];
+  const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
   const [focused, setFocused] = useState<boolean>(false);
 

@@ -91,6 +91,15 @@ export class SearchEngine {
   }
 
   /**
+   * Finds a project by its name.
+   * @param {string} name The name of the project to be searched.
+   * @returns {Project | undefined} The project with the given name, or undefined if it was not found.
+   */
+  public static findProjectByName(name: string): Project | undefined {
+    return simulator.projects.get(name);
+  }
+
+  /**
    * @throws
    * ModelNotFoundError if the generic model implementation was not found.
    * @returns

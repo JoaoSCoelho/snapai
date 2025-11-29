@@ -18,14 +18,24 @@ export async function GET(request: Request) {
           id: Number(configContextRequestedId),
         },
       })
-    : (
+    : ((
         await prisma.configContext.findMany({
           orderBy: {
             createdAt: "desc",
           },
           take: 1,
         })
-      )[0];
+      )[0] ?? null);
 
+  return Response.json(configContext);
+}
+
+export async function POST(request: Request) {
+  const { selectedProject } = await request.json();
+  const configContext = await prisma.configContext.create({
+    data: {
+      selectedProject: selectedProject,
+    },
+  });
   return Response.json(configContext);
 }

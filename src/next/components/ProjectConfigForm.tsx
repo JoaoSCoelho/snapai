@@ -7,7 +7,6 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import { useForm, useWatch } from "react-hook-form";
 import { useErrorModal } from "../contexts/ErrorModalContext";
 import { Project } from "@/simulator/models/Project";
-import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 import { ErrorSystem } from "../utils/ErrorSystem";
 import Section from "./Section";
 import { toast } from "sonner";
@@ -16,27 +15,31 @@ import FormErrorModalContent from "./FormErrorModalContent";
 import { useConfigContext } from "../contexts/ConfigContext";
 import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
 import { Layout } from "@/simulator/configurations/layout/Layout";
+import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
+import z from "zod";
 
-type SimulationConfigFormSchema = SimulationConfigSchema;
+type ProjectConfigFormSchema = z.infer<ProjectConfig["validatorSchema"]>;
 
-type SimulationConfigFormProps = {
+type ProjectConfigFormProps = {
   project: Project;
 };
 
-export default function SimulationConfigForm({
-  project,
-}: SimulationConfigFormProps) {
-  const [simulationConfigLayout, setSimulationConfigLayout] = useState<Layout>(
-    project.simulationConfig.layout,
+export default function ProjectConfigForm({ project }: ProjectConfigFormProps) {
+  if (!project.projectConfig) {
+    return null;
+  }
+
+  const [projectConfigLayout, setProjectConfigLayout] = useState<Layout>(
+    project.projectConfig?.layout,
   );
+
   const modelsSections = useMemo(
-    () =>
-      simulationConfigLayout.sections.filter((s) => s instanceof ModelSection),
-    [simulationConfigLayout],
+    () => projectConfigLayout.sections.filter((s) => s instanceof ModelSection),
+    [projectConfigLayout],
   );
 
   const { showModal } = useErrorModal();
-  const { saveSimulationConfig } = useConfigContext();
+  const { saveProjectConfig } = useConfigContext();
 
   const {
     register,
@@ -47,29 +50,29 @@ export default function SimulationConfigForm({
     setValue,
     setError,
     formState: { errors: formErrors },
-  } = useForm<SimulationConfigFormSchema>({
-    defaultValues: project.simulationConfig.toJSON(),
+  } = useForm<ProjectConfigFormSchema>({
+    defaultValues: project.projectConfig.toJSON(),
     resolver: zodResolver<
-      SimulationConfigFormSchema,
+      ProjectConfigFormSchema,
       any,
-      SimulationConfigFormSchema
-    >(project.simulationConfig.validatorSchema as any),
+      ProjectConfigFormSchema
+    >(project.projectConfig.validatorSchema),
   });
 
   const onModelNameChange = (
     name: string,
-    _fullName: keyof SimulationConfigFormSchema,
+    _fullName: keyof ProjectConfigFormSchema,
     model: string,
   ) => {
-    const section = project.simulationConfig.layout.sections.find(
+    const section = project.projectConfig!.layout.sections.find(
       (s) => s instanceof ModelSection && s.getModelNameFieldName() === name,
     ) as ModelSection | undefined;
 
-    if (!section) throw new Error(`Model ${name} not found in config form`);
+    if (!section)
+      throw new Error(`Model ${name} not found in project config form`);
 
     const parametersSubsection = section.getParametersSubsection(model);
-    const parametersPrefix =
-      section.getModelParametersPrefix() as keyof SimulationConfigFormSchema;
+    const parametersPrefix = section.getModelParametersPrefix();
 
     section.setParametersSubsection(model, parametersSubsection);
 
@@ -80,12 +83,9 @@ export default function SimulationConfigForm({
 
       if (parsed.error) {
         parsed.error.issues.forEach((issue) => {
-          setError(
-            `${parametersPrefix}.${issue.path.join(".")}` as keyof SimulationConfigFormSchema,
-            {
-              message: issue.message,
-            },
-          );
+          setError(`${parametersPrefix}.${issue.path.join(".")}`, {
+            message: issue.message,
+          });
         });
 
         return;
@@ -94,13 +94,12 @@ export default function SimulationConfigForm({
       setValue(parametersPrefix, parsed.data);
     }
 
-    setSimulationConfigLayout({ ...project.simulationConfig.layout });
+    setProjectConfigLayout({ ...project.projectConfig!.layout });
   };
 
-  const handleFormSubmit = async (data: SimulationConfigFormSchema) => {
+  const handleFormSubmit = async (data: ProjectConfigFormSchema) => {
     modelsSections.forEach((section) => {
-      const parametersPrefix =
-        section.getModelParametersPrefix() as keyof SimulationConfigFormSchema;
+      const parametersPrefix = section.getModelParametersPrefix();
       const parametersSubsection = section.getCurrentParametersSubsection();
 
       if (parametersSubsection) {
@@ -110,12 +109,9 @@ export default function SimulationConfigForm({
 
         if (parsed.error) {
           parsed.error.issues.forEach((issue) => {
-            setError(
-              `${parametersPrefix}.${issue.path.join(".")}` as keyof SimulationConfigFormSchema,
-              {
-                message: issue.message,
-              },
-            );
+            setError(`${parametersPrefix}.${issue.path.join(".")}`, {
+              message: issue.message,
+            });
           });
 
           return;
@@ -126,11 +122,11 @@ export default function SimulationConfigForm({
       }
     });
 
-    await saveSimulationConfig(project, data);
+    await saveProjectConfig(project, data);
 
-    toast.success("Simulation config. saved");
+    toast.success("Project config. saved");
 
-    redirect("/dashboard/configuration/project");
+    redirect("/dashboard/controls");
   };
 
   const onResetButtonClick = () => {
@@ -151,7 +147,7 @@ export default function SimulationConfigForm({
   useEffect(() => {
     modelsSections.forEach((section) => {
       const nameFieldName =
-        section.getModelNameFieldName() as keyof SimulationConfigFormSchema;
+        section.getModelNameFieldName() as keyof ProjectConfigFormSchema;
       const selectedModel = getValues(nameFieldName) as string;
 
       if (selectedModel) {
@@ -160,7 +156,7 @@ export default function SimulationConfigForm({
           section.subsections[0].nestedIn
             ? ((section.subsections[0].nestedIn +
                 "." +
-                nameFieldName) as keyof SimulationConfigFormSchema)
+                nameFieldName) as keyof ProjectConfigFormSchema)
             : nameFieldName,
           selectedModel,
         );
@@ -174,7 +170,7 @@ export default function SimulationConfigForm({
       onSubmit={handleSubmit(handleFormSubmit)}
       id="config-form"
     >
-      {simulationConfigLayout.sections.map((section, sectionIndex) => {
+      {projectConfigLayout.sections.map((section, sectionIndex) => {
         return (
           <Section
             control={control}

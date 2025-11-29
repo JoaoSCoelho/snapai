@@ -1,12 +1,18 @@
 "use client";
+import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
 import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 import { Project } from "@/simulator/models/Project";
+import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import axios from "axios";
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import z from "zod";
+import { _set } from "zod/v4/core";
+
+type ProjectConfigSchema = z.infer<ProjectConfig["validatorSchema"]>;
 
 export type ConfigContextProps = {
   selectedProject: string | null;
-  setSelectedProject: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedProject: (value: string | null) => void;
   dimensions: { x: [number, number]; y: [number, number] };
   setDimensions: React.Dispatch<
     React.SetStateAction<{ x: [number, number]; y: [number, number] }>
@@ -15,6 +21,11 @@ export type ConfigContextProps = {
     project: Project,
     data: SimulationConfigSchema,
   ) => Promise<void>;
+  saveProjectConfig: (
+    project: Project,
+    data: ProjectConfigSchema,
+  ) => Promise<void>;
+  loading: boolean;
 };
 
 const ConfigContext = createContext<ConfigContextProps | undefined>(undefined);
@@ -24,7 +35,8 @@ type ConfigProviderProps = {
 };
 
 export const ConfigProvider = ({ children }: ConfigProviderProps) => {
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [selectedProject, _setSelectedProject] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [dimensions, setDimensions] = useState<{
     x: [number, number];
     y: [number, number];
@@ -41,6 +53,32 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
     });
   };
 
+  const saveProjectConfig = async (
+    project: Project,
+    data: ProjectConfigSchema,
+  ) => {
+    if (project.projectConfig) {
+      project.projectConfig.setData(data);
+      await axios.post("/api/write-json", {
+        path: project.projectConfig.configJsonFilePath,
+        data: data,
+      });
+    }
+  };
+
+  const setSelectedProject = (value: string | null) => {
+    _setSelectedProject(value);
+    if (value) axios.post("/api/config-context", { selectedProject: value });
+  };
+
+  useEffect(() => {
+    axios.get("/api/config-context").then((response) => {
+      if (SearchEngine.findProjectByName(response.data.selectedProject))
+        _setSelectedProject(response.data.selectedProject);
+      setLoading(false);
+    });
+  }, []);
+
   return (
     <ConfigContext.Provider
       value={{
@@ -49,6 +87,8 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
         dimensions,
         setDimensions,
         saveSimulationConfig,
+        saveProjectConfig,
+        loading,
       }}
     >
       {children}

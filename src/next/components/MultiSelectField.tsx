@@ -30,7 +30,7 @@ export default function MultiSelectField({
   nestedIn,
   containerAttr,
 }: MultiSelectFieldProps) {
-  const nameAsArray = [nestedIn, field.name];
+  const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
 
   return (

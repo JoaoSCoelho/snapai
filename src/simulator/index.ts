@@ -1,11 +1,13 @@
 import { DefaultProject } from "./defaults/DefaultProject";
 import { Project } from "./models/Project";
 import { PingPongProject } from "./projects/PingPong/PingPongProject";
+import { TestProject } from "./projects/TestProject/TestProject";
 
 export class Simulator {
   public static readonly inited = false;
+
   private static instance: Simulator;
-  public projects!: Map<string, Project>;
+  public projects: Map<string, Project> = new Map();
 
   private constructor() {}
 
@@ -14,10 +16,9 @@ export class Simulator {
   }
 
   private init() {
-    this.projects = new Map<string, Project>([
-      ["default", DefaultProject.create()],
-      ["PingPong", PingPongProject.create()],
-    ]);
+    this.addProject(DefaultProject.create());
+    this.addProject(PingPongProject.create());
+    this.addProject(TestProject.create());
     // @ts-ignore
     Simulator.inited = true;
   }

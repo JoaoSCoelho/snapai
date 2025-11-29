@@ -1,0 +1,8 @@
+{
+  "mobilityModel": "PingPong:PingPongMobilityModel",
+  "mobilityModelParameters": {},
+  "messageTransmissionModel": "default:ConstantTime",
+  "messageTransmissionModelParameters": {
+    "time": 1
+  }
+}

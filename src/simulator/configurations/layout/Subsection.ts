@@ -1,3 +1,4 @@
+import { Global } from "@/index";
 import { Line } from "./Line";
 
 export class Subsection {
@@ -5,5 +6,6 @@ export class Subsection {
     public readonly lines: Line[],
     public readonly title?: string,
     public readonly nestedIn?: string,
+    public readonly id = ++Global.lastId,
   ) {}
 }

@@ -15,6 +15,8 @@ export class PingPongConfig extends ProjectConfig {
   }
 
   protected innerToJSON(): PingPongConfigSchema {
-    return {};
+    return {
+      initialColor: this.data.initialColor,
+    };
   }
 }

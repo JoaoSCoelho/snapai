@@ -26,7 +26,7 @@ function ColorField({
   register,
   nestedIn,
 }: ColorFieldProps) {
-  const nameAsArray = [nestedIn, field.name];
+  const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
   const error = control.getFieldState(fullName)?.error?.message;
 

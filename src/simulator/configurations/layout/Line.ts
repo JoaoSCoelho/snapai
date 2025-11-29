@@ -1,7 +1,11 @@
+import { Global } from "@/index";
 import { Field } from "./fields/Field";
 
 export class Line {
-  public constructor(public readonly fields: Field[]) {
+  public constructor(
+    public readonly fields: Field[],
+    public readonly id = ++Global.lastId,
+  ) {
     const totalOccupedColumns = fields.reduce(
       (prev, curr) => prev + curr.occupedColumns,
       0,

@@ -30,7 +30,7 @@ export default function AnglePairField({
   inputAttr,
   nestedIn,
 }: AnglePairFieldProps) {
-  const nameAsArray = [nestedIn, field.name];
+  const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
   const [focusedLeft, setFocusedLeft] = useState<boolean>(false);
   const [focusedRight, setFocusedRight] = useState<boolean>(false);

@@ -1,0 +1,21 @@
+{
+  "simulationName": "TestProjectSimulation",
+  "dimX": [
+    984,
+    1500
+  ],
+  "dimY": [
+    5543,
+    10000
+  ],
+  "isAsynchronous": true,
+  "shouldSaveTrace": false,
+  "registerStatisticsForEveryRound": true,
+  "nackMessagesEnabled": true,
+  "connectivityEnabled": true,
+  "interferenceEnabled": false,
+  "messageTransmissionModel": "default:ConstantTime",
+  "messageTransmissionModelParameters": {
+    "time": 1
+  }
+}

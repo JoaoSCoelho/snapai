@@ -42,7 +42,7 @@ export default function Line({
             register={register}
             section={section}
             nestedIn={subsection.nestedIn}
-            key={field.name + fieldIndex}
+            key={field.id + "_" + fieldIndex}
             {...props}
           ></FormField>
         );
