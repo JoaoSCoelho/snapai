@@ -8,6 +8,10 @@
     0,
     1000
   ],
+  "loggerOptions": {
+    "useConsole": true
+  },
+  "interferenceIsAdditive": true,
   "isAsynchronous": false,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,

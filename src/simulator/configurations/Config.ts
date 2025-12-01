@@ -1,5 +1,6 @@
 import z from "zod";
 import { Layout } from "./layout/Layout";
+import axios from "axios";
 
 export abstract class Config {
   /**
@@ -19,7 +20,37 @@ export abstract class Config {
   }
 
   protected parse(data: z.infer<typeof this.validatorSchema>) {
-    return this.validatorSchema.strict().parse(data);
+    try {
+      return this.validatorSchema.strict().parse(data);
+    } catch (error) {
+      if (
+        error instanceof z.ZodError &&
+        error.issues.some(
+          (i) =>
+            i.code === "invalid_type" &&
+            i.message.startsWith("Invalid input: expected") &&
+            i.message.endsWith("undefined"),
+        )
+      ) {
+        console.error(
+          `\x1b[31mFields:\n  - ${error.issues
+            .filter(
+              (i) =>
+                i.code === "invalid_type" &&
+                i.message.startsWith("Invalid input: expected") &&
+                i.message.endsWith("undefined"),
+            )
+            .map((i) => i.path.join("."))
+            .join(
+              "\n  - ",
+            )}\nundefined in configuration file:\x1b[0m ${this.configJsonFilePath}`,
+        );
+
+        throw "Can't parse config file";
+      } else {
+        throw error;
+      }
+    }
   }
 
   /**
