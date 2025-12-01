@@ -1,7 +1,7 @@
-import { simulator } from "..";
+import { simulator } from "../Simulator";
 import { Model } from "../models/Model";
 import { Project } from "../models/Project";
-import { ModelType } from "./types";
+import { ModelType } from "./modelsUtils";
 
 export class SearchEngine {
   /**

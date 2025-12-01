@@ -13,6 +13,7 @@
     "start": "cross-env NODE_ENV=production electron dist/electron/main.js"
   },
   "dependencies": {
+    "@datastructures-js/priority-queue": "^6.3.5",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@headlessui/react": "^2.2.9",
@@ -26,6 +27,7 @@
     "axios": "^1.13.1",
     "dotenv": "^17.2.3",
     "electron": "^39.0.0",
+    "graphology": "^0.26.0",
     "next": "16.0.1",
     "nuqs": "^2.7.2",
     "react": "19.2.0",

@@ -24,4 +24,8 @@ export class TestProject extends Project {
   public static create(): TestProject {
     return new TestProject();
   }
+
+  public checkRequirementsOnInitializing(): boolean {
+    return true;
+  }
 }

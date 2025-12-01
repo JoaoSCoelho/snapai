@@ -32,4 +32,8 @@ export class PingPongProject extends Project {
   public static create(): PingPongProject {
     return new PingPongProject();
   }
+
+  public checkRequirementsOnInitializing(): boolean {
+    return true;
+  }
 }

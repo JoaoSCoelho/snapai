@@ -1,6 +1,13 @@
-import { Simulator } from "@/simulator";
+import { Simulator } from "@/simulator/Simulator";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import z from "zod";
+
+export const loggerOptionsSchema = z.object({
+  useConsole: z.boolean(),
+});
+
+export type LoggerOptionsSchema = z.infer<typeof loggerOptionsSchema>;
 
 export const simulationConfigSchema = z.object({
   simulationName: z
@@ -20,18 +27,20 @@ export const simulationConfigSchema = z.object({
       message:
         "The minimum dimension must be less than or equal to the maximum dimension",
     }),
+  loggerOptions: loggerOptionsSchema,
   isAsynchronous: z.boolean(),
   shouldSaveTrace: z.boolean(),
   registerStatisticsForEveryRound: z.boolean(),
   nackMessagesEnabled: z.boolean(),
   connectivityEnabled: z.boolean(),
   interferenceEnabled: z.boolean(),
+  interferenceIsAdditive: z.boolean(),
   messageTransmissionModel: z.string().refine(
     (value) => {
       return Simulator.inited
-        ? SearchEngine.getPrefixedModelsNames("message_transmission").includes(
-            value,
-          )
+        ? SearchEngine.getPrefixedModelsNames(
+            ModelType.MessageTransmission,
+          ).includes(value)
         : true;
     },
     {

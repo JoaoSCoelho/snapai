@@ -1,4 +1,3 @@
-import { ModelType } from "@/simulator/utils/types";
 import { Section } from "./Section";
 import {
   capitalizeFirstLetter,
@@ -9,9 +8,10 @@ import { Line } from "./Line";
 import { ModelSelectField } from "./fields/ModelSelectField";
 import z from "zod";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
-import { Simulator } from "@/simulator";
+import { Simulator } from "@/simulator/Simulator";
 import { ModelParametersSubsection } from "./ModelParametersSubsection";
-import { Global } from "@/index";
+import { Global } from "@/simulator/Global";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 
 export class ModelSection extends Section {
   public constructor(

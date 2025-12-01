@@ -1,11 +1,11 @@
 import { Node } from "@/simulator/models/Node";
 import { SimulatorConfig } from "@/simulator/configurations/Simulator/SimulatorConfig";
-import { ModelType } from "@/simulator/utils/types";
 import fs from "node:fs";
 import { NodeNotFoundError } from "./errors/NodeNotFoundError";
 import { ModelNotFoundError } from "./errors/ModelNotFoundError";
 import { capitalizeFirstLetter } from "@/simulator/utils/stringUtils";
 import { Model } from "@/simulator/models/Model";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 
 /**
  * @deprecated

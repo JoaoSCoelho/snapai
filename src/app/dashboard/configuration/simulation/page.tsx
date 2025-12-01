@@ -1,7 +1,7 @@
 "use client";
 import { useConfigContext } from "@/next/contexts/ConfigContext";
 import ProjectSelect from "@/next/components/ProjectSelect";
-import { simulator } from "@/simulator";
+import { simulator } from "@/simulator/Simulator";
 import SimulationConfigForm from "@/next/components/SimulationConfigForm";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
 

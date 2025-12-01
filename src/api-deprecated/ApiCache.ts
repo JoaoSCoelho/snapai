@@ -1,8 +1,8 @@
-import { ModelType } from "@/simulator/utils/types";
+import { ExtendedModelType } from "@/simulator/utils/modelsUtils";
 
 export class ApiCache {
   public readonly projectsNames: Set<string> = new Set();
-  public readonly modelsNames: Map<ModelType | "all", Set<string>> = new Map();
+  public readonly modelsNames: Map<ExtendedModelType, Set<string>> = new Map();
 
   public clear() {
     this.projectsNames.clear();
@@ -24,7 +24,7 @@ export class ApiCache {
    * @param modelType The model type to set the list of models names for.
    * @param modelsNames The list of models names to set.
    */
-  public setModelsNames(modelType: ModelType | "all", modelsNames: string[]) {
+  public setModelsNames(modelType: ExtendedModelType, modelsNames: string[]) {
     this.modelsNames.set(modelType, new Set(modelsNames));
   }
 }

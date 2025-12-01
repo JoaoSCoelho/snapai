@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import z from "zod";
 import { Field, FieldSchema } from "./Field";
-import { ModelType } from "@/simulator/utils/types";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 
 export type ModelSelectFieldSchema = FieldSchema & {
   modelType: ModelType;

@@ -1,4 +1,4 @@
-import { ModelType } from "@/simulator/utils/types";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 import { ModulesSearchEngine } from "../systems/ModulesSearchEngine/ModulesSearchEngine";
 import { Listener } from "./Listener";
 

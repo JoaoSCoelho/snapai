@@ -1,5 +1,4 @@
 import { Simulation, SimulationOptions } from "./Simulation";
-import { SimulationStatistics } from "./SimulationStatistics";
 import { SynchronousSimulationStatistics } from "./SynchronousSimulationStatistics";
 
 export type SynchronousSimulationOptions = SimulationOptions & {};

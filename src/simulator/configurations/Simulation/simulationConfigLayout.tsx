@@ -7,6 +7,7 @@ import { Subsection } from "../layout/Subsection";
 import { Section } from "../layout/Section";
 import { Layout } from "../layout/Layout";
 import { ModelSection } from "../layout/ModelSection";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 
 export const simulationConfigLayout = new Layout([
   Section.create({
@@ -78,7 +79,7 @@ export const simulationConfigLayout = new Layout([
           CheckboxField.create({
             name: "connectivityEnabled",
             label: "Connectivity enabled",
-            occupedColumns: 6,
+            occupedColumns: 4,
             schema: z.boolean(),
             info: {
               title:
@@ -88,11 +89,36 @@ export const simulationConfigLayout = new Layout([
           CheckboxField.create({
             name: "interferenceEnabled",
             label: "Interference enabled",
-            occupedColumns: 6,
+            occupedColumns: 4,
             schema: z.boolean(),
             info: {
               title:
                 "If this option is enabled, the simulation will consider interference when transmitting messages.",
+            },
+          }),
+          CheckboxField.create({
+            name: "interferenceIsAdditive",
+            label: "Interference is additive",
+            occupedColumns: 4,
+            schema: z.boolean(),
+            info: {
+              title:
+                "If this option is enabled, interference can only increase when new packets are added to the air. (Async mode only)",
+              helpText: (
+                <>
+                  <p>
+                    <b>Only in asynchronous mode</b>
+                  </p>
+                  <p>
+                    If this option is disabled, interference may change whenever
+                    packets are added or removed from the air.
+                  </p>
+                  <p>
+                    If this option is enabled, interference can only increase
+                    when new packets are added to the air.
+                  </p>
+                </>
+              ),
             },
           }),
         ]),
@@ -129,7 +155,25 @@ export const simulationConfigLayout = new Layout([
           }),
         ]),
       ]),
+      new Subsection(
+        [
+          new Line([
+            CheckboxField.create({
+              name: "useConsole",
+              info: {
+                title:
+                  "If this option is enabled, the simulation will print logs of the simulation logger module in the console.",
+              },
+              label: "Use console",
+              occupedColumns: 6,
+              schema: z.boolean(),
+            }),
+          ]),
+        ],
+        "Logger Options",
+        "loggerOptions",
+      ),
     ],
   }),
-  new ModelSection("message_transmission"),
+  new ModelSection(ModelType.MessageTransmission),
 ]);

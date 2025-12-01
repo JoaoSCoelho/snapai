@@ -3,7 +3,7 @@ import { NodeId } from "./Node";
 import { Packet, TransmissionType } from "./Packet";
 
 export class Packet232Bytes extends Packet {
-  public positiveDelivery: boolean = true; // 1 bit
+  protected _positiveDelivery: boolean = true; // 1 bit
   protected _arrivingTime: number | null = null; // 64 bits
   protected _sendingTime: number | null = null; // 64 bits
   protected _intensity: number | null = null; // 32 bits
@@ -11,19 +11,19 @@ export class Packet232Bytes extends Packet {
   public constructor(
     public readonly message: Message, // Variable
     public readonly originId: NodeId, // 32 bits
-    public readonly destination: NodeId, // 32 bits
+    public readonly destinationId: NodeId, // 32 bits
     public readonly transmissionType: TransmissionType, // 7 bits
   ) {
     if (originId < -3.4e38)
       throw new Error("Origin ID must be greater than -3.4e38");
-    if (destination < -3.4e38)
+    if (destinationId < -3.4e38)
       throw new Error("Destination ID must be greater than -3.4e38");
     if (originId > 3.4e38)
       throw new Error("Origin ID must be less than 3.4e38");
-    if (destination > 3.4e38)
+    if (destinationId > 3.4e38)
       throw new Error("Destination ID must be less than 3.4e38");
 
-    super(message, originId, destination, transmissionType);
+    super(message, originId, destinationId, transmissionType);
   }
 
   public get arrivingTime(): number | null {

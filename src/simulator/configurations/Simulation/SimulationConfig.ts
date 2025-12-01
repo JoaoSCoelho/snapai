@@ -2,6 +2,7 @@ import z from "zod";
 import { Config } from "../Config";
 import { simulationConfigLayout } from "./simulationConfigLayout";
 import {
+  LoggerOptionsSchema,
   SimulationConfigSchema,
   simulationConfigSchema,
 } from "./simulationConfigSchema";
@@ -31,6 +32,10 @@ export class SimulationConfig extends Config {
     return this.data.dimY;
   }
 
+  public getLoggerOptions(): LoggerOptionsSchema {
+    return this.data.loggerOptions;
+  }
+
   public getIsAsynchronous(): boolean {
     return this.data.isAsynchronous;
   }
@@ -55,6 +60,10 @@ export class SimulationConfig extends Config {
     return this.data.interferenceEnabled;
   }
 
+  public getInterferenceIsAdditive(): boolean {
+    return this.data.interferenceIsAdditive;
+  }
+
   public getMessageTransmissionModel(): string {
     return this.data.messageTransmissionModel;
   }
@@ -68,6 +77,7 @@ export class SimulationConfig extends Config {
       simulationName: this.data.simulationName,
       dimX: this.data.dimX,
       dimY: this.data.dimY,
+      loggerOptions: this.data.loggerOptions,
       isAsynchronous: this.data.isAsynchronous,
       shouldSaveTrace: this.data.shouldSaveTrace,
       registerStatisticsForEveryRound:
@@ -75,6 +85,7 @@ export class SimulationConfig extends Config {
       nackMessagesEnabled: this.data.nackMessagesEnabled,
       connectivityEnabled: this.data.connectivityEnabled,
       interferenceEnabled: this.data.interferenceEnabled,
+      interferenceIsAdditive: this.data.interferenceIsAdditive,
       messageTransmissionModel: this.data.messageTransmissionModel,
       messageTransmissionModelParameters:
         this.data.messageTransmissionModelParameters,

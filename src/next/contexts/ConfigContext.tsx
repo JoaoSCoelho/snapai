@@ -13,10 +13,6 @@ type ProjectConfigSchema = z.infer<ProjectConfig["validatorSchema"]>;
 export type ConfigContextProps = {
   selectedProject: string | null;
   setSelectedProject: (value: string | null) => void;
-  dimensions: { x: [number, number]; y: [number, number] };
-  setDimensions: React.Dispatch<
-    React.SetStateAction<{ x: [number, number]; y: [number, number] }>
-  >;
   saveSimulationConfig: (
     project: Project,
     data: SimulationConfigSchema,
@@ -37,10 +33,6 @@ type ConfigProviderProps = {
 export const ConfigProvider = ({ children }: ConfigProviderProps) => {
   const [selectedProject, _setSelectedProject] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dimensions, setDimensions] = useState<{
-    x: [number, number];
-    y: [number, number];
-  }>({ x: [0, 0], y: [0, 0] });
 
   const saveSimulationConfig = async (
     project: Project,
@@ -84,8 +76,6 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
       value={{
         selectedProject,
         setSelectedProject,
-        dimensions,
-        setDimensions,
         saveSimulationConfig,
         saveProjectConfig,
         loading,

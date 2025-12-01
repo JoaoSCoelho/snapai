@@ -1,4 +1,4 @@
-import { Global } from "@/index";
+import { Global } from "@/simulator/Global";
 import { ReactNode } from "react";
 import z from "zod";
 

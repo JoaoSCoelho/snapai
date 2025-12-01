@@ -38,10 +38,7 @@ export class SynchronousSimulationStatistics extends SimulationStatistics {
   }
 
   public registerSentMessage(packet: Packet): this {
-    // Update totals
-    this.sentMessages++;
-    this.sentBytes += packet.getByteSize();
-    this.sentMessageBytes += packet.message.getByteSize();
+    super.registerSentMessage(packet);
 
     if (this.simulation.currentTime !== this.lastSendingRoundTime) {
       // Reset last round
@@ -78,9 +75,7 @@ export class SynchronousSimulationStatistics extends SimulationStatistics {
   }
 
   public registerReceivedMessage(packet: Packet): this {
-    this.receivedMessages++;
-    this.receivedBytes += packet.getByteSize();
-    this.receivedMessageBytes += packet.message.getByteSize();
+    super.registerReceivedMessage(packet);
 
     if (this.simulation.currentTime !== this.lastReceivingRoundTime) {
       this.lastRoundReceivedMessages = 0;

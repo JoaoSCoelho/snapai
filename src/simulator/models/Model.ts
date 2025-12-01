@@ -1,6 +1,10 @@
 import { ModelParametersSubsection } from "../configurations/layout/ModelParametersSubsection";
-import { ModelType } from "../utils/types";
+import { ModelType } from "../utils/modelsUtils";
 import { Module } from "./Module";
+
+export type ConcreteModel<T extends Model> = new (
+  parameters: Record<string, any>,
+) => T;
 
 export abstract class Model extends Module {
   public static readonly type: ModelType;

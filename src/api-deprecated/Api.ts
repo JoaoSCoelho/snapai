@@ -1,8 +1,8 @@
-import { ModelType } from "@/simulator/utils/types";
 import { ApiTransaction } from "./ApiTransaction";
 import { ApiCache } from "./ApiCache";
 import { Model } from "@/simulator/models/Model";
 import { AppendSimulationLogDto } from "./dtos/AppendSimulationLogDto";
+import { ModelType } from "@/simulator/utils/modelsUtils";
 
 export class Api {
   public static instance: Api;

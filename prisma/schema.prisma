@@ -12,7 +12,7 @@ datasource db {
 
 model SimulationLog {
   id           Int      @id @default(autoincrement())
-  simulationId String
+  simulationId Int
   project      String
   content      String
   createdAt    DateTime @default(now())

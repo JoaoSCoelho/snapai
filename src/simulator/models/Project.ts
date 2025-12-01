@@ -3,6 +3,7 @@ import { SimulationConfig } from "../configurations/Simulation/SimulationConfig"
 import { Message } from "./Message";
 import { Model } from "./Model";
 import { Node } from "./Node";
+import { Packet } from "./Packet";
 import { Timer } from "./Timer";
 
 export type ProjectSchema = {
@@ -13,6 +14,7 @@ export type ProjectSchema = {
   nodes: Map<string, typeof Node>;
   messages: Map<string, typeof Message>;
   timers: Map<string, typeof Timer>;
+  packets: Map<string, typeof Packet>;
 };
 
 export abstract class Project {
@@ -24,6 +26,7 @@ export abstract class Project {
     public readonly nodes: Map<string, typeof Node> = new Map(),
     public readonly messages: Map<string, typeof Message> = new Map(),
     public readonly timers: Map<string, typeof Timer> = new Map(),
+    public readonly packets: Map<string, typeof Packet> = new Map(),
   ) {}
 
   public addModel(modelName: string, modelCls: typeof Model): this {
@@ -45,4 +48,16 @@ export abstract class Project {
     this.timers.set(timerName, timerCls);
     return this;
   }
+
+  public addPacket(packetName: string, packetCls: typeof Packet): this {
+    this.packets.set(packetName, packetCls);
+    return this;
+  }
+
+  /**
+   * Checks if the project is ready to be initialized.\
+   * Returns true if the project is ready to be initialized, false otherwise.\
+   * **Should be implemented in child classes.**
+   */
+  public abstract checkRequirementsOnInitializing(): boolean;
 }

@@ -1,4 +1,4 @@
-import { Global } from "@/index";
+import { Global } from "@/simulator/Global";
 import { Field } from "./fields/Field";
 
 export class Line {
