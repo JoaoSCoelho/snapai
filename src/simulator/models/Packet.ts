@@ -5,7 +5,7 @@ import { NodeId } from "./Node";
 export enum TransmissionType {
   UNICAST,
   BROADCAST,
-  MULTICAST,
+  // MULTICAST,
 }
 
 export type ConcretePacket = new (

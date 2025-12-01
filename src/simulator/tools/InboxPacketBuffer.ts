@@ -9,6 +9,16 @@ export class InboxPacketBuffer {
 
   constructor(private readonly simulation: Simulation) {}
 
+/**
+ * Returns the Inbox instance associated with this InboxPacketBuffer.
+ * The Inbox instance holds the packets that are currently in the inbox
+ * of a node.
+ * @returns The Inbox instance associated with this InboxPacketBuffer.
+ */
+  public getInbox(): Inbox {
+    return this.inbox;
+  }
+
   /**
    * Adds a packet to the buffer.
    * @param packet The packet to add.

@@ -49,8 +49,9 @@ export class Inbox {
    * This method is typically used at the end of a simulation round
    * to reset the inbox for the next round.
    */
-  public reset() {
+  public reset(): this {
     this.activePacketIndex = 0;
+    return this;
   }
 
   /**
@@ -59,9 +60,10 @@ export class Inbox {
    * to reset the inbox for the next round.
    * @param packets The new list of packets to replace the current list of packets.
    */
-  public resetForPackets(packets: Packet[]) {
+  public resetForPackets(packets: Packet[]): this {
     this.reset();
     this.packets.splice(0, this.packets.length, ...packets);
+    return this;
   }
 
   /**

@@ -3,7 +3,6 @@ import { Event } from "../models/Event";
 import { EventQueueListener } from "./EventQueueListener";
 import { Node } from "../models/Node";
 import { PacketEvent } from "../models/PacketEvents";
-import { Simulation } from "../models/Simulation";
 import { Edge } from "../models/Edge";
 import { AsynchronousSimulation } from "../models/AsynchronousSimulation";
 

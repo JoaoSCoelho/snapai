@@ -4,7 +4,6 @@ import { AsynchronousSimulation } from "./AsynchronousSimulation";
 import { Event } from "./Event";
 import { Node } from "./Node";
 import { Packet, TransmissionType } from "./Packet";
-import { Simulation } from "./Simulation";
 
 export class PacketEvent extends Event {
   private readonly inbox: Inbox = new Inbox([]);

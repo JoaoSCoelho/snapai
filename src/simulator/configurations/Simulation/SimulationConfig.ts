@@ -20,6 +20,58 @@ export class SimulationConfig extends Config {
     );
   }
 
+  public get simulationName(): string {
+    return this.data.simulationName;
+  }
+
+  public get dimX(): number[] {
+    return this.data.dimX;
+  }
+
+  public get dimY(): number[] {
+    return this.data.dimY;
+  }
+
+  public get loggerOptions(): LoggerOptionsSchema {
+    return this.data.loggerOptions;
+  }
+
+  public get isAsynchronous(): boolean {
+    return this.data.isAsynchronous;
+  }
+
+  public get shouldSaveTrace(): boolean {
+    return this.data.shouldSaveTrace;
+  }
+
+  public get registerStatisticsForEveryRound(): boolean {
+    return this.data.registerStatisticsForEveryRound;
+  }
+
+  public get nackMessagesEnabled(): boolean {
+    return this.data.nackMessagesEnabled;
+  }
+
+  public get connectivityEnabled(): boolean {
+    return this.data.connectivityEnabled;
+  }
+
+  public get interferenceEnabled(): boolean {
+    return this.data.interferenceEnabled;
+  }
+
+  public get interferenceIsAdditive(): boolean {
+    return this.data.interferenceIsAdditive;
+  }
+
+  public get messageTransmissionModel(): string {
+    return this.data.messageTransmissionModel;
+  }
+
+  public get messageTransmissionModelParameters(): Record<string, any> {
+    return this.data.messageTransmissionModelParameters;
+  }
+
   public getSimulationName(): string {
     return this.data.simulationName;
   }

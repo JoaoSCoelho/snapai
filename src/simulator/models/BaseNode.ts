@@ -1,3 +1,4 @@
+import { OrderedSet } from "js-sdsl";
 import { NodeParametersSubsection } from "../configurations/layout/NodeParametersSubsection";
 import { Position } from "../tools/Position";
 import { ModelType, ModelTypeToModel } from "../utils/modelsUtils";
@@ -8,8 +9,12 @@ import { Module } from "./Module";
 import { NodeId } from "./Node";
 import { ReliabilityModel } from "./ReliabilityModel";
 import { Simulation } from "./Simulation";
+import { Timer } from "./Timer";
+import { Edge } from "./Edge";
 
 export abstract class BaseNode extends Module {
+  protected readonly timers: OrderedSet<Timer<true>> = new OrderedSet();
+
   public constructor(
     public readonly id: NodeId,
     public mobilityModel: MobilityModel,
@@ -20,6 +25,34 @@ export abstract class BaseNode extends Module {
     public readonly simulation: Simulation,
   ) {
     super();
+  }
+
+  /**
+   * @returns All the edges that are leaving this node.
+   */
+  public getOutgoingEdges(): Edge[] {
+    return this.simulation.getOutgoingEdges(this.id);
+  }
+
+  /**
+   * Returns the set of timers currently active at this node.
+   * This set only holds the timers in synchronous simulation mode.
+   * In asynchronous simulation mode, the timers are stored as events in
+   * the global event queue.
+   * @return The set of timers currently active at this node.
+   */
+  public getTimers(): OrderedSet<Timer<true>> {
+    return this.timers;
+  }
+
+  /**
+   * Adds a timer to this node.
+   * The timer will be fired in the global event queue if the simulation is running in asynchronous mode,
+   * or it will be inserted into the global timers set if the simulation is running in synchronous mode.
+   * @param timer - The timer to add.
+   */
+  public addTimer(timer: Timer<true>) {
+    this.timers.insert(timer);
   }
 
   /**

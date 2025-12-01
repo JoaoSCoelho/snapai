@@ -1,3 +1,4 @@
+import { OrderedSet } from "js-sdsl";
 import { Inbox } from "../tools/Inbox";
 import { InboxPacketBuffer } from "../tools/InboxPacketBuffer";
 import { NackBox } from "../tools/NackBox";
@@ -14,11 +15,11 @@ import { PacketEvent } from "./PacketEvents";
 import { ReliabilityModel } from "./ReliabilityModel";
 import { Simulation } from "./Simulation";
 import { Timer } from "./Timer";
+import { SynchronousSimulation } from "./SynchronousSimulation";
 
 export type NodeId = number;
 
 export abstract class Node extends BaseNode {
-  private readonly timers: Set<Timer> = new Set();
   private hasNeighborhoodChanges = false;
   private packetBuffer = new InboxPacketBuffer(this.simulation);
   private nackBufferOdd: Packet[] = [];
@@ -75,6 +76,25 @@ export abstract class Node extends BaseNode {
   }
 
   /**
+   * Adds a packet to the NACK box of this node.
+   * A packet is added to the NACK box only if it is a unicast packet.
+   * In the synchronous setting, this method is called after all the messages are received.
+   * In the asynchronous setting, this method is NOT called.
+   * @param {Packet} packet The packet to add to the NACK box.
+   */
+  public addNackPacket(packet: Packet): void {
+    if (packet.transmissionType !== TransmissionType.UNICAST) return;
+
+    const simulation = this.simulation as SynchronousSimulation;
+
+    if (simulation.isEvenRound) {
+      this.nackBufferOdd.push(packet);
+    } else {
+      this.nackBufferEven.push(packet);
+    }
+  }
+
+  /**
    * This method is invoked after all the Messages are received.\
    * **Overwrite it to specify what to do with incoming messages**.
    * @param inbox a instance of a class Inbox. It is used to traverse the incoming
@@ -93,7 +113,7 @@ export abstract class Node extends BaseNode {
    * `nackMessagesEnabled` is enabled in the project configuration.
    * @param nackBox The NackBox, an object that contains the set of dropped messages.
    */
-  public handleNAckMessages(nackBox: NackBox): void {
+  public handleNackMessages(nackBox: NackBox): void {
     // no code here! The user may overwrite this method in the subclass
   }
 
@@ -118,7 +138,7 @@ export abstract class Node extends BaseNode {
    * Indicates that the neighborhood of this node has changed.
    * This can happen when a node moves or when a node is added/removed from the simulation.
    */
-  public neighborhoodChanged() {
+  public onNeighborhoodChange() {
     this.hasNeighborhoodChanges = true;
   }
 
@@ -133,18 +153,7 @@ export abstract class Node extends BaseNode {
    * the first usage.
    * @returns {boolean} True if the configuration is valid, false otherwise
    */
-  public abstract checkRequirements(): boolean;
-
-  /**
-   * Returns the set of timers currently active at this node.
-   * This set only holds the timers in synchronous simulation mode.
-   * In asynchronous simulation mode, the timers are stored as events in
-   * the global event queue.
-   * @return The set of timers currently active at this node.
-   */
-  public getTimers(): Set<Timer> {
-    return this.timers;
-  }
+  public abstract checkRequirements(): boolean; // TODO: Call it when adding a node
 
   /**
    * This method sends a Message to a specified target with the given intensity.
@@ -169,6 +178,7 @@ export abstract class Node extends BaseNode {
       this,
       target,
       radioIntensity,
+      TransmissionType.UNICAST,
     );
 
     if (this.simulation.project.simulationConfig.getInterferenceEnabled()) {
@@ -231,6 +241,7 @@ export abstract class Node extends BaseNode {
    * @param sender The sender node who sends the message
    * @param target The destination node who should receive the message
    * @param radioIntensity The radio-intensity of the sender node
+   * @param transmissionType The type of the transmission (unicast, broadcast, multicast)
    * @return The packet that has been transmitted.
    */
   private sendMessage(
@@ -239,6 +250,7 @@ export abstract class Node extends BaseNode {
     sender: Node,
     target: Node,
     radioIntensity: number,
+    transmissionType: TransmissionType,
   ): Packet {
     if (this.simulation.isAsyncMode) {
       return this.asynchronousSending(
@@ -247,6 +259,7 @@ export abstract class Node extends BaseNode {
         sender,
         target,
         radioIntensity,
+        transmissionType,
       );
     } else {
       return this.synchronousSending(
@@ -255,6 +268,7 @@ export abstract class Node extends BaseNode {
         sender,
         target,
         radioIntensity,
+        transmissionType,
       );
     }
   }
@@ -280,70 +294,65 @@ export abstract class Node extends BaseNode {
   }
 
   /**
-	 * **This method is framework internal and should not be used by the project developer.**
-	 * This method is called in each round on each node (At least in the synchronous simulation mode) 
-	 * by the system. It specifies the order in which the behavior methods are called. Study this
-	 * method carefully to understand the simulation.
-	 * @throws WrongConfigurationException 
-	 */
-	public  step():void {
-		this.packetBuffer.updateMessageBuffer();
-		
-		this.preStep();
-		
-		// check, if some connections have changed in the last step
-		if(this.hasNeighborhoodChanges) {
-			this.neighborhoodChanged(); 
-		}
-		
-		this.timersToHandle.clear();
-		// Fire all timers which are going off in this round
-		if(timers.size() > 0){
-			Iterator<Timer> it = timers.iterator();
-			while(it.hasNext()) {
-				Timer timer = it.next();
-				if(timer.getFireTime() <= Global.currentTime){
-					it.remove();
-					// we may not call fire() while iterating over the list of timers of this node,
-					// as the timer could reschedule itself and require to be added again to the
-					// timers list of this node. Therefore, store all timers that fire in a separate
-					// list and call them afterwards. 
-					timersToHandle.add(timer); 
-				}
-			}
+   * **This method is framework internal and should not be used by the project developer.**
+   * This method is called in each round on each node **(Only in the synchronous simulation mode)**
+   * by the system. It specifies the order in which the behavior methods are called. Study this
+   * method carefully to understand the simulation.
+   * @throws WrongConfigurationException
+   */
+  public step(): void {
+    const simulation = this.simulation as SynchronousSimulation;
 
-			// sort timers by their exact time when they expired 
-			timersToHandle.sort();
-			for(Timer t : timersToHandle) {
-				t.fire();
-			}
-		}
+    this.packetBuffer.updateMessageBuffer();
 
-		// Handle dropped messages (messages that were sent by this node, but that do not arrive.
-		if(Configuration.generateNAckMessages) {
-			PacketCollection pc = Global.isEvenRound ? nAckBufferEvenRound : nAckBufferOddRound;
-			if(nackBox == null) {
-				nackBox = new NackBox(pc);
-			} else {
-				nackBox.resetForList(pc);
-			}
-			handleNAckMessages(nackBox);
-		}
-		
-		//call the 'handleMessages' ALWAYS, and pass the appropriate Inbox. This Inbox
-		//can also be a an Iterator over an empty list.
-		inbox = packetBuffer.getInbox();
-		handleMessages(inbox);
-		
-		// a custom method that may do something at the end of the step
-		postStep();
-		
-		//all the packets in the inbox and nackBox are not used anymore and can be freed.
-		inbox.freePackets();
-		if(Configuration.generateNAckMessages) {
-			nackBox.freePackets(); // this resets the nAckBuffer
-		}
-	}
+    this.preStep();
+
+    // check, if some connections have changed in the last step
+    if (this.hasNeighborhoodChanges) {
+      this.onNeighborhoodChange();
+    }
+
+    const timersToHandle: Timer<true>[] = [];
+
+    // Fire all timers which are going off in this round
+    if (this.timers.size() > 0) {
+      for (const timer of this.timers) {
+        if (timer.getFireTime() > simulation.currentTime) break; // We can stop because the timers are sorted by fire time
+
+        this.timers.eraseElementByKey(timer);
+
+        // we may not call fire() while iterating over the list of timers of this node,
+        // as the timer could reschedule itself and require to be added again to the
+        // timers list of this node. Therefore, store all timers that fire in a separate
+        // list and call them afterwards.
+        timersToHandle.push(timer);
+      }
+
+      timersToHandle.forEach((timer) => timer.fire());
+    }
+
+    // Handle dropped messages (messages that were sent by this node, but that do not arrive.
+    if (simulation.project.simulationConfig.getNackMessagesEnabled()) {
+      const nackBuffer = simulation.isEvenRound
+        ? this.nackBufferEven
+        : this.nackBufferOdd;
+
+      this.nackBox.resetForPackets(nackBuffer);
+
+      this.handleNackMessages(this.nackBox);
+    }
+
+    //call the 'handleMessages' ALWAYS, and pass the appropriate Inbox.
+    this.inbox = this.packetBuffer.getInbox();
+    this.handleMessages(this.inbox);
+
+    // a custom method that may do something at the end of the step
+    this.postStep();
+
+    //all the packets in the inbox and nackBox are not used anymore and can be freed.
+    this.inbox = new Inbox([]);
+    this.nackBox = new NackBox([]); // this resets the nackBuffer
+  }
 
   /**
    * Sends a message in the asynchronous simulation mode
@@ -353,6 +362,7 @@ export abstract class Node extends BaseNode {
    * @param sender The sender node who sends the message
    * @param target The destination node who should receive the message
    * @param radioIntensity The intensity at which the message is sent
+   * @param transmissionType The type of the transmission
    * @return The packet encapsulating the message
    */
   private asynchronousSending(
@@ -361,7 +371,8 @@ export abstract class Node extends BaseNode {
     sender: Node,
     target: Node,
     radioIntensity: number,
-  ) {
+    transmissionType: TransmissionType,
+  ): Packet {
     if (!this.simulation.isAsyncMode)
       throw new Error("Simulation is not async");
 
@@ -371,7 +382,7 @@ export abstract class Node extends BaseNode {
       clonedMsg,
       sender.id,
       target.id,
-      TransmissionType.UNICAST,
+      transmissionType,
     );
 
     const transmissionTime =
@@ -402,5 +413,132 @@ export abstract class Node extends BaseNode {
     );
 
     return packet;
+  }
+
+  /**
+   * Sends a message in the synchronous simulation mode
+   * @param message The message to be sent
+   * @param edge The edge over which the message is sent, may be null, if there is no edge,
+   * in which case the packet is dropped immediately
+   * @param sender The sender node who sends the message
+   * @param target The destination node who should receive the message
+   * @param radioIntensity The intensity at which the message is sent
+   * @param transmissionType The type of the transmission
+   * @return The packet encapsulating the message
+   */
+  private synchronousSending(
+    message: Message,
+    edge: Edge | null,
+    sender: Node,
+    target: Node,
+    radioIntensity: number,
+    transmissionType: TransmissionType,
+  ): Packet {
+    if (!this.simulation.isRunnig) throw new Error("Simulation is not running");
+
+    const clonedMsg = message.clone();
+    const simulation = this.simulation as SynchronousSimulation;
+    const packet = new this.UsedPacket(
+      clonedMsg,
+      sender.id,
+      target.id,
+      transmissionType,
+    );
+
+    const transmissionTime =
+      simulation.messageTransmissionModel.timeToReach(packet);
+
+    packet.arrivingTime = simulation.currentTime + transmissionTime;
+    packet.sendingTime = simulation.currentTime;
+    packet.setEdge(edge);
+    packet.intensity = radioIntensity;
+
+    if (edge) {
+      if (!this.reliabilityModel.reachesDestination(packet)) {
+        packet.denyDelivery();
+      }
+      edge.addPacket(packet);
+    } else {
+      packet.denyDelivery();
+    }
+
+    target.packetBuffer.addPacket(packet);
+
+    simulation.statistics.registerSentMessage(packet);
+
+    return packet;
+  }
+
+  /**
+   * This method broadcasts a Message with a given intensity.
+   * Note that this message is more efficient concerning the
+   * memory usage than the sendPacket message, but note also
+   * that with this method the user sends a message and receives
+   * a packet (as there are always packets received). If that
+   * disturbes you use the broadcastPacket method instead.
+   *
+   * @param m The message to be sent to all the neighbors.
+   * @param intensity The intensity to send the messages with.
+   */
+  private broadcastMessage(message: Message, radioIntensity: number) {
+    if (!this.simulation.isRunnig && !this.simulation.isAsyncMode)
+      throw new Error("Simulation is not running");
+
+    if (this.simulation.project.simulationConfig.interferenceEnabled) {
+      let longestPacket: Packet | null = null; // the packet with the longest transmission time
+
+      for (const edge of this.getOutgoingEdges()) {
+        const target = this.simulation.getCertainNode(edge.target);
+
+        const packet = this.sendMessage(
+          message,
+          edge,
+          this,
+          target,
+          radioIntensity,
+          TransmissionType.BROADCAST,
+        );
+
+        this.simulation.packetsInTheAir.add(packet, true);
+
+        if (
+          !longestPacket ||
+          packet.arrivingTime! > longestPacket.arrivingTime!
+        ) {
+          longestPacket = packet;
+        }
+      }
+
+      if (longestPacket) {
+        this.simulation.packetsInTheAir.upgradeToActivePacket(longestPacket);
+      } else {
+        const selfPacket = this.sendMessage(
+          message,
+          null,
+          this,
+          this,
+          radioIntensity,
+          TransmissionType.BROADCAST,
+        );
+
+        selfPacket.denyDelivery();
+
+        this.simulation.packetsInTheAir.add(selfPacket, false);
+      }
+    } else {
+      // No Interference
+      for (const edge of this.getOutgoingEdges()) {
+        const target = this.simulation.getCertainNode(edge.target);
+
+        this.sendMessage(
+          message,
+          edge,
+          this,
+          target,
+          radioIntensity,
+          TransmissionType.BROADCAST,
+        );
+      }
+    }
   }
 }

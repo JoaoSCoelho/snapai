@@ -180,6 +180,14 @@ export abstract class Simulation {
       });
     }
 
-    for (const node of nodes) (node as Node).neighborhoodChanged();
+    for (const node of nodes) (node as Node).onNeighborhoodChange();
+  }
+
+  public getOutgoingEdges(node: Node | NodeId): Edge[] {
+    node = node instanceof Node ? node.id : node;
+
+    return this.graph
+      .outEdges(node)
+      .map((e) => this.graph.getEdgeAttributes(e).implementation);
   }
 }
