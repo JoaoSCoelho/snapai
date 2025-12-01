@@ -1,22 +1,26 @@
+import { OrderedSet } from "js-sdsl";
 import { Packet } from "../models/Packet";
 import { Simulation } from "../models/Simulation";
 import { Inbox } from "./Inbox";
+import { Edge } from "../models/Edge";
 
 export class InboxPacketBuffer {
-  private readonly arrivingPackets: Packet[] = [];
-  private readonly buffer: Packet[] = [];
+  private readonly arrivingPackets: OrderedSet<Packet> = new OrderedSet([]);
+  private readonly buffer: Set<Packet> = new Set([]);
   private readonly inbox: Inbox = new Inbox([]);
 
   constructor(private readonly simulation: Simulation) {}
 
-/**
- * Returns the Inbox instance associated with this InboxPacketBuffer.
- * The Inbox instance holds the packets that are currently in the inbox
- * of a node.
- * @returns The Inbox instance associated with this InboxPacketBuffer.
- */
+  /**
+   * This method returns a Inbox instance for this PacketBuffer. The inbox instance is used to
+   * iterate over the PacketBuffer and to get the Header-Information from the Packets.\
+   * Returns the Inbox instance associated with this InboxPacketBuffer.
+   * The Inbox instance holds the packets that are currently in the inbox
+   * of a node.
+   * @returns The Inbox instance associated with this InboxPacketBuffer.
+   */
   public getInbox(): Inbox {
-    return this.inbox;
+    return this.inbox.resetForPackets([...this.arrivingPackets]);
   }
 
   /**
@@ -25,43 +29,81 @@ export class InboxPacketBuffer {
    * @returns This InboxPacketBuffer instance.
    */
   public addPacket(packet: Packet) {
-    this.buffer.push(packet);
+    this.buffer.add(packet);
     return this;
   }
 
   /**
    * Removes a packet from the buffer.
-   * @param packet The packet to remove.
-   * @returns This InboxPacketBuffer instance.
+   * @param packet The Packet to remove from the buffer.
+   * @returns This InboxPacketBuffer instance
    */
   public removePacket(packet: Packet) {
-    this.buffer.splice(this.buffer.indexOf(packet), 1);
+    this.buffer.delete(packet);
     return this;
   }
 
+  public getBufferCopy(): Set<Packet> {
+    return new Set([...this.buffer]);
+  }
+
+  /**
+   * This method updates the messageBuffer for the node. This means, that it
+   * prepares all the messages that are incoming in this round for the user
+   * to get them.
+   */
   public updateMessageBuffer() {
-    this.arrivingPackets.splice(0, this.arrivingPackets.length);
+    this.arrivingPackets.clear();
 
-    for (const p of [...this.buffer]) {
-      if (p.arrivingTime ?? 0 <= this.simulation.currentTime) {
-        this.simulation.packetsInTheAir.remove(p);
-
-        this.removePacket(p);
-
-        if (this.simulation.hasEdge(p.originId, p.destinationId)) {
-          this.simulation.getEdge(p.originId, p.destinationId)!.removePacket();
+    for (const packet of this.getBufferCopy()) {
+      if (packet.arrivingTime ?? 0 <= this.simulation.currentTime) {
+        if (this.simulation.project.simulationConfig.interferenceEnabled) {
+          this.simulation.packetsInTheAir.remove(packet);
         }
 
-        if (p.positiveDelivery) {
-            this.arrivingPackets.push(p);
-            this.simulation.logger.log(`Message \"${p.message.data}\" (${p.originId}->${p.destinationId}) arrived`);
-        } else {
-          if (this.simulation.project.simulationConfig.getNackMessagesEnabled()) {
-            const origin = this.simulation.getCertainNode(p.originId);
+        this.removePacket(packet);
 
-            origin.addNackPacket(p);
+        if (packet.edge) {
+          packet.edge.removePacket(packet);
+        }
+
+        if (packet.positiveDelivery) {
+          this.arrivingPackets.insert(packet);
+          this.simulation.logger.log(
+            `Message \"${packet.message.data}\" (${packet.originId}->${packet.destinationId}) arrived`,
+          );
+        } else {
+          if (this.simulation.project.simulationConfig.nackMessagesEnabled) {
+            const origin = this.simulation.getCertainNode(packet.originId);
+
+            origin.addNackPacket(packet);
           }
         }
+      }
+    }
+  }
+
+  /**
+   * This method returns the number of packets arriving in this round.
+   *
+   * @return The number of Packets arriving this node in this round.
+   */
+  public waitingPacketsQty(): number {
+    return this.arrivingPackets.size();
+  }
+
+  /**
+   * Denies all packets if they are sent over the
+   * specified edge and removes the edge from the packets.
+   *
+   * @param edge The edge for which the packets have to be invalidated.
+   */
+  public invalidatePacketsSentOverThisEdge(edge: Edge) {
+    for (const packet of this.getBufferCopy()) {
+      if (packet.edge === edge) {
+        packet.denyDelivery();
+        packet.setEdge(null);
+      }
     }
   }
 }

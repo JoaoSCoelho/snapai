@@ -1,5 +1,5 @@
 export type AppendSimulationLogDto = {
-  simulationId: string;
+  simulationId: number;
   project: string;
   content: string;
 };
