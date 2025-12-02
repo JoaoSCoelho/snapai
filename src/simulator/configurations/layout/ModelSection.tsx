@@ -43,8 +43,8 @@ export class ModelSection extends Section {
                 The name of the {modelType.replace(/[_]/g, " ")} model to be
                 used. <br />
                 Use the following format: "<b>projectName:modelName</b>" to use
-                a model from a specific project or "<b>modelName</b>" to use a
-                default model.
+                a model from a specific project or "<b>default:modelName</b>" to
+                use a default model.
               </>
             ),
           },
@@ -55,19 +55,19 @@ export class ModelSection extends Section {
   }
 
   /**
-   * Returns the name of the field that contains the name of the model of type 'modelType'.
+   * Returns the name of the field that contains the name of the model.
    * This field is used to select the model to be used in the simulation.
-   * @returns The name of the field that contains the name of the model of type 'modelType'.
+   * @returns The name of the field that contains the name of the model.
    */
   public getModelNameFieldName(): string {
     return `${underscoreToCamelCase(this.modelType)}Model`;
   }
 
   /**
-   * Returns the prefix of the parameters subsection for a given model identifier.
-   * The prefix is the name of the field that contains the name of the model of type 'modelType',
+   * Returns the prefix of the parameters subsection.
+   * The prefix is the name of the field that contains the name of the model,
    * concatenated with "Parameters".
-   * @returns The prefix of the parameters subsection for a given model identifier.
+   * @returns The prefix of the parameters subsection.
    */
   public getModelParametersPrefix(): string {
     return this.getModelNameFieldName() + "Parameters";

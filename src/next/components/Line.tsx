@@ -13,6 +13,7 @@ export type LineProps = {
   register: UseFormRegister<any>;
   control: Control;
   onModelNameChange?: (name: string, fullName: string, value: string) => void;
+  onNodeNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function Line({

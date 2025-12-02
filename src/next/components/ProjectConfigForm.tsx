@@ -17,6 +17,7 @@ import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
 import { Layout } from "@/simulator/configurations/layout/Layout";
 import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
 import z from "zod";
+import { EndFormButtonBar } from "./EndFormButtonBar";
 
 type ProjectConfigFormSchema = z.infer<ProjectConfig["validatorSchema"]>;
 
@@ -77,21 +78,12 @@ export default function ProjectConfigForm({ project }: ProjectConfigFormProps) {
     section.setParametersSubsection(model, parametersSubsection);
 
     if (parametersSubsection) {
-      const parsed = parametersSubsection
-        .getSchema()
-        .safeParse(getValues(parametersPrefix));
-
-      if (parsed.error) {
-        parsed.error.issues.forEach((issue) => {
-          setError(`${parametersPrefix}.${issue.path.join(".")}`, {
-            message: issue.message,
-          });
-        });
-
-        return;
-      }
-
-      setValue(parametersPrefix, parsed.data);
+      setValidatorSchema(
+        z.object({
+          ...project.simulationConfig.validatorSchema.shape,
+          [parametersPrefix]: parametersSubsection?.getSchema(),
+        }),
+      );
     }
 
     setProjectConfigLayout({ ...project.projectConfig!.layout });
@@ -125,8 +117,6 @@ export default function ProjectConfigForm({ project }: ProjectConfigFormProps) {
     await saveProjectConfig(project, data);
 
     toast.success("Project config. saved");
-
-    redirect("/dashboard/controls");
   };
 
   const onResetButtonClick = () => {
@@ -184,28 +174,10 @@ export default function ProjectConfigForm({ project }: ProjectConfigFormProps) {
         );
       })}
 
-      <div className="button-bar-spacer h-16"></div>
-      <div className="fixed flex gap-4 bottom-0 rounded-t-lg bg-white p-4 shadow-2xl shadow-gray-700 left-1/2 -translate-x-1/2 z-10">
-        <Button
-          type="button"
-          variant="contained"
-          size="large"
-          color="warning"
-          className="flex items-center gap-2"
-          onClick={onResetButtonClick}
-        >
-          <RefreshIcon /> Reset
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          color="success"
-          size="large"
-          className="flex items-center gap-2"
-        >
-          <SaveIcon /> Save
-        </Button>
-      </div>
+      <EndFormButtonBar
+        nextButtonHref="/dashboard/controls"
+        onResetButtonClick={onResetButtonClick}
+      />
     </form>
   );
 }

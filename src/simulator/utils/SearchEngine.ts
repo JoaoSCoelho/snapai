@@ -1,5 +1,6 @@
 import { simulator } from "../Simulator";
 import { Model } from "../models/Model";
+import { Node } from "../models/Node";
 import { Project } from "../models/Project";
 import { ModelType } from "./modelsUtils";
 
@@ -79,6 +80,23 @@ export class SearchEngine {
   }
 
   /**
+   * Returns a map of nodes found in the simulator environment, prefixed with the project name.
+   * The map contains the name of the node as key and the node object as value.
+   * The name of the node is prefixed with the project name, for example "projectName:nodeName".
+   * @returns A map of nodes found in the simulator environment, prefixed with the project name.
+   */
+  public static getPrefixedMapOfNodes() {
+    return new Map(
+      simulator.projects
+        .values()
+        .flatMap((p) =>
+          p.nodes.entries().map(([k, v]) => [`${p.name}:${k}`, v]),
+        )
+        .toArray() as [`${string}:${string}`, typeof Node][],
+    );
+  }
+
+  /**
    * Returns the project with the given name.
    * @throws {Error} If the project was not found.
    * @param {string} name The name of the project to be returned.
@@ -100,8 +118,6 @@ export class SearchEngine {
   }
 
   /**
-   * @throws
-   * ModelNotFoundError if the generic model implementation was not found.
    * @returns
    * The generic model class to be instantiated, or undefined if the model was not found.
    */
@@ -112,5 +128,17 @@ export class SearchEngine {
     return this.getPrefixedMapOfModels(modelType).get(
       modelIdentifier as `${string}:${string}`,
     );
+  }
+
+  /**
+   * Finds a node implementation by its identifier
+   * @returns
+   * The Node class to be instantiated, or undefined if the node was not found.
+   * @param nodeIdentifier The name of the node to be searched, in the format of project_name:node_name.
+   */
+  public static findNodeByIdentifier(
+    nodeIdentifier: `${string}:${string}`,
+  ): typeof Node | undefined {
+    return this.getPrefixedMapOfNodes().get(nodeIdentifier);
   }
 }

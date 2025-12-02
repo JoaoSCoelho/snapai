@@ -20,6 +20,7 @@ export type NodeSelectFieldProps = FormFieldProps & {
   field: NodeSelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
+  onNodeNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function NodeSelectField({
@@ -29,6 +30,7 @@ export default function NodeSelectField({
   formControlAttr,
   containerAttr,
   nestedIn,
+  onNodeNameChange,
 }: NodeSelectFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -54,6 +56,11 @@ export default function NodeSelectField({
                 {...controllerField}
                 {...selectAttr}
                 onChange={(e, child) => {
+                  onNodeNameChange?.(
+                    field.name,
+                    fullName,
+                    e.target.value as string,
+                  );
                   controllerField.onChange(e, child);
                   selectAttr?.onChange?.(e, child);
                 }}

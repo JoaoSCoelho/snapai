@@ -10,17 +10,17 @@ import { Fragment } from "react";
 import AddNodesForm from "./AddNodesForm";
 import { Button } from "@mui/material";
 
-export type AddNodeFormDialogProps = {
+export type AddNodesFormDialogProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: () => void;
 };
 
-export default function AddNodeFormDialog({
+export default function AddNodesFormDialog({
   open,
   onClose,
   onSubmit,
-}: AddNodeFormDialogProps) {
+}: AddNodesFormDialogProps) {
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>

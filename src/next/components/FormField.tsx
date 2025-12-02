@@ -36,6 +36,7 @@ export type FormFieldProps = {
   section: Section;
   nestedIn?: string;
   onModelNameChange?: (name: string, fullName: string, value: string) => void;
+  onNodeNameChange?: (name: string, fullName: string, value: string) => void;
 };
 
 export default function FormField({
