@@ -16,6 +16,7 @@ import FormErrorModalContent from "./FormErrorModalContent";
 import { useConfigContext } from "../contexts/ConfigContext";
 import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
 import { Layout } from "@/simulator/configurations/layout/Layout";
+import z from "zod";
 
 type SimulationConfigFormSchema = SimulationConfigSchema;
 
@@ -38,6 +39,10 @@ export default function SimulationConfigForm({
   const { showModal } = useErrorModal();
   const { saveSimulationConfig } = useConfigContext();
 
+  const [validatorSchema, setValidatorSchema] = useState(
+    project.simulationConfig.validatorSchema,
+  );
+
   const {
     register,
     control,
@@ -53,9 +58,17 @@ export default function SimulationConfigForm({
       SimulationConfigFormSchema,
       any,
       SimulationConfigFormSchema
-    >(project.simulationConfig.validatorSchema as any),
+    >(validatorSchema as any),
   });
 
+  /**
+   * Called when the user changes the model name of a ModelSection in the config form.
+   * This function updates the parameters subsection of the ModelSection and
+   *  the values of the corresponding corresponding parameters in the config form.
+   * @param {string} name - The name of the ModelSection.
+   * @param {keyof SimulationConfigFormSchema} _fullName - The full name of the ModelSection in the config form.
+   * @param {string} model - The name of the model.
+   */
   const onModelNameChange = (
     name: string,
     _fullName: keyof SimulationConfigFormSchema,
@@ -74,57 +87,61 @@ export default function SimulationConfigForm({
     section.setParametersSubsection(model, parametersSubsection);
 
     if (parametersSubsection) {
-      const parsed = parametersSubsection
-        .getSchema()
-        .safeParse(getValues(parametersPrefix));
+      // const parsed = parametersSubsection
+      //   .getSchema()
+      //   .safeParse(getValues(parametersPrefix));
+      // if (parsed.error) {
+      //   parsed.error.issues.forEach((issue) => {
+      //     setError(
+      //       `${parametersPrefix}.${issue.path.join(".")}` as keyof SimulationConfigFormSchema,
+      //       {
+      //         message: issue.message,
+      //       },
+      //     );
+      //   });
+      //   return;
+      // }
+      // setValue(parametersPrefix, parsed.data);
 
-      if (parsed.error) {
-        parsed.error.issues.forEach((issue) => {
-          setError(
-            `${parametersPrefix}.${issue.path.join(".")}` as keyof SimulationConfigFormSchema,
-            {
-              message: issue.message,
-            },
-          );
-        });
-
-        return;
-      }
-
-      setValue(parametersPrefix, parsed.data);
+      setValidatorSchema(
+        z.object({
+          ...project.simulationConfig.validatorSchema.shape,
+          [parametersPrefix]: parametersSubsection?.getSchema(),
+        }),
+      );
     }
 
     setSimulationConfigLayout({ ...project.simulationConfig.layout });
   };
 
   const handleFormSubmit = async (data: SimulationConfigFormSchema) => {
-    modelsSections.forEach((section) => {
-      const parametersPrefix =
-        section.getModelParametersPrefix() as keyof SimulationConfigFormSchema;
-      const parametersSubsection = section.getCurrentParametersSubsection();
+    // modelsSections.forEach((section) => {
+    //   const parametersPrefix =
+    //     section.getModelParametersPrefix() as keyof SimulationConfigFormSchema;
+    //   const parametersSubsection = section.getCurrentParametersSubsection();
 
-      if (parametersSubsection) {
-        const parsed = parametersSubsection
-          .getSchema()
-          .safeParse(data[parametersPrefix]);
+    //   if (parametersSubsection) {
+    //     const parsed = parametersSubsection
+    //       .getSchema()
+    //       .safeParse(data[parametersPrefix]);
 
-        if (parsed.error) {
-          parsed.error.issues.forEach((issue) => {
-            setError(
-              `${parametersPrefix}.${issue.path.join(".")}` as keyof SimulationConfigFormSchema,
-              {
-                message: issue.message,
-              },
-            );
-          });
+    //     if (parsed.error) {
+    //       parsed.error.issues.forEach((issue) => {
+    //         setError(
+    //           `${parametersPrefix}.${issue.path.join(".")}` as keyof SimulationConfigFormSchema,
+    //           {
+    //             message: issue.message,
+    //           },
+    //         );
+    //       });
 
-          return;
-        }
+    //       return;
+    //     }
 
-        //@ts-ignore
-        data[parametersPrefix] = parsed.data;
-      }
-    });
+    //     //@ts-ignore
+    //     data[parametersPrefix] = parsed.data;
+    //   }
+    // });
 
     await saveSimulationConfig(project, data);
 
@@ -188,7 +205,7 @@ export default function SimulationConfigForm({
         );
       })}
 
-      <div className="button-bar-spacer h-16"></div>
+      <div className="button-bar-spacer h-18"></div>
       <div className="fixed flex gap-4 bottom-0 rounded-t-lg bg-white p-4 shadow-2xl shadow-gray-700 left-1/2 -translate-x-1/2 z-10">
         <Button
           type="button"

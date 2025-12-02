@@ -9,17 +9,17 @@
     1000
   ],
   "loggerOptions": {
-    "useConsole": true
+    "useConsole": false
   },
-  "interferenceIsAdditive": true,
   "isAsynchronous": false,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": false,
   "connectivityEnabled": false,
   "interferenceEnabled": true,
+  "interferenceIsAdditive": true,
   "messageTransmissionModel": "default:ConstantTime",
   "messageTransmissionModelParameters": {
-    "time": 10
+    "time": 1
   }
 }

@@ -95,7 +95,7 @@ export class ModelSection extends Section {
     const parametersSubsection = modelClass.getParametersSubsection();
 
     return (
-      parametersSubsection &&
+      parametersSubsection && //@ts-ignore
       new ModelParametersSubsection(
         parametersSubsection.lines,
         parametersSubsection.title,

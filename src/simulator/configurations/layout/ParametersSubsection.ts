@@ -3,14 +3,31 @@ import { Line } from "./Line";
 import { Subsection } from "./Subsection";
 import { Global } from "@/simulator/Global";
 
+export type ParametersSubsectionOptions = {
+  lines: Line[];
+  title?: string;
+};
+
 export class ParametersSubsection extends Subsection {
-  public constructor(
+  protected constructor(
     public readonly lines: Line[],
     public readonly title?: string,
     public readonly nestedIn?: string,
+    /** Only set it if you know what you're doing! */
     public readonly id = ++Global.lastId,
   ) {
     super(lines, title, nestedIn, id);
+  }
+
+  /**
+   * Creates a new ParametersSubsection instance.
+   * @param data The options for the new ParametersSubsection instance.
+   * @returns A new ParametersSubsection instance created with the given options.
+   */
+  public static create(
+    data: ParametersSubsectionOptions,
+  ): ParametersSubsection {
+    return new ParametersSubsection(data.lines, data.title);
   }
 
   /**

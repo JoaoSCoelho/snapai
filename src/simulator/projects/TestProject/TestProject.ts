@@ -5,6 +5,7 @@ import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/si
 import { TestProjectConfigSchema } from "./config/testProjectConfigSchema";
 import testProjectJsonConfig from "./config/testProjectConfig.json";
 import { TestProjectConfig } from "./config/TestProjectConfig";
+import { TestMessageTransmissionModel } from "./models/TestMessageTransmissionModel";
 
 export class TestProject extends Project {
   protected constructor() {
@@ -19,6 +20,8 @@ export class TestProject extends Project {
         testProjectJsonConfig as unknown as TestProjectConfigSchema,
       ),
     );
+
+    this.addModel("TestMessageTransmissionModel", TestMessageTransmissionModel);
   }
 
   public static create(): TestProject {

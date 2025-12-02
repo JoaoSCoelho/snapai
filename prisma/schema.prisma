@@ -25,3 +25,23 @@ model ConfigContext {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model NodesFormContext {
+  id                          Int      @id @default(autoincrement())
+  addedToSimulation           String?
+  numberOfNodes               Int
+  node                        String
+  nodeParameters              Json
+  mobilityModel               String
+  mobilityModelParameters     Json
+  connectivityModel           String
+  connectivityModelParameters Json
+  interferenceModel           String
+  interferenceModelParameters Json
+  reliabilityModel            String
+  reliabilityModelParameters  Json
+  distributionModel           String
+  distributionModelParameters Json
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+}

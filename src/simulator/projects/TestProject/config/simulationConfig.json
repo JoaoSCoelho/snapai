@@ -11,15 +11,26 @@
   "loggerOptions": {
     "useConsole": true
   },
-  "interferenceIsAdditive": true,
   "isAsynchronous": true,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": true,
   "connectivityEnabled": true,
   "interferenceEnabled": false,
-  "messageTransmissionModel": "default:ConstantTime",
+  "interferenceIsAdditive": true,
+  "messageTransmissionModel": "TestProject:TestMessageTransmissionModel",
   "messageTransmissionModelParameters": {
-    "time": 1
+    "name": "565874562315674",
+    "numberPair": [
+      50000000,
+      -165
+    ],
+    "checkbox": true,
+    "angle": 5,
+    "color": "#000000",
+    "anglePair": [
+      5,
+      0
+    ]
   }
 }

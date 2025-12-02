@@ -44,10 +44,40 @@ export default function FormField({
   onModelNameChange,
   ...fieldAttrs
 }: FormFieldProps) {
-  if (field instanceof TextFieldCls) {
+  /**
+   * The order in this switch statement is important.
+   * The first matching case will be used.
+   * So... classes that extends other classes should be listed first.
+   */
+
+  if (field instanceof ColorFieldCls) {
+    return (
+      <ColorField
+        field={field as ColorFieldCls}
+        inputAttr={{ disabled }}
+        {...fieldAttrs}
+      />
+    );
+  } else if (field instanceof TextFieldCls) {
     return (
       <TextField
         field={field as TextFieldCls}
+        inputAttr={{ disabled }}
+        {...fieldAttrs}
+      />
+    );
+  } else if (field instanceof AngleFieldCls) {
+    return (
+      <AngleField
+        field={field as AngleFieldCls}
+        inputAttr={{ disabled }}
+        {...fieldAttrs}
+      />
+    );
+  } else if (field instanceof PercentageFieldCls) {
+    return (
+      <PercentageField
+        field={field as PercentageFieldCls}
         inputAttr={{ disabled }}
         {...fieldAttrs}
       />
@@ -68,6 +98,14 @@ export default function FormField({
         {...fieldAttrs}
       />
     );
+  } else if (field instanceof AnglePairFieldCls) {
+    return (
+      <AnglePairField
+        field={field as AnglePairFieldCls}
+        inputAttr={{ disabled }}
+        {...fieldAttrs}
+      />
+    );
   } else if (field instanceof NumberPairFieldCls) {
     return (
       <NumberPairField
@@ -82,22 +120,6 @@ export default function FormField({
         field={field as ModelSelectFieldCls}
         selectAttr={{ disabled }}
         onModelNameChange={onModelNameChange}
-        {...fieldAttrs}
-      />
-    );
-  } else if (field instanceof PercentageFieldCls) {
-    return (
-      <PercentageField
-        field={field as PercentageFieldCls}
-        inputAttr={{ disabled }}
-        {...fieldAttrs}
-      />
-    );
-  } else if (field instanceof SelectFieldCls) {
-    return (
-      <SelectField
-        field={field as SelectFieldCls}
-        selectAttr={{ disabled }}
         {...fieldAttrs}
       />
     );
@@ -117,27 +139,11 @@ export default function FormField({
         {...fieldAttrs}
       />
     );
-  } else if (field instanceof ColorFieldCls) {
+  } else if (field instanceof SelectFieldCls) {
     return (
-      <ColorField
-        field={field as ColorFieldCls}
-        inputAttr={{ disabled }}
-        {...fieldAttrs}
-      />
-    );
-  } else if (field instanceof AnglePairFieldCls) {
-    return (
-      <AnglePairField
-        field={field as AnglePairFieldCls}
-        inputAttr={{ disabled }}
-        {...fieldAttrs}
-      />
-    );
-  } else if (field instanceof AngleFieldCls) {
-    return (
-      <AngleField
-        field={field as AngleFieldCls}
-        inputAttr={{ disabled }}
+      <SelectField
+        field={field as SelectFieldCls}
+        selectAttr={{ disabled }}
         {...fieldAttrs}
       />
     );

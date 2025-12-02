@@ -27,22 +27,24 @@ export class ConstantTime extends MessageTransmissionModel {
   public static getParametersSubsection():
     | ModelParametersSubsection
     | undefined {
-    return new ModelParametersSubsection([
-      new Line([
-        NumberField.create({
-          name: "time",
-          label: "Time",
-          isFloat: true,
-          required: true,
-          occupedColumns: 4,
-          min: 1,
-          schema: z.number().min(1),
-          info: {
-            title:
-              "The time it takes for a packet to reach the destination node.",
-          },
-        }),
-      ]),
-    ]);
+    return ModelParametersSubsection.create({
+      lines: [
+        new Line([
+          NumberField.create({
+            name: "time",
+            label: "Time",
+            isFloat: true,
+            required: true,
+            occupedColumns: 4,
+            min: 1,
+            schema: z.number().min(1),
+            info: {
+              title:
+                "The time it takes for a packet to reach the destination node.",
+            },
+          }),
+        ]),
+      ],
+    });
   }
 }

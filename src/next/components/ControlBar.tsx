@@ -15,6 +15,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
+import { ErrorSystem } from "../utils/ErrorSystem";
+import { toast } from "sonner";
 
 export type ControlBarProps = {};
 
@@ -56,9 +58,9 @@ export default function ControlBar({}: ControlBarProps) {
   useEffect(() => {
     setInitializeButtonBg(
       initializeButtonState === "success"
-        ? "#E9CC2840"
+        ? "#fedd2172"
         : initializeButtonState === "error"
-          ? "#ff4d4d40"
+          ? "#ff4d4d72"
           : undefined,
     );
   }, [initializeButtonState]);
@@ -80,8 +82,12 @@ export default function ControlBar({}: ControlBarProps) {
       (simulation) => {
         setInitializeButtonState("success");
         setSimulation(simulation);
+        toast.success("Simulation initialized");
       },
-      () => setInitializeButtonState("error"),
+      (e) => {
+        setInitializeButtonState("error");
+        ErrorSystem.emitError("Failed to initialize simulation", e);
+      },
     );
 
     setTimeout(() => {

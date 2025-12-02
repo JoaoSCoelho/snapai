@@ -35,7 +35,6 @@ export default function Section({
       )}
 
       {section.subsections.map((subsection, subsectionIndex) => {
-        console.log(subsection);
         return (
           <Subsection
             control={control}

@@ -1,1 +1,4 @@
-export type AngleUnit = "rad" | "deg";
+export enum AngleUnit {
+  RAD = "rad",
+  DEG = "deg",
+}

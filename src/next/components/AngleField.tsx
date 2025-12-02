@@ -54,8 +54,12 @@ export default function AngleField({
                 onChange={(e) => {
                   controllerField.onChange(Number(e.target.value));
                 }}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
+                onFocus={() => {
+                  setFocused(true);
+                }}
+                onBlur={() => {
+                  setFocused(false);
+                }}
                 value={controllerField.value}
                 slotProps={{
                   htmlInput: {
