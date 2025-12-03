@@ -38,6 +38,7 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   // Effects
   useEffect(() => {
@@ -53,6 +54,9 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
             string,
             any
           >,
+          usedPacket: response.data.usedPacket,
+          usedPacketParameters: (response.data.usedPacketParameters ??
+            {}) as Record<string, any>,
           mobilityModel: response.data.mobilityModel,
           mobilityModelParameters: (response.data.mobilityModelParameters ??
             {}) as Record<string, any>,
@@ -76,11 +80,16 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
   // Functions
   const addNodes = async (simulation: Simulation, data: AddNodesFormSchema) => {
     setDefaultData(data);
-    if (data)
-      axios.post("/api/add-nodes-context", {
-        ...data,
-        addedToSimulation: simulation.id.toString(),
-      });
+
+    if (data) {
+      setSubmitting(true);
+      axios
+        .post("/api/add-nodes-context", {
+          ...data,
+          addedToSimulation: simulation.id.toString(),
+        })
+        .finally(() => setSubmitting(false));
+    }
     // TODO: really add nodes
   };
 
@@ -99,6 +108,9 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
     const values = form.getValues();
 
     setDefaultData(values);
+
+    if (submitting) return;
+
     // Safe partial data on database
     await axios.post<any, any, Partial<NodesFormContext>>(
       "/api/add-nodes-context",

@@ -1,6 +1,6 @@
-import { Message } from "./Message";
-import { NodeId } from "./Node";
-import { Packet, TransmissionType } from "./Packet";
+import { Message } from "../../models/Message";
+import { NodeId } from "../../models/Node";
+import { Packet, TransmissionType } from "../../models/Packet";
 
 export class Packet232Bytes extends Packet {
   protected _positiveDelivery: boolean = true; // 1 bit

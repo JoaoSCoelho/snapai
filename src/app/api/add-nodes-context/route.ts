@@ -39,6 +39,8 @@ export async function POST(request: Request) {
       numberOfNodes: data.numberOfNodes ?? 0,
       node: data.node ?? "",
       nodeParameters: data.nodeParameters ?? {},
+      usedPacket: data.usedPacket ?? "",
+      usedPacketParameters: data.usedPacketParameters ?? {},
       mobilityModel: data.mobilityModel ?? "",
       mobilityModelParameters: data.mobilityModelParameters ?? {},
       connectivityModel: data.connectivityModel ?? "",

@@ -32,6 +32,8 @@ model NodesFormContext {
   numberOfNodes               Int
   node                        String
   nodeParameters              Json
+  usedPacket                  String
+  usedPacketParameters        Json
   mobilityModel               String
   mobilityModelParameters     Json
   connectivityModel           String

@@ -12,26 +12,27 @@ import FormErrorModalContent from "./FormErrorModalContent";
 import clsx from "clsx";
 import Section from "./Section";
 import { EndFormButtonBar } from "./EndFormButtonBar";
+import { ParameterizedSection } from "@/simulator/configurations/layout/ParameterizedSection";
 
 export type DefaultFormProps<FormSchema extends Record<string, any>> = {
   id: string;
   layout: Layout;
   validatorSchema: z.ZodObject;
   defaultValues: FormSchema;
-  /** Executed when the user changes the model name of a ModelSection and after all default routine */
-  afterModelNameChange?: (
+  /** Executed when the user changes the selected  of a ParameterizedSection and after all default routine */
+  afterParameterizedSelectChange?: (
     name: string,
     fullName: keyof FormSchema,
     value: string,
     form: UseFormReturn<FormSchema>,
   ) => void;
-  /** Executed when the user changes the node name of a NodeSection and after all default routine */
-  afterNodeNameChange?: (
-    name: string,
-    fullName: keyof FormSchema,
-    value: string,
-    form: UseFormReturn<FormSchema>,
-  ) => void;
+  // /** Executed when the user changes the node name of a NodeSection and after all default routine */
+  // afterNodeNameChange?: (
+  //   name: string,
+  //   fullName: keyof FormSchema,
+  //   value: string,
+  //   form: UseFormReturn<FormSchema>,
+  // ) => void;
   handleFormSubmit: (
     data: FormSchema,
     form: UseFormReturn<FormSchema>,
@@ -67,8 +68,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
   layout: givenLayout,
   validatorSchema: givenValidatorSchema,
   defaultValues,
-  afterModelNameChange,
-  afterNodeNameChange,
+  afterParameterizedSelectChange,
   handleFormSubmit: givenHandleFormSubmit,
   successSubmitMessage,
   errorSubmitMessage,
@@ -119,6 +119,12 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     [layout],
   );
 
+  /** A list of all parameterized sections in the layout */
+  const parameterizedSections = useMemo(
+    () => layout.sections.filter((s) => s instanceof ParameterizedSection),
+    [layout],
+  );
+
   // Effects
 
   /** Effect to show the form errors */
@@ -136,13 +142,13 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
   useEffect(() => {
     onLoad?.(form);
 
-    // Models
-    modelsSections.forEach((section) => {
+    // Parameterized
+    parameterizedSections.forEach((section) => {
       const selectFieldName = section.getSelectFieldName() as keyof FormSchema;
-      const selectedModel = getValues(selectFieldName as any) as string;
+      const selected = getValues(selectFieldName as any) as string;
 
-      if (selectedModel) {
-        onModelNameChange(
+      if (selected) {
+        onParameterizedSelectChange(
           selectFieldName as string,
 
           section.subsections[0].nestedIn
@@ -151,30 +157,50 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
                 (selectFieldName as string)) as keyof FormSchema)
             : selectFieldName,
 
-          selectedModel,
+          selected,
         );
       }
     });
 
-    // Nodes
-    nodesSections.forEach((section) => {
-      const selectFieldName = section.getSelectFieldName() as keyof FormSchema;
-      const selectedNode = getValues(selectFieldName as any) as string;
+    // // Models
+    // modelsSections.forEach((section) => {
+    //   const selectFieldName = section.getSelectFieldName() as keyof FormSchema;
+    //   const selectedModel = getValues(selectFieldName as any) as string;
 
-      if (selectedNode) {
-        onNodeNameChange(
-          selectFieldName as string,
+    //   if (selectedModel) {
+    //     onModelNameChange(
+    //       selectFieldName as string,
 
-          section.subsections[0].nestedIn
-            ? ((section.subsections[0].nestedIn +
-                "." +
-                (selectFieldName as string)) as keyof FormSchema)
-            : selectFieldName,
+    //       section.subsections[0].nestedIn
+    //         ? ((section.subsections[0].nestedIn +
+    //             "." +
+    //             (selectFieldName as string)) as keyof FormSchema)
+    //         : selectFieldName,
 
-          selectedNode,
-        );
-      }
-    });
+    //       selectedModel,
+    //     );
+    //   }
+    // });
+
+    // // Nodes
+    // nodesSections.forEach((section) => {
+    //   const selectFieldName = section.getSelectFieldName() as keyof FormSchema;
+    //   const selectedNode = getValues(selectFieldName as any) as string;
+
+    //   if (selectedNode) {
+    //     onNodeNameChange(
+    //       selectFieldName as string,
+
+    //       section.subsections[0].nestedIn
+    //         ? ((section.subsections[0].nestedIn +
+    //             "." +
+    //             (selectFieldName as string)) as keyof FormSchema)
+    //         : selectFieldName,
+
+    //       selectedNode,
+    //     );
+    //   }
+    // });
   }, []);
 
   // Ifs
@@ -182,28 +208,30 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
   // Functions
 
   /**
-   * Called when the user changes the model name of a ModelSection in the form.
-   * This function updates the parameters subsection of the ModelSection and
+   * Called when the user changes a parameterized select of in the form.
+   * This function updates the parameters subsection of the ParameterizedSection and
    * the values of the corresponding parameters in the form.
-   * @param {string} name - The name of the ModelSection.
-   * @param {keyof FormSchema} fullName - The full name of the ModelSection in the form.
-   * @param {string} model - The name of the selected model.
+   * @param {string} name - The name of the ParameterizedSelect.
+   * @param {keyof FormSchema} fullName - The full name of the ParameterizedSelect in the form.
+   * @param {string} selected - The selected value.
    */
-  const onModelNameChange = (
+  const onParameterizedSelectChange = (
     name: string,
     fullName: keyof FormSchema,
-    model: string,
+    selected: string,
   ) => {
     const section = layout.sections.find(
-      (s) => s instanceof ModelSection && s.getSelectFieldName() === name,
-    ) as ModelSection | undefined;
+      (s) =>
+        s instanceof ParameterizedSection && s.getSelectFieldName() === name,
+    ) as ParameterizedSection | undefined;
 
-    if (!section) throw new Error(`Model ${name} not found in form`);
+    if (!section)
+      throw new Error(`Section of select: ${name} not found in form`);
 
-    const parametersSubsection = section.getParametersSubsection(model);
+    const parametersSubsection = section.getParametersSubsection(selected);
     const parametersPrefix = section.getParametersPrefix() as keyof FormSchema;
 
-    section.setParametersSubsection(model, parametersSubsection);
+    section.setParametersSubsection(selected, parametersSubsection);
 
     if (parametersSubsection) {
       // Change validator schema of the form
@@ -232,62 +260,116 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
 
     setLayout(layout.copy());
 
-    afterModelNameChange?.(name, fullName, model, form);
+    afterParameterizedSelectChange?.(name, fullName, selected, form);
   };
 
-  /**
-   * Called when the user changes the node name of a NodeSection in the form.
-   * This function updates the parameters subsection of the NodeSection and
-   * the values of the corresponding parameters in the form.
-   * @param {string} name - The name of the NodeSection.
-   * @param {keyof FormSchema} fullName - The full name of the NodeSection in the form.
-   * @param {string} node - The name of the selected node.
-   */
-  const onNodeNameChange = (
-    name: string,
-    fullName: keyof FormSchema,
-    node: string,
-  ) => {
-    const section = layout.sections.find(
-      (s) => s instanceof NodeSection && s.getSelectFieldName() === name,
-    ) as NodeSection | undefined;
+  // /**
+  //  * Called when the user changes the model name of a ModelSection in the form.
+  //  * This function updates the parameters subsection of the ModelSection and
+  //  * the values of the corresponding parameters in the form.
+  //  * @param {string} name - The name of the ModelSection.
+  //  * @param {keyof FormSchema} fullName - The full name of the ModelSection in the form.
+  //  * @param {string} model - The name of the selected model.
+  //  */
+  // const onModelNameChange = (
+  //   name: string,
+  //   fullName: keyof FormSchema,
+  //   model: string,
+  // ) => {
+  //   const section = layout.sections.find(
+  //     (s) => s instanceof ModelSection && s.getSelectFieldName() === name,
+  //   ) as ModelSection | undefined;
 
-    if (!section) throw new Error(`Node ${name} not found in form`);
+  //   if (!section) throw new Error(`Model ${name} not found in form`);
 
-    const parametersSubsection = section.getParametersSubsection(node);
-    const parametersPrefix = section.getParametersPrefix() as keyof FormSchema;
+  //   const parametersSubsection = section.getParametersSubsection(model);
+  //   const parametersPrefix = section.getParametersPrefix() as keyof FormSchema;
 
-    section.setParametersSubsection(node, parametersSubsection);
+  //   section.setParametersSubsection(model, parametersSubsection);
 
-    if (parametersSubsection) {
-      // Change validator schema of the form
-      setValidatorSchema(
-        z.object({
-          ...validatorSchema.shape,
-          [parametersPrefix]: parametersSubsection?.getSchema(),
-        }),
-      );
+  //   if (parametersSubsection) {
+  //     // Change validator schema of the form
+  //     setValidatorSchema(
+  //       z.object({
+  //         ...validatorSchema.shape,
+  //         [parametersPrefix]: parametersSubsection?.getSchema(),
+  //       }),
+  //     );
 
-      // Set empty obj to replace undefined in parameters field in the form
-      const parametersSubsectionCurrentValue = getValues(
-        parametersPrefix as any,
-      );
+  //     // Set empty obj to replace undefined in parameters field in the form
+  //     const parametersSubsectionCurrentValue = getValues(
+  //       parametersPrefix as any,
+  //     );
 
-      if (parametersSubsectionCurrentValue === undefined) {
-        setValue(parametersPrefix as any, {} as any);
-      }
-    } else {
-      // Change validator schema of the form
-      setValidatorSchema(
-        z.object({ ...validatorSchema.shape, [parametersPrefix]: z.any() }),
-      );
-      setValue(parametersPrefix as any, {} as any);
-    }
+  //     if (parametersSubsectionCurrentValue === undefined) {
+  //       setValue(parametersPrefix as any, {} as any);
+  //     }
+  //   } else {
+  //     // Change validator schema of the form
+  //     setValidatorSchema(
+  //       z.object({ ...validatorSchema.shape, [parametersPrefix]: z.any() }),
+  //     );
+  //     setValue(parametersPrefix as any, {} as any);
+  //   }
 
-    setLayout(layout.copy());
+  //   setLayout(layout.copy());
 
-    afterNodeNameChange?.(name, fullName, node, form);
-  };
+  //   afterModelNameChange?.(name, fullName, model, form);
+  // };
+
+  // /**
+  //  * Called when the user changes the node name of a NodeSection in the form.
+  //  * This function updates the parameters subsection of the NodeSection and
+  //  * the values of the corresponding parameters in the form.
+  //  * @param {string} name - The name of the NodeSection.
+  //  * @param {keyof FormSchema} fullName - The full name of the NodeSection in the form.
+  //  * @param {string} node - The name of the selected node.
+  //  */
+  // const onNodeNameChange = (
+  //   name: string,
+  //   fullName: keyof FormSchema,
+  //   node: string,
+  // ) => {
+  //   const section = layout.sections.find(
+  //     (s) => s instanceof NodeSection && s.getSelectFieldName() === name,
+  //   ) as NodeSection | undefined;
+
+  //   if (!section) throw new Error(`Node ${name} not found in form`);
+
+  //   const parametersSubsection = section.getParametersSubsection(node);
+  //   const parametersPrefix = section.getParametersPrefix() as keyof FormSchema;
+
+  //   section.setParametersSubsection(node, parametersSubsection);
+
+  //   if (parametersSubsection) {
+  //     // Change validator schema of the form
+  //     setValidatorSchema(
+  //       z.object({
+  //         ...validatorSchema.shape,
+  //         [parametersPrefix]: parametersSubsection?.getSchema(),
+  //       }),
+  //     );
+
+  //     // Set empty obj to replace undefined in parameters field in the form
+  //     const parametersSubsectionCurrentValue = getValues(
+  //       parametersPrefix as any,
+  //     );
+
+  //     if (parametersSubsectionCurrentValue === undefined) {
+  //       setValue(parametersPrefix as any, {} as any);
+  //     }
+  //   } else {
+  //     // Change validator schema of the form
+  //     setValidatorSchema(
+  //       z.object({ ...validatorSchema.shape, [parametersPrefix]: z.any() }),
+  //     );
+  //     setValue(parametersPrefix as any, {} as any);
+  //   }
+
+  //   setLayout(layout.copy());
+
+  //   afterNodeNameChange?.(name, fullName, node, form);
+  // };
 
   /**
    * Submits the form and handles the result of the givenHandleFormSubmit callback.
@@ -297,7 +379,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
    * @param {FormSchema} data - The data of the form.
    * @returns {Promise<void>} - A promise that resolves when the form is submitted and the callback is handled.
    */
-  const handleFormSubmit = async (data: FormSchema) => {
+  const handleFormSubmit = async (data: FormSchema): Promise<void> => {
     await givenHandleFormSubmit(data, form).then(
       () => {
         if (successSubmitMessage) toast.success(successSubmitMessage);
@@ -340,8 +422,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
             register={register}
             section={section}
             key={section.id + "_" + sectionIndex}
-            onModelNameChange={onModelNameChange}
-            onNodeNameChange={onNodeNameChange}
+            onParameterizedSelectChange={onParameterizedSelectChange}
           />
         );
       })}

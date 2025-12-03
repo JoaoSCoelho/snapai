@@ -1,6 +1,6 @@
 import { SimulationConfig } from "../configurations/Simulation/SimulationConfig";
 import { SimulationConfigSchema } from "../configurations/Simulation/simulationConfigSchema";
-import { Packet232Bytes } from "../models/Packet232Bytes";
+import { Packet232Bytes } from "./packets/Packet232Bytes";
 import { Project } from "../models/Project";
 import { UDGConnectivity } from "./connectivityModels/UDGConnectivity";
 import jsonConfig from "./defaultConfig.json";

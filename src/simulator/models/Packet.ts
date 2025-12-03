@@ -1,3 +1,4 @@
+import { ParameterizedModule } from "../modules/ParameterizedModule";
 import { Edge } from "./Edge";
 import { Message } from "./Message";
 import { NodeId } from "./Node";
@@ -15,7 +16,7 @@ export type ConcretePacket = new (
   transmissionType: TransmissionType,
 ) => Packet;
 
-export abstract class Packet {
+export abstract class Packet extends ParameterizedModule {
   protected _positiveDelivery: boolean = true;
   protected _arrivingTime: number | null = null;
   protected _sendingTime: number | null = null;
@@ -27,7 +28,9 @@ export abstract class Packet {
     public readonly originId: NodeId,
     public readonly destinationId: NodeId,
     public readonly transmissionType: TransmissionType,
-  ) {}
+  ) {
+    super();
+  }
 
   public abstract get arrivingTime(): number | null;
   public abstract get sendingTime(): number | null;

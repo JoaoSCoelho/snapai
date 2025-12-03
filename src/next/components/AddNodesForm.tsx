@@ -15,6 +15,9 @@ import { NodeSection } from "@/simulator/configurations/layout/NodeSection";
 import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
 import { DefaultForm } from "./DefaultForm";
 import { UseFormReturn } from "react-hook-form";
+import { ParameterizedSection } from "@/simulator/configurations/layout/ParameterizedSection";
+import { ClassableParametersSubsectionController } from "@/simulator/modules/ClassableParametersSubsectionController";
+import { ParameterizedModule } from "@/simulator/modules/ParameterizedModule";
 
 export type AddNodesFormProps = {
   onSubmit?: (data: AddNodesFormSchema) => void;
@@ -36,6 +39,12 @@ export const addNodesFormSchema = z.object({
     },
   ),
   nodeParameters: z.record(z.string(), z.any()),
+  usedPacket: z.string().refine((value) => {
+    return Simulator.inited
+      ? SearchEngine.getPrefixedPacketsNames().includes(value)
+      : true;
+  }),
+  usedPacketParameters: z.record(z.string(), z.any()),
   mobilityModel: z.string().refine(
     (value) => {
       return Simulator.inited
@@ -134,6 +143,26 @@ export const addNodesFormLayout = new Layout([
     ],
   }),
   new NodeSection(),
+  new ParameterizedSection(
+    {
+      name: "usedPacket",
+      label: "Used Packet",
+      acceptedValues: SearchEngine.getPrefixedPacketsNames(),
+      info: { title: "Packet to be used by the nodes" },
+      options: () =>
+        SearchEngine.getPrefixedPacketsNames().map((name) => ({
+          value: name,
+          label: name,
+        })),
+    },
+    new ClassableParametersSubsectionController(
+      () =>
+        SearchEngine.getPrefixedMapOfPackets() as unknown as Map<
+          string,
+          typeof ParameterizedModule
+        >,
+    ),
+  ),
   new ModelSection(ModelType.Mobility),
   new ModelSection(ModelType.Connectivity),
   new ModelSection(ModelType.Interference),
@@ -168,7 +197,6 @@ export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
 
   // Functions
   const onFormSubmit = async (data: AddNodesFormSchema) => {
-    console.log(data);
     await addNodes(simulation, data)
       .then(() => {
         toast.success("Nodes added");
@@ -183,10 +211,6 @@ export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
     setForm(form);
   };
 
-  const onSubmitButtonClick = () => {
-    savePartialData();
-  };
-
   return (
     <DefaultForm<AddNodesFormSchema>
       id="add-nodes-form"
@@ -194,7 +218,6 @@ export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
       validatorSchema={addNodesFormSchema}
       defaultValues={defaultData ?? ({} as AddNodesFormSchema)}
       handleFormSubmit={onFormSubmit}
-      onSubmitButtonClick={onSubmitButtonClick}
       onLoad={onLoad}
       errorSubmitMessage="Error when adding nodes"
       formErrorMessage="Error validating add nodes form"

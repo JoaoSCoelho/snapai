@@ -1,6 +1,7 @@
 import { simulator } from "../Simulator";
 import { Model } from "../models/Model";
 import { Node } from "../models/Node";
+import { Packet } from "../models/Packet";
 import { Project } from "../models/Project";
 import { ModelType } from "./modelsUtils";
 
@@ -42,6 +43,34 @@ export class SearchEngine {
       .values()
       .flatMap((p) => p.nodes.keys().map((k) => `${p.name}:${k}`))
       .toArray();
+  }
+
+  /**
+   * Returns a list of names of all packets found in the simulator environment, prefixed with the project name. I.E. `projectName:packetName`.
+   * @returns A list of names of all packets found in the simulator environment, prefixed with the project name.
+   */
+  public static getPrefixedPacketsNames(): string[] {
+    return simulator.projects
+      .values()
+      .flatMap((p) => p.packets.keys().map((k) => `${p.name}:${k}`))
+      .toArray();
+  }
+
+  /**
+   * Returns a map of all packets found in the simulator environment, prefixed with the project name.
+   * The map contains the name of the packet as key and the packet object as value.
+   * The name of the packet is prefixed with the project name, for example "projectName:packetName".
+   * @returns A map of all packets found in the simulator environment, prefixed with the project name.
+   */
+  public static getPrefixedMapOfPackets() {
+    return new Map(
+      simulator.projects
+        .values()
+        .flatMap((p) =>
+          p.packets.entries().map(([k, v]) => [`${p.name}:${k}`, v]),
+        )
+        .toArray() as [`${string}:${string}`, typeof Packet][],
+    );
   }
 
   /**

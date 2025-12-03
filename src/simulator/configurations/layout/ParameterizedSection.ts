@@ -13,7 +13,7 @@ export type ParameterizedSectionSelectOptions = {
   name: string;
   label: string;
   /** If null, all values are accepted */
-  acceptedValues: string[] | null;
+  acceptedValues: string[] | (() => string[]) | null;
   info: FieldPartialInfoSchema;
   options: SelectFieldOption[] | (() => SelectFieldOption[]);
 };
@@ -37,7 +37,9 @@ export class ParameterizedSection extends Section {
             required: true,
             schema: z.string().refine((value) => {
               return select.acceptedValues
-                ? select.acceptedValues.includes(value)
+                ? Array.isArray(select.acceptedValues)
+                  ? select.acceptedValues.includes(value)
+                  : select.acceptedValues().includes(value)
                 : true;
             }),
             info: select.info,

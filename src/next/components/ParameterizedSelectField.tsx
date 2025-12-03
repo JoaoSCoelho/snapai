@@ -13,24 +13,28 @@ import {
 } from "@mui/material";
 import { Controller } from "react-hook-form";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { NodeSelectField as NodeSelectFieldCls } from "@/simulator/configurations/layout/fields/NodeSelectField";
+import { ParameterizedSelectField as ParameterizedSelectFieldCls } from "@/simulator/configurations/layout/fields/ParameterizedSelectField";
 
-export type NodeSelectFieldProps = FormFieldProps & {
-  field: NodeSelectFieldCls;
+export type ParameterizedSelectFieldProps = FormFieldProps & {
+  field: ParameterizedSelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
-  onNodeNameChange?: (name: string, fullName: string, value: string) => void;
+  onParameterizedSelectChange?: (
+    name: string,
+    fullName: string,
+    value: string,
+  ) => void;
 };
 
-export default function NodeSelectField({
+export default function ParameterizedSelectField({
   field,
   control,
   selectAttr,
   formControlAttr,
   containerAttr,
   nestedIn,
-  onNodeNameChange,
-}: NodeSelectFieldProps) {
+  onParameterizedSelectChange,
+}: ParameterizedSelectFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
 
@@ -55,7 +59,7 @@ export default function NodeSelectField({
                 {...controllerField}
                 {...selectAttr}
                 onChange={(e, child) => {
-                  onNodeNameChange?.(
+                  onParameterizedSelectChange?.(
                     field.name,
                     fullName,
                     e.target.value as string,

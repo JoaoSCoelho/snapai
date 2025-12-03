@@ -14,7 +14,6 @@ import {
 import { Controller } from "react-hook-form";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { ModelSelectField as ModelSelectFieldCls } from "@/simulator/configurations/layout/fields/ModelSelectField";
-import { SearchEngine } from "@/simulator/utils/SearchEngine";
 
 export type ModelSelectFieldProps = FormFieldProps & {
   field: ModelSelectFieldCls;
@@ -78,13 +77,14 @@ export default function ModelSelectField({
                   </InputAdornment>
                 }
               >
-                {SearchEngine.getPrefixedModelsNames(field.modelType).map(
-                  (option, optionIndex) => (
-                    <MenuItem key={`${option}_${optionIndex}`} value={option}>
-                      {option}
-                    </MenuItem>
-                  ),
-                )}
+                {(Array.isArray(field.options)
+                  ? field.options
+                  : field.options()
+                ).map(({ value, label }, optionIndex) => (
+                  <MenuItem key={`${value}_${optionIndex}`} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
               </Select>
               {error && <FormHelperText error>{error.message}</FormHelperText>}
             </>
