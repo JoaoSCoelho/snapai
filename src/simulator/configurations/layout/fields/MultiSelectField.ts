@@ -1,6 +1,10 @@
-import { ReactNode } from "react";
 import z from "zod";
-import { SelectField, SelectFieldSchema } from "./SelectField";
+import {
+  SelectField,
+  SelectFieldOption,
+  SelectFieldSchema,
+} from "./SelectField";
+import { FieldPartialInfoSchema } from "./Field";
 
 export type MultiSelectFieldSchema = SelectFieldSchema & {
   minSelected: number;
@@ -14,12 +18,22 @@ export class MultiSelectField extends SelectField {
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    public readonly options: { value: any; label: string }[],
+    public readonly options: SelectFieldOption[] | (() => SelectFieldOption[]),
     public readonly minSelected: number,
     public readonly maxSelected: number,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, options, info);
+    super(
+      name,
+      label,
+      occupedColumns,
+      schema,
+      required,
+      options,
+      disabled,
+      info,
+    );
   }
 
   public static create(
@@ -29,7 +43,7 @@ export class MultiSelectField extends SelectField {
     > & {
       minSelected?: number;
       maxSelected?: number;
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new MultiSelectField(
@@ -41,6 +55,7 @@ export class MultiSelectField extends SelectField {
       field.options,
       field.minSelected ?? 0,
       field.maxSelected ?? Infinity,
+      field.disabled,
       field.info,
     );
   }

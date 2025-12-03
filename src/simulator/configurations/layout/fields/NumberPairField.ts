@@ -1,5 +1,4 @@
-import { ReactNode } from "react";
-import { Field, FieldSchema } from "./Field";
+import { Field, FieldPartialInfoSchema, FieldSchema } from "./Field";
 import z from "zod";
 
 export type NumberPairFieldSchema = FieldSchema & {
@@ -22,9 +21,10 @@ export class NumberPairField extends Field {
     public readonly minRight: number,
     public readonly maxRight: number,
     public readonly isFloat: boolean,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, info);
+    super(name, label, occupedColumns, schema, required, disabled, info);
   }
 
   public static create(
@@ -36,7 +36,7 @@ export class NumberPairField extends Field {
       maxLeft?: number;
       minRight?: number;
       maxRight?: number;
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new NumberPairField(
@@ -50,6 +50,7 @@ export class NumberPairField extends Field {
       field.minRight ?? -Infinity,
       field.maxRight ?? Infinity,
       field.isFloat,
+      field.disabled,
       field.info,
     );
   }

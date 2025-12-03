@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import z from "zod";
 import { NumberField, NumberFieldSchema } from "./NumberField";
 import { AngleUnit } from "@/simulator/utils/types";
+import { FieldPartialInfoSchema } from "./Field";
 
 export type AngleFieldSchema = NumberFieldSchema & {
   angleUnit: AngleUnit;
@@ -18,7 +19,8 @@ export class AngleField extends NumberField {
     public readonly max: number,
     public readonly isFloat: boolean,
     public readonly angleUnit: AngleUnit,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
     super(
       name,
@@ -29,6 +31,7 @@ export class AngleField extends NumberField {
       min,
       max,
       isFloat,
+      disabled,
       info,
     );
   }
@@ -37,7 +40,7 @@ export class AngleField extends NumberField {
     field: Omit<AngleFieldSchema, "info" | "min" | "max"> & {
       min?: number;
       max?: number;
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new AngleField(
@@ -50,6 +53,7 @@ export class AngleField extends NumberField {
       field.max ?? Infinity,
       field.isFloat,
       field.angleUnit,
+      field.disabled,
       field.info,
     );
   }

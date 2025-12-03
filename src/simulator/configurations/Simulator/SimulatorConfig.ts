@@ -5,20 +5,26 @@ import {
   simulatorConfigSchema,
 } from "./simulatorConfigSchema";
 import jsonConfig from "./simulatorConfig.json";
-import z from "zod";
 
-export class SimulatorConfig extends Config {
+export const simulatorDefaultConfig: SimulatorConfigSchema = {
+  projectsPath: "src/simulator/projects",
+  defaultsPath: "src/simulator/defaults",
+  modelsPath: "src/simulator/models",
+};
+
+export class SimulatorConfig extends Config<
+  typeof simulatorConfigSchema,
+  SimulatorConfigSchema
+> {
   private static instance: SimulatorConfig;
 
-  public constructor(
-    public readonly configJsonFilePath: string,
-    public readonly data: z.infer<typeof simulatorConfigSchema>,
-  ) {
+  public constructor(configJsonFilePath: string, data: SimulatorConfigSchema) {
     super(
       configJsonFilePath,
       data,
       simulatorConfigLayout,
       simulatorConfigSchema,
+      simulatorDefaultConfig,
     );
   }
 

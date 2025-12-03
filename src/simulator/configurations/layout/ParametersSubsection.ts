@@ -20,6 +20,29 @@ export class ParametersSubsection extends Subsection {
   }
 
   /**
+   * Creates a new ParametersSubsection instance that is a partial copy of this one.
+   * If a property is not given, it will be set to the same value as this one.
+   * @param lines The lines of the new ParametersSubsection.
+   * @param title The title of the new ParametersSubsection.
+   * @param nestedIn The nested in of the new ParametersSubsection.
+   * @param id The id of the new ParametersSubsection.
+   * @returns A new ParametersSubsection instance that is a partial copy of this one.
+   */
+  public createPartialCopy(data?: {
+    lines?: Line[];
+    title?: string;
+    nestedIn?: string;
+    id?: number;
+  }): ParametersSubsection {
+    return new ParametersSubsection(
+      data?.lines ?? this.lines,
+      data?.title ?? this.title,
+      data?.nestedIn ?? this.nestedIn,
+      data?.id ?? this.id,
+    );
+  }
+
+  /**
    * Creates a new ParametersSubsection instance.
    * @param data The options for the new ParametersSubsection instance.
    * @returns A new ParametersSubsection instance created with the given options.

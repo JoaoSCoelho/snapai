@@ -69,7 +69,10 @@ export default function SelectField({
                 }
                 {...selectAttr}
               >
-                {field.options.map((option, optionIndex) => (
+                {(Array.isArray(field.options)
+                  ? field.options
+                  : field.options()
+                ).map((option, optionIndex) => (
                   <MenuItem
                     key={`${option.value}_${optionIndex}`}
                     value={option.value as string | number}

@@ -4,14 +4,23 @@ import {
   pingPongConfigSchema,
   PingPongConfigSchema,
 } from "./pingPongConfigSchema";
-import z from "zod";
 
-export class PingPongConfig extends ProjectConfig {
-  public constructor(
-    public readonly configJsonFilePath: string,
-    public readonly data: z.infer<typeof pingPongConfigSchema>,
-  ) {
-    super(configJsonFilePath, data, pingPongConfigLayout, pingPongConfigSchema);
+export const pingPongDefaultConfig: PingPongConfigSchema = {
+  initialColor: "",
+};
+
+export class PingPongConfig extends ProjectConfig<
+  typeof pingPongConfigSchema,
+  PingPongConfigSchema
+> {
+  public constructor(configJsonFilePath: string, data: PingPongConfigSchema) {
+    super(
+      configJsonFilePath,
+      data,
+      pingPongConfigLayout,
+      pingPongConfigSchema,
+      pingPongDefaultConfig,
+    );
   }
 
   protected innerToJSON(): PingPongConfigSchema {

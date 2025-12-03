@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Field, FieldSchema } from "./Field";
+import { Field, FieldPartialInfoSchema, FieldSchema } from "./Field";
 import z from "zod";
 
 export type TextFieldSchema = FieldSchema & {
@@ -16,16 +16,17 @@ export class TextField extends Field {
     public readonly required: boolean,
     public readonly minLength: number,
     public readonly maxLength: number,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, info);
+    super(name, label, occupedColumns, schema, required, disabled, info);
   }
 
   public static create(
     field: Omit<TextFieldSchema, "info" | "minLength" | "maxLength"> & {
       minLength?: number;
       maxLength?: number;
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new TextField(
@@ -36,6 +37,7 @@ export class TextField extends Field {
       field.required,
       field.minLength ?? 0,
       field.maxLength ?? Infinity,
+      field.disabled,
       field.info,
     );
   }

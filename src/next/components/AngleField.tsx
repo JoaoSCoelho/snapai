@@ -14,6 +14,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import AngleDropdown from "./AngleDropdown";
 import { AngleField as AngleFieldCls } from "@/simulator/configurations/layout/fields/AngleField";
+import { AngleUnit } from "@/simulator/utils/types";
 
 type NumberFieldProps = FormFieldProps & {
   field: AngleFieldCls;
@@ -94,7 +95,7 @@ export default function AngleField({
             {focused && (
               <AngleDropdown
                 angle={controllerField.value}
-                isDegrees={field.angleUnit === "deg"}
+                isDegrees={field.angleUnit === AngleUnit.DEG}
                 isFloat={field.isFloat}
                 maxValue={field.max}
                 minValue={field.min}

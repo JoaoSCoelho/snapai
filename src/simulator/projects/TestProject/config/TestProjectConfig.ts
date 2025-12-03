@@ -1,22 +1,31 @@
 import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
-
-import z from "zod";
 import { testProjectConfigLayout } from "./testProjectConfigLayout";
 import {
   TestProjectConfigSchema,
   testProjectConfigSchema,
 } from "./testProjectConfigSchema";
 
-export class TestProjectConfig extends ProjectConfig {
+export const testProjectDefaultConfig: TestProjectConfigSchema = {
+  mobilityModel: "",
+  mobilityModelParameters: {},
+  messageTransmissionModel: "",
+  messageTransmissionModelParameters: {},
+};
+
+export class TestProjectConfig extends ProjectConfig<
+  typeof testProjectConfigSchema,
+  TestProjectConfigSchema
+> {
   public constructor(
-    public readonly configJsonFilePath: string,
-    public readonly data: z.infer<typeof testProjectConfigSchema>,
+    configJsonFilePath: string,
+    data: TestProjectConfigSchema,
   ) {
     super(
       configJsonFilePath,
       data,
       testProjectConfigLayout,
       testProjectConfigSchema,
+      testProjectDefaultConfig,
     );
   }
 

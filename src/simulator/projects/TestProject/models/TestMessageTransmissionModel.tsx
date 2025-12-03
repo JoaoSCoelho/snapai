@@ -8,6 +8,7 @@ import { Line } from "@/simulator/configurations/layout/Line";
 import { ModelParametersSubsection } from "@/simulator/configurations/layout/ModelParametersSubsection";
 import { MessageTransmissionModel } from "@/simulator/models/MessageTransmissionModel";
 import { Packet } from "@/simulator/models/Packet";
+import { Simulation } from "@/simulator/models/Simulation";
 import { AngleUnit } from "@/simulator/utils/types";
 import z from "zod";
 
@@ -22,9 +23,10 @@ export type TestMessageTransmissionModelParameters = {
 
 export class TestMessageTransmissionModel extends MessageTransmissionModel {
   public constructor(
+    protected readonly simulation: Simulation,
     public readonly parameters: TestMessageTransmissionModelParameters,
   ) {
-    super(parameters);
+    super(simulation, parameters);
   }
 
   public timeToReach(packet: Packet): number {

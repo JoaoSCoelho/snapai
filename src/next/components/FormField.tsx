@@ -55,7 +55,7 @@ export default function FormField({
     return (
       <ColorField
         field={field as ColorFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -63,7 +63,7 @@ export default function FormField({
     return (
       <TextField
         field={field as TextFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -71,7 +71,7 @@ export default function FormField({
     return (
       <AngleField
         field={field as AngleFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -79,7 +79,7 @@ export default function FormField({
     return (
       <PercentageField
         field={field as PercentageFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -87,7 +87,7 @@ export default function FormField({
     return (
       <NumberField
         field={field as NumberFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -95,7 +95,7 @@ export default function FormField({
     return (
       <CheckboxField
         field={field as CheckboxFieldCls}
-        checkboxAttr={{ disabled }}
+        checkboxAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -103,7 +103,7 @@ export default function FormField({
     return (
       <AnglePairField
         field={field as AnglePairFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -111,7 +111,7 @@ export default function FormField({
     return (
       <NumberPairField
         field={field as NumberPairFieldCls}
-        inputAttr={{ disabled }}
+        inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -119,7 +119,7 @@ export default function FormField({
     return (
       <ModelSelectField
         field={field as ModelSelectFieldCls}
-        selectAttr={{ disabled }}
+        selectAttr={{ disabled: disabled || field.disabled }}
         onModelNameChange={onModelNameChange}
         {...fieldAttrs}
       />
@@ -128,7 +128,7 @@ export default function FormField({
     return (
       <MultiSelectField
         field={field as MultiSelectFieldCls}
-        selectAttr={{ disabled }}
+        selectAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -136,7 +136,7 @@ export default function FormField({
     return (
       <NodeSelectField
         field={field as NodeSelectFieldCls}
-        selectAttr={{ disabled }}
+        selectAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );
@@ -144,7 +144,7 @@ export default function FormField({
     return (
       <SelectField
         field={field as SelectFieldCls}
-        selectAttr={{ disabled }}
+        selectAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />
     );

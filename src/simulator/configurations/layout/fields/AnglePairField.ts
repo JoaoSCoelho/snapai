@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import z from "zod";
 import { NumberPairField, NumberPairFieldSchema } from "./NumberPairField";
 import { AngleUnit } from "@/simulator/utils/types";
+import { FieldPartialInfoSchema } from "./Field";
 
 export type AnglePairFieldSchema = NumberPairFieldSchema & {
   angleUnit: AngleUnit;
@@ -20,7 +21,8 @@ export class AnglePairField extends NumberPairField {
     public readonly maxRight: number,
     public readonly isFloat: boolean,
     public readonly angleUnit: AngleUnit,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
     super(
       name,
@@ -33,6 +35,7 @@ export class AnglePairField extends NumberPairField {
       minRight,
       maxRight,
       isFloat,
+      disabled,
       info,
     );
   }
@@ -46,7 +49,7 @@ export class AnglePairField extends NumberPairField {
       maxLeft?: number;
       minRight?: number;
       maxRight?: number;
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new AnglePairField(
@@ -61,6 +64,7 @@ export class AnglePairField extends NumberPairField {
       field.maxRight ?? Infinity,
       field.isFloat,
       field.angleUnit,
+      field.disabled,
       field.info,
     );
   }

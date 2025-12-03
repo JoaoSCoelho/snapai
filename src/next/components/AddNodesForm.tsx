@@ -98,7 +98,6 @@ export const addNodesFormSchema = z.object({
   reliabilityModelParameters: z.record(z.string(), z.any()),
   distributionModel: z.string().refine(
     (value) => {
-      console.log(Simulator.inited);
       return Simulator.inited
         ? SearchEngine.getPrefixedModelsNames(ModelType.Distribution).includes(
             value,

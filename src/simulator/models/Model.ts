@@ -1,6 +1,7 @@
 import { ModelParametersSubsection } from "../configurations/layout/ModelParametersSubsection";
 import { ModelType } from "../utils/modelsUtils";
 import { Module } from "./Module";
+import { Simulation } from "./Simulation";
 
 export type ConcreteModel<T extends Model> = new (
   parameters: Record<string, any>,
@@ -9,7 +10,10 @@ export type ConcreteModel<T extends Model> = new (
 export abstract class Model extends Module {
   public static readonly type: ModelType;
 
-  public constructor(public readonly parameters: Record<string, any>) {
+  public constructor(
+    protected readonly simulation: Simulation,
+    public readonly parameters: Record<string, any>,
+  ) {
     super();
   }
 

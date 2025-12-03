@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Field, FieldSchema } from "./Field";
+import { Field, FieldPartialInfoSchema, FieldSchema } from "./Field";
 import z from "zod";
 
 export type NumberFieldSchema = FieldSchema & {
@@ -18,16 +18,17 @@ export class NumberField extends Field {
     public readonly min: number,
     public readonly max: number,
     public readonly isFloat: boolean,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, info);
+    super(name, label, occupedColumns, schema, required, disabled, info);
   }
 
   public static create(
     field: Omit<NumberFieldSchema, "info" | "min" | "max"> & {
       min?: number;
       max?: number;
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new NumberField(
@@ -39,6 +40,7 @@ export class NumberField extends Field {
       field.min ?? -Infinity,
       field.max ?? Infinity,
       field.isFloat,
+      field.disabled,
       field.info,
     );
   }

@@ -1,4 +1,8 @@
-import { ProjectConfig } from "../configurations/Project/ProjectConfig";
+import z from "zod";
+import {
+  GenericProjectConfig,
+  ProjectConfig,
+} from "../configurations/Project/ProjectConfig";
 import { SimulationConfig } from "../configurations/Simulation/SimulationConfig";
 import { Message } from "./Message";
 import { Model } from "./Model";
@@ -9,7 +13,7 @@ import { Timer } from "./Timer";
 export type ProjectSchema = {
   name: string;
   simulationConfig: SimulationConfig;
-  projectConfig?: ProjectConfig;
+  projectConfig?: GenericProjectConfig;
   models: Map<string, typeof Model>;
   nodes: Map<string, typeof Node>;
   messages: Map<string, typeof Message>;
@@ -21,7 +25,7 @@ export abstract class Project {
   protected constructor(
     public readonly name: string,
     public readonly simulationConfig: SimulationConfig,
-    public readonly projectConfig?: ProjectConfig,
+    public readonly projectConfig?: GenericProjectConfig,
     public readonly models: Map<string, typeof Model> = new Map(),
     public readonly nodes: Map<string, typeof Node> = new Map(),
     public readonly messages: Map<string, typeof Message> = new Map(),

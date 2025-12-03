@@ -1,6 +1,7 @@
 import { Position } from "../tools/Position";
 import { ModelType } from "../utils/modelsUtils";
 import { Model } from "./Model";
+import { Node } from "./Node";
 
 export abstract class MobilityModel extends Model {
   public static readonly type = ModelType.Mobility;

@@ -27,6 +27,12 @@ export const simulationConfigSchema = z.object({
       message:
         "The minimum dimension must be less than or equal to the maximum dimension",
     }),
+  dimZ: z
+    .tuple([z.number(), z.number()])
+    .refine(([left, right]) => left <= right, {
+      message:
+        "The minimum dimension must be less than or equal to the maximum dimension",
+    }),
   loggerOptions: loggerOptionsSchema,
   isAsynchronous: z.boolean(),
   shouldSaveTrace: z.boolean(),

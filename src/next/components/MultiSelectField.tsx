@@ -72,7 +72,10 @@ export default function MultiSelectField({
                 {...selectAttr}
                 className={clsx(selectAttr?.className, "h-full")}
               >
-                {field.options.map((option, optionIndex) => (
+                {(Array.isArray(field.options)
+                  ? field.options
+                  : field.options()
+                ).map((option, optionIndex) => (
                   <MenuItem
                     key={`${option.value}_${optionIndex}`}
                     value={option.value}

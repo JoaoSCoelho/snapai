@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Field, FieldSchema } from "./Field";
+import { Field, FieldPartialInfoSchema, FieldSchema } from "./Field";
 import z from "zod";
 
 export type ColorFieldSchema = FieldSchema & {};
@@ -11,14 +11,15 @@ export class ColorField extends Field {
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, info);
+    super(name, label, occupedColumns, schema, required, disabled, info);
   }
 
   public static create(
     field: Omit<ColorFieldSchema, "info"> & {
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new ColorField(
@@ -27,6 +28,7 @@ export class ColorField extends Field {
       field.occupedColumns,
       field.schema,
       field.required,
+      field.disabled,
       field.info,
     );
   }

@@ -3,6 +3,7 @@ import { Line } from "@/simulator/configurations/layout/Line";
 import { ModelParametersSubsection } from "@/simulator/configurations/layout/ModelParametersSubsection";
 import { MessageTransmissionModel } from "@/simulator/models/MessageTransmissionModel";
 import { Packet } from "@/simulator/models/Packet";
+import { Simulation } from "@/simulator/models/Simulation";
 import z from "zod";
 
 export type ConstantTimeParameters = {
@@ -10,8 +11,11 @@ export type ConstantTimeParameters = {
 };
 
 export class ConstantTime extends MessageTransmissionModel {
-  constructor(public readonly parameters: ConstantTimeParameters) {
-    super(parameters);
+  constructor(
+    protected readonly simulation: Simulation,
+    public readonly parameters: ConstantTimeParameters,
+  ) {
+    super(simulation, parameters);
   }
 
   public timeToReach(packet: Packet): number {

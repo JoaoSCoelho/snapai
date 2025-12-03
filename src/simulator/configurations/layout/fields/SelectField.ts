@@ -1,9 +1,10 @@
-import { ReactNode } from "react";
 import z from "zod";
-import { Field, FieldSchema } from "./Field";
+import { Field, FieldPartialInfoSchema, FieldSchema } from "./Field";
+
+export type SelectFieldOption = { value: string | number; label: string };
 
 export type SelectFieldSchema = FieldSchema & {
-  options: { value: string | number; label: string }[];
+  options: SelectFieldOption[] | (() => SelectFieldOption[]);
 };
 
 export class SelectField extends Field {
@@ -13,15 +14,16 @@ export class SelectField extends Field {
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    public readonly options: { value: string | number; label: string }[],
-    info: { title: string; helpText?: ReactNode },
+    public readonly options: SelectFieldOption[] | (() => SelectFieldOption[]),
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, info);
+    super(name, label, occupedColumns, schema, required, disabled, info);
   }
 
   public static create(
     field: Omit<SelectFieldSchema, "info"> & {
-      info: { title: string; helpText?: ReactNode };
+      info: FieldPartialInfoSchema;
     },
   ) {
     return new SelectField(
@@ -31,6 +33,7 @@ export class SelectField extends Field {
       field.schema,
       field.required,
       field.options,
+      field.disabled,
       field.info,
     );
   }

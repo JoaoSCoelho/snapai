@@ -1,4 +1,3 @@
-import z from "zod";
 import { Config } from "../Config";
 import { simulationConfigLayout } from "./simulationConfigLayout";
 import {
@@ -7,16 +6,36 @@ import {
   simulationConfigSchema,
 } from "./simulationConfigSchema";
 
-export class SimulationConfig extends Config {
-  public constructor(
-    public readonly configJsonFilePath: string,
-    public readonly data: z.infer<typeof simulationConfigSchema>,
-  ) {
+export const defaultSimulationConfig: Partial<SimulationConfigSchema> = {
+  simulationName: "default",
+  connectivityEnabled: false,
+  dimX: [0, 0],
+  dimY: [0, 0],
+  dimZ: [0, 0],
+  loggerOptions: {
+    useConsole: false,
+  },
+  isAsynchronous: false,
+  shouldSaveTrace: false,
+  registerStatisticsForEveryRound: false,
+  nackMessagesEnabled: false,
+  interferenceEnabled: false,
+  interferenceIsAdditive: false,
+  messageTransmissionModel: "default:ConstantTime",
+  messageTransmissionModelParameters: {},
+};
+
+export class SimulationConfig extends Config<
+  typeof simulationConfigSchema,
+  SimulationConfigSchema
+> {
+  public constructor(configJsonFilePath: string, data: SimulationConfigSchema) {
     super(
       configJsonFilePath,
       data,
       simulationConfigLayout,
       simulationConfigSchema,
+      defaultSimulationConfig,
     );
   }
 
@@ -24,12 +43,16 @@ export class SimulationConfig extends Config {
     return this.data.simulationName;
   }
 
-  public get dimX(): number[] {
+  public get dimX(): [number, number] {
     return this.data.dimX;
   }
 
-  public get dimY(): number[] {
+  public get dimY(): [number, number] {
     return this.data.dimY;
+  }
+
+  public get dimZ(): [number, number] {
+    return this.data.dimZ;
   }
 
   public get loggerOptions(): LoggerOptionsSchema {
@@ -76,11 +99,11 @@ export class SimulationConfig extends Config {
     return this.data.simulationName;
   }
 
-  public getDimX(): number[] {
+  public getDimX(): [number, number] {
     return this.data.dimX;
   }
 
-  public getDimY(): number[] {
+  public getDimY(): [number, number] {
     return this.data.dimY;
   }
 
@@ -129,6 +152,7 @@ export class SimulationConfig extends Config {
       simulationName: this.data.simulationName,
       dimX: this.data.dimX,
       dimY: this.data.dimY,
+      dimZ: this.data.dimZ,
       loggerOptions: this.data.loggerOptions,
       isAsynchronous: this.data.isAsynchronous,
       shouldSaveTrace: this.data.shouldSaveTrace,

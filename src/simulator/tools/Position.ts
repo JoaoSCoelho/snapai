@@ -6,6 +6,36 @@ export class Position {
   ) {}
 
   /**
+   * Returns a new Position object that is the result of adding the given delta to the given position.
+   * The delta is added component-wise, i.e. the x component of the delta is added to the x component of the position, and so on.
+   * @param position The base position
+   * @param delta The delta to add to the position in format of [x, y, z]
+   * @returns A new Position object that is the result of adding the given delta to the given position
+   */
+  public static fromPositionAndDelta(
+    position: Position,
+    [x, y, z]: [number, number, number],
+  ): Position {
+    return new Position(position.x + x, position.y + y, position.z + z);
+  }
+
+  /**
+   *
+   * @param position The base position
+   * @param vector [radius, theta, phi] Where r is the radius (magnitude|length), theta is the polar angle and phi is the azimuthal angle
+   */
+  public static fromPositionAndVector(
+    position: Position,
+    [radius, theta, phi]: [number, number, number],
+  ): Position {
+    return new Position(
+      position.x + radius * Math.cos(theta) * Math.cos(phi),
+      position.y + radius * Math.sin(theta) * Math.cos(phi),
+      position.z + radius * Math.sin(phi),
+    );
+  }
+
+  /**
    * Returns a new Position object that is a copy of this position.
    * @returns A new Position object that is a copy of this position.
    */

@@ -2,15 +2,21 @@ import { Position } from "../tools/Position";
 import { ModelType } from "../utils/modelsUtils";
 import { Model } from "./Model";
 import { Node } from "./Node";
+import { Simulation } from "./Simulation";
+
+export type DistributionModelBaseParameters = {
+  numberOfNodes: number;
+};
 
 export abstract class DistributionModel extends Model {
   public static readonly type = ModelType.Distribution;
 
   public constructor(
-    public readonly numberOfNodes: number,
-    public readonly parameters: Record<string, any>,
+    protected readonly simulation: Simulation,
+    public readonly parameters: Record<string, any> &
+      DistributionModelBaseParameters,
   ) {
-    super(parameters);
+    super(simulation, parameters);
   }
 
   /**
@@ -21,5 +27,5 @@ export abstract class DistributionModel extends Model {
    * of these positions when this method is called.
    * @return The next position where a node is placed.
    */
-  public abstract getNextPosition(node?: Node): Position;
+  public abstract getNextPosition(node: Node): Position;
 }

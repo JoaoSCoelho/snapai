@@ -1,13 +1,18 @@
 import { ReactNode } from "react";
 import z from "zod";
-import { Field, FieldSchema } from "./Field";
+import { Field, FieldPartialInfoSchema, FieldSchema } from "./Field";
 import { ModelType } from "@/simulator/utils/modelsUtils";
+import {
+  ParameterizedSelectField,
+  ParameterizedSelectFieldSchema,
+} from "./ParameterizedSelectField";
+import { SearchEngine } from "@/simulator/utils/SearchEngine";
 
-export type ModelSelectFieldSchema = FieldSchema & {
+export type ModelSelectFieldSchema = ParameterizedSelectFieldSchema & {
   modelType: ModelType;
 };
 
-export class ModelSelectField extends Field {
+export class ModelSelectField extends ParameterizedSelectField {
   private constructor(
     public readonly name: string,
     public readonly label: string,
@@ -15,15 +20,33 @@ export class ModelSelectField extends Field {
     public readonly schema: z.ZodType,
     public readonly required: boolean,
     public readonly modelType: ModelType,
-    info: { title: string; helpText?: ReactNode },
+    public readonly disabled: boolean = false,
+    info: FieldPartialInfoSchema,
   ) {
-    super(name, label, occupedColumns, schema, required, info);
+    super(
+      name,
+      label,
+      occupedColumns,
+      schema,
+      required,
+      () => {
+        return SearchEngine.getPrefixedModelsNames(modelType).map(
+          (modelPrefixedName) => ({
+            value: modelPrefixedName,
+            label: modelPrefixedName,
+          }),
+        );
+      },
+      disabled,
+      info,
+    );
   }
 
   public static create(
-    field: Omit<ModelSelectFieldSchema, "info"> & {
-      info: { title: string; helpText?: ReactNode };
+    field: Omit<ModelSelectFieldSchema, "info" | "options" | "modelType"> & {
+      info: FieldPartialInfoSchema;
     },
+    complement: Pick<ModelSelectFieldSchema, "modelType">,
   ) {
     return new ModelSelectField(
       field.name,
@@ -31,7 +54,8 @@ export class ModelSelectField extends Field {
       field.occupedColumns,
       field.schema,
       field.required,
-      field.modelType,
+      complement.modelType,
+      field.disabled,
       field.info,
     );
   }

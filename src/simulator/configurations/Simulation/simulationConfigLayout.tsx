@@ -45,7 +45,7 @@ export const simulationConfigLayout = new Layout([
           NumberPairField.create({
             name: "dimX",
             label: "X Dimension",
-            occupedColumns: 6,
+            occupedColumns: 4,
             schema: z
               .tuple([z.number(), z.number()])
               .refine(([left, right]) => left <= right, {
@@ -61,7 +61,7 @@ export const simulationConfigLayout = new Layout([
           NumberPairField.create({
             name: "dimY",
             label: "Y Dimension",
-            occupedColumns: 6,
+            occupedColumns: 4,
             schema: z
               .tuple([z.number(), z.number()])
               .refine(([left, right]) => left <= right, {
@@ -73,6 +73,23 @@ export const simulationConfigLayout = new Layout([
             info: {
               title: "The Y dimension of the simulation. (min, max)",
             },
+          }),
+          NumberPairField.create({
+            name: "dimZ",
+            label: "Z Dimension",
+            occupedColumns: 4,
+            schema: z
+              .tuple([z.number(), z.number()])
+              .refine(([left, right]) => left <= right, {
+                message:
+                  "The minimum dimension must be less than or equal to the maximum dimension",
+              }),
+            required: true,
+            isFloat: true,
+            info: {
+              title: "The Z dimension of the simulation. (min, max)",
+            },
+            disabled: true, // TODO: Add support for 3D
           }),
         ]),
         new Line([

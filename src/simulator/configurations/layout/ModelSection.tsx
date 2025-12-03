@@ -20,35 +20,40 @@ export class ModelSection extends Section {
   ) {
     const subsection = new Subsection([
       new Line([
-        ModelSelectField.create({
-          name: `${underscoreToCamelCase(modelType)}Model`,
-          label: `${capitalizeFirstLetter(modelType).replace(/[_]/g, " ")} Model`,
-          occupedColumns: 12,
-          modelType: modelType,
-          required: true,
-          schema: z.string().refine(
-            (value) => {
-              return Simulator.inited
-                ? SearchEngine.getPrefixedModelsNames(modelType).includes(value)
-                : true;
-            },
-            {
-              error: `Should be a pre-created ${modelType.replace(/[_]/g, " ")} model`,
-            },
-          ),
-          info: {
-            title: `The name of the ${modelType.replace(/[_]/g, " ")} model to be used`,
-            helpText: (
-              <>
-                The name of the {modelType.replace(/[_]/g, " ")} model to be
-                used. <br />
-                Use the following format: "<b>projectName:modelName</b>" to use
-                a model from a specific project or "<b>default:modelName</b>" to
-                use a default model.
-              </>
+        ModelSelectField.create(
+          {
+            name: `${underscoreToCamelCase(modelType)}Model`,
+            label: `${capitalizeFirstLetter(modelType).replace(/[_]/g, " ")} Model`,
+            occupedColumns: 12,
+
+            required: true,
+            schema: z.string().refine(
+              (value) => {
+                return Simulator.inited
+                  ? SearchEngine.getPrefixedModelsNames(modelType).includes(
+                      value,
+                    )
+                  : true;
+              },
+              {
+                error: `Should be a pre-created ${modelType.replace(/[_]/g, " ")} model`,
+              },
             ),
+            info: {
+              title: `The name of the ${modelType.replace(/[_]/g, " ")} model to be used`,
+              helpText: (
+                <>
+                  The name of the {modelType.replace(/[_]/g, " ")} model to be
+                  used. <br />
+                  Use the following format: "<b>projectName:modelName</b>" to
+                  use a model from a specific project or "
+                  <b>default:modelName</b>" to use a default model.
+                </>
+              ),
+            },
           },
-        }),
+          { modelType: modelType },
+        ),
       ]),
     ]);
     super([subsection], undefined, id);

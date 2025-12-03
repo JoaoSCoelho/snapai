@@ -1,20 +1,21 @@
-import { ReactNode } from "react";
 import z from "zod";
-import { NumberField, NumberFieldSchema } from "./NumberField";
-import { FieldPartialInfoSchema } from "./Field";
+import { Field, FieldPartialInfoSchema } from "./Field";
+import {
+  SelectField,
+  SelectFieldOption,
+  SelectFieldSchema,
+} from "./SelectField";
 
-export type PercentageFieldSchema = NumberFieldSchema & {};
+export type ParameterizedSelectFieldSchema = SelectFieldSchema & {};
 
-export class PercentageField extends NumberField {
-  private constructor(
+export class ParameterizedSelectField extends SelectField {
+  protected constructor(
     public readonly name: string,
     public readonly label: string,
     public readonly occupedColumns: number,
     public readonly schema: z.ZodType,
     public readonly required: boolean,
-    public readonly min: number,
-    public readonly max: number,
-    public readonly isFloat: boolean,
+    public readonly options: SelectFieldOption[] | (() => SelectFieldOption[]),
     public readonly disabled: boolean = false,
     info: FieldPartialInfoSchema,
   ) {
@@ -24,30 +25,26 @@ export class PercentageField extends NumberField {
       occupedColumns,
       schema,
       required,
-      min,
-      max,
-      isFloat,
+      options,
       disabled,
       info,
     );
   }
 
   public static create(
-    field: Omit<PercentageFieldSchema, "info" | "min" | "max"> & {
-      min?: number;
-      max?: number;
+    field: Omit<ParameterizedSelectFieldSchema, "info"> & {
       info: FieldPartialInfoSchema;
     },
+    /** This args is to be able to pass more information in child classes */
+    ...args: any
   ) {
-    return new PercentageField(
+    return new ParameterizedSelectField(
       field.name,
       field.label,
       field.occupedColumns,
       field.schema,
       field.required,
-      field.min ?? -Infinity,
-      field.max ?? Infinity,
-      field.isFloat,
+      field.options,
       field.disabled,
       field.info,
     );

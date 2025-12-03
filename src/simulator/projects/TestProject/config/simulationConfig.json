@@ -1,12 +1,16 @@
 {
   "simulationName": "TestProjectSimulation",
   "dimX": [
-    984,
-    1500
+    0,
+    1000
   ],
   "dimY": [
-    5543,
-    10000
+    0,
+    1000
+  ],
+  "dimZ": [
+    0,
+    0
   ],
   "loggerOptions": {
     "useConsole": true
@@ -14,23 +18,12 @@
   "isAsynchronous": false,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,
-  "nackMessagesEnabled": true,
+  "nackMessagesEnabled": false,
   "connectivityEnabled": true,
-  "interferenceEnabled": false,
+  "interferenceEnabled": true,
   "interferenceIsAdditive": true,
-  "messageTransmissionModel": "TestProject:TestMessageTransmissionModel",
+  "messageTransmissionModel": "default:ConstantTime",
   "messageTransmissionModelParameters": {
-    "name": "565874562315674",
-    "numberPair": [
-      50000000,
-      -165
-    ],
-    "checkbox": true,
-    "angle": 4,
-    "color": "#000000",
-    "anglePair": [
-      5,
-      0
-    ]
+    "time": 5
   }
 }
