@@ -4,6 +4,7 @@ import { Packet232Bytes } from "../models/Packet232Bytes";
 import { Project } from "../models/Project";
 import jsonConfig from "./defaultConfig.json";
 import { ConstantTime } from "./messageTransmissionModels/ConstantTime";
+import { InertNode } from "./nodes/InertNode";
 
 export class DefaultProject extends Project {
   protected constructor() {
@@ -17,6 +18,7 @@ export class DefaultProject extends Project {
 
     this.addModel("ConstantTime", ConstantTime);
     this.addPacket("232Bytes", Packet232Bytes);
+    this.addNode("InertNode", InertNode);
   }
 
   public static create(): DefaultProject {

@@ -1,8 +1,19 @@
 {
   "mobilityModel": "PingPong:PingPongMobilityModel",
   "mobilityModelParameters": {},
-  "messageTransmissionModel": "default:ConstantTime",
+  "messageTransmissionModel": "TestProject:TestMessageTransmissionModel",
   "messageTransmissionModelParameters": {
-    "time": 1
+    "name": "4587669352415646321",
+    "numberPair": [
+      6556432,
+      0
+    ],
+    "checkbox": true,
+    "angle": 2.500639071588023,
+    "color": "#ff0000",
+    "anglePair": [
+      65.31600000000002,
+      155.9310569525835
+    ]
   }
 }

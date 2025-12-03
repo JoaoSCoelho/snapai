@@ -1,10 +1,10 @@
 import { Layout } from "@/simulator/configurations/layout/Layout";
 import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
 import { NodeSection } from "@/simulator/configurations/layout/NodeSection";
-import { useEffect, useMemo, useState } from "react";
+import { BaseSyntheticEvent, useEffect, useMemo, useState } from "react";
 import { useErrorModal } from "../contexts/ErrorModalContext";
 import z from "zod";
-import { Control, DefaultValues, useForm } from "react-hook-form";
+import { DefaultValues, useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ErrorSystem } from "../utils/ErrorSystem";
@@ -23,18 +23,18 @@ export type DefaultFormProps<FormSchema extends Record<string, any>> = {
     name: string,
     fullName: keyof FormSchema,
     value: string,
-    formControl: Control<FormSchema>,
+    form: UseFormReturn<FormSchema>,
   ) => void;
   /** Executed when the user changes the node name of a NodeSection and after all default routine */
   afterNodeNameChange?: (
     name: string,
     fullName: keyof FormSchema,
     value: string,
-    formControl: Control<FormSchema>,
+    form: UseFormReturn<FormSchema>,
   ) => void;
   handleFormSubmit: (
     data: FormSchema,
-    formControl: Control<FormSchema>,
+    form: UseFormReturn<FormSchema>,
   ) => Promise<void>;
   /** If given this message will be displayed in a toast.success() call */
   successSubmitMessage?: string;
@@ -44,16 +44,23 @@ export type DefaultFormProps<FormSchema extends Record<string, any>> = {
   onReset?: (
     prevData: FormSchema,
     resetedData: FormSchema,
-    formControl: Control<FormSchema>,
+    form: UseFormReturn<FormSchema>,
   ) => void;
   /** If given this function will be called when the reset button is clicked and will replace the default reset function */
-  onResetButtonClick?: (formControl: Control<FormSchema>) => void;
+  onResetButtonClick?: (form: UseFormReturn<FormSchema>) => void;
   /** If given this message will be displayed in a toast.success() call after the reset */
   onResetMessage?: string;
   /** If given this message will be displayed in the error modal when formErrors is not empty (by default "Form errors") */
   formErrorMessage?: string;
   /** @see EndFormButtonBarProps#nextButtonHref */
   nextButtonHref?: string;
+  /** Give this funcion don't replace submit handler */
+  onSubmitButtonClick?: (
+    data: Partial<FormSchema>,
+    event: BaseSyntheticEvent<object, any, any> | undefined,
+    form: UseFormReturn<FormSchema>,
+  ) => void;
+  onLoad?: (form: UseFormReturn<FormSchema>) => void;
 };
 
 export function DefaultForm<FormSchema extends Record<string, any>>({
@@ -71,6 +78,8 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
   formErrorMessage = "Form errors",
   id,
   nextButtonHref,
+  onSubmitButtonClick,
+  onLoad,
 }: DefaultFormProps<FormSchema>) {
   // Contexts
   const { showModal } = useErrorModal();
@@ -82,17 +91,20 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
   // Refs
 
   // Hooks externos
+  const form = useForm<FormSchema>({
+    defaultValues: defaultValues as DefaultValues<FormSchema>,
+    resolver: zodResolver<FormSchema, any, FormSchema>(validatorSchema as any),
+  });
+
   const {
     register,
     control,
     handleSubmit,
     reset,
     getValues,
+    setValue,
     formState: { errors: formErrors },
-  } = useForm<FormSchema>({
-    defaultValues: defaultValues as DefaultValues<FormSchema>,
-    resolver: zodResolver<FormSchema, any, FormSchema>(validatorSchema as any),
-  });
+  } = form;
 
   // Memos / Callbacks
   /** A list of all models sections in the layout */
@@ -122,6 +134,8 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
 
   /** Effect to run change model/node routines when the form is loaded */
   useEffect(() => {
+    onLoad?.(form);
+
     // Models
     modelsSections.forEach((section) => {
       const nameFieldName = section.getModelNameFieldName() as keyof FormSchema;
@@ -193,17 +207,33 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     section.setParametersSubsection(model, parametersSubsection);
 
     if (parametersSubsection) {
+      // Change validator schema of the form
       setValidatorSchema(
         z.object({
           ...validatorSchema.shape,
           [parametersPrefix]: parametersSubsection?.getSchema(),
         }),
       );
+
+      // Set empty obj to replace undefined in parameters field in the form
+      const parametersSubsectionCurrentValue = getValues(
+        parametersPrefix as any,
+      );
+
+      if (parametersSubsectionCurrentValue === undefined) {
+        setValue(parametersPrefix as any, {} as any);
+      }
+    } else {
+      // Change validator schema of the form
+      setValidatorSchema(
+        z.object({ ...validatorSchema.shape, [parametersPrefix]: z.any() }),
+      );
+      setValue(parametersPrefix as any, {} as any);
     }
 
     setLayout(layout.copy());
 
-    afterModelNameChange?.(name, fullName, model, control);
+    afterModelNameChange?.(name, fullName, model, form);
   };
 
   /**
@@ -232,17 +262,33 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     section.setParametersSubsection(node, parametersSubsection);
 
     if (parametersSubsection) {
+      // Change validator schema of the form
       setValidatorSchema(
         z.object({
           ...validatorSchema.shape,
           [parametersPrefix]: parametersSubsection?.getSchema(),
         }),
       );
+
+      // Set empty obj to replace undefined in parameters field in the form
+      const parametersSubsectionCurrentValue = getValues(
+        parametersPrefix as any,
+      );
+
+      if (parametersSubsectionCurrentValue === undefined) {
+        setValue(parametersPrefix as any, {} as any);
+      }
+    } else {
+      // Change validator schema of the form
+      setValidatorSchema(
+        z.object({ ...validatorSchema.shape, [parametersPrefix]: z.any() }),
+      );
+      setValue(parametersPrefix as any, {} as any);
     }
 
     setLayout(layout.copy());
 
-    afterNodeNameChange?.(name, fullName, node, control);
+    afterNodeNameChange?.(name, fullName, node, form);
   };
 
   /**
@@ -254,7 +300,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
    * @returns {Promise<void>} - A promise that resolves when the form is submitted and the callback is handled.
    */
   const handleFormSubmit = async (data: FormSchema) => {
-    await givenHandleFormSubmit(data, control).then(
+    await givenHandleFormSubmit(data, form).then(
       () => {
         if (successSubmitMessage) toast.success(successSubmitMessage);
       },
@@ -269,16 +315,16 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
   /**
    * Called when the reset button is clicked.
    * If givenOnResetButtonClick is given,
-   * it calls the given function with the control as argument.
+   * it calls the given function with the form as argument.
    * If not, it resets the form, calls the onReset callback with the previous data,
-   * the new data and the control, and displays a success toast with the onResetMessage if given.
+   * the new data and the form, and displays a success toast with the onResetMessage if given.
    */
   const onResetButtonClick = () => {
-    if (givenOnResetButtonClick) givenOnResetButtonClick(control);
+    if (givenOnResetButtonClick) givenOnResetButtonClick(form);
     else {
       const prevData = getValues();
       reset();
-      onReset?.(prevData, getValues(), control);
+      onReset?.(prevData, getValues(), form);
       if (onResetMessage) toast.success(onResetMessage);
     }
   };
@@ -305,6 +351,9 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
       <EndFormButtonBar
         nextButtonHref={nextButtonHref}
         onResetButtonClick={onResetButtonClick}
+        onSubmitButtonClick={(event) =>
+          onSubmitButtonClick?.(getValues(), event, form)
+        }
       />
     </form>
   );

@@ -17,6 +17,7 @@ import z from "zod";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import { ErrorSystem } from "../utils/ErrorSystem";
 import { toast } from "sonner";
+import { useAddNodesContext } from "../contexts/AddNodesContext";
 
 export type ControlBarProps = {};
 
@@ -29,6 +30,7 @@ export type PreRunFormSchema = z.infer<typeof preRunFormSchema>;
 
 export default function ControlBar({}: ControlBarProps) {
   const { selectedProject } = useConfigContext();
+  const { openDialog: openAddNodesDialog } = useAddNodesContext();
   const {
     shouldShowArrows,
     setShouldShowArrows,
@@ -96,12 +98,21 @@ export default function ControlBar({}: ControlBarProps) {
     }, 1000);
   };
 
-  const onAddNodesButtonClick = () => {};
-  const onPauseButtonClick = () => {};
-  const onResetCamButtonClick = () => {};
-  const onDownloadGraphButtonClick = () => {};
-
-  const onPlay = (data: PreRunFormSchema) => {};
+  const onAddNodesButtonClick = () => {
+    openAddNodesDialog();
+  };
+  const onPauseButtonClick = () => {
+    // TODO: implement it
+  };
+  const onResetCamButtonClick = () => {
+    // TODO: implement it
+  };
+  const onDownloadGraphButtonClick = () => {
+    // TODO: implement it
+  };
+  const onPlay = (data: PreRunFormSchema) => {
+    // TODO: implement it
+  };
 
   const handlePreRunFormSubmit = (data: PreRunFormSchema) => {
     if (onPlay) onPlay(data);

@@ -1,6 +1,7 @@
 import { forwardRef, useState } from "react";
 import { Slider } from "@mui/material";
 import AngleSlider from "./AngleSlider";
+import clsx from "clsx";
 
 export type AngleDropdownProps = {
   angle: number;
@@ -11,6 +12,7 @@ export type AngleDropdownProps = {
   onChange?: (angle: number) => any;
   onFocusAdjusments?: () => any;
   onBlurAdjusments?: () => any;
+  alignment?: "left" | "right";
 };
 
 const AngleDropdown = forwardRef<unknown, AngleDropdownProps>(
@@ -19,19 +21,24 @@ const AngleDropdown = forwardRef<unknown, AngleDropdownProps>(
       minValue,
       maxValue,
       isFloat,
-      angle,
+      angle = 0,
       onChange,
       isDegrees,
       onFocusAdjusments,
       onBlurAdjusments,
+      alignment,
     },
     ref,
   ) => {
     const step = isFloat ? 0.01 : 1;
     const [fineAdjustment, setFineAdjustment] = useState(step);
-
     return (
-      <div className="pb-20 absolute w-full max-w-2xs min-w-44 z-10">
+      <div
+        className={clsx(
+          "pb-20 top-full absolute w-full max-w-2xs min-w-44 z-10 ",
+          alignment === "right" ? "right-0" : "left-0",
+        )}
+      >
         <div className="w-full max-w-2xs min-w-44 z-10 border border-gray-300 mt-1 bg-white">
           <AngleSlider
             fineAdjustment={fineAdjustment}

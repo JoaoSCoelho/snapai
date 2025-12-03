@@ -16,6 +16,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { AnglePairField as AnglePairFieldCls } from "@/simulator/configurations/layout/fields/AnglePairField";
 import AngleDropdown from "./AngleDropdown";
 import { useState } from "react";
+import { AngleUnit } from "@/simulator/utils/types";
 
 export type AnglePairFieldProps = FormFieldProps & {
   field: AnglePairFieldCls;
@@ -37,7 +38,10 @@ export default function AnglePairField({
 
   return (
     <div
-      style={{ gridColumn: `span ${field.occupedColumns}` }}
+      style={{
+        gridColumn: `span ${field.occupedColumns}`,
+        position: "relative",
+      }}
       {...containerAttr}
     >
       <Controller
@@ -63,6 +67,8 @@ export default function AnglePairField({
                   "-mb-4",
                   "bg-white",
                   "w-min",
+                  "relative",
+                  "z-10",
                 )}
                 style={{
                   padding: "0 8px",
@@ -91,14 +97,17 @@ export default function AnglePairField({
                       max: field.maxLeft,
                     },
                   }}
+                  onFocus={() => setFocusedLeft(true)}
+                  onBlur={() => setFocusedLeft(false)}
                   onChange={(e) => setMin(Number(e.target.value))}
                   error={!!error}
                   {...inputAttr}
                 />
                 {focusedLeft && (
                   <AngleDropdown
+                    key="left"
                     angle={renderField.value[0]}
-                    isDegrees={field.angleUnit === "deg"}
+                    isDegrees={field.angleUnit === AngleUnit.DEG}
                     isFloat={field.isFloat}
                     maxValue={field.maxLeft}
                     minValue={field.minLeft}
@@ -117,6 +126,9 @@ export default function AnglePairField({
                     "& fieldset": { border: "none" },
                     flex: 1,
                   }}
+                  onFocus={() => setFocusedRight(true)}
+                  onBlur={() => setFocusedRight(false)}
+                  onChange={(e) => setMax(Number(e.target.value))}
                   slotProps={{
                     htmlInput: {
                       min: field.minRight,
@@ -138,14 +150,14 @@ export default function AnglePairField({
                       ),
                     },
                   }}
-                  onChange={(e) => setMax(Number(e.target.value))}
                   error={!!error}
                   {...inputAttr}
                 />
-                {focusedLeft && (
+                {focusedRight && (
                   <AngleDropdown
+                    key="right"
                     angle={renderField.value[1]}
-                    isDegrees={field.angleUnit === "deg"}
+                    isDegrees={field.angleUnit === AngleUnit.DEG}
                     isFloat={field.isFloat}
                     maxValue={field.maxRight}
                     minValue={field.minRight}
@@ -154,6 +166,7 @@ export default function AnglePairField({
                     }}
                     onFocusAdjusments={() => setFocusedRight(true)}
                     onBlurAdjusments={() => setFocusedRight(false)}
+                    alignment="right"
                   />
                 )}
               </Box>

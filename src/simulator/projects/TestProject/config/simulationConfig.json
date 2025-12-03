@@ -11,7 +11,7 @@
   "loggerOptions": {
     "useConsole": true
   },
-  "isAsynchronous": true,
+  "isAsynchronous": false,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": true,
@@ -26,7 +26,7 @@
       -165
     ],
     "checkbox": true,
-    "angle": 5,
+    "angle": 4,
     "color": "#000000",
     "anglePair": [
       5,

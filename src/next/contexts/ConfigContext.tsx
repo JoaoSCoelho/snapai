@@ -3,6 +3,7 @@ import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig"
 import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 import { Project } from "@/simulator/models/Project";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
+import { ConfigContext as PrismaConfigContext } from "@prisma/client";
 import axios from "axios";
 import React, { createContext, useState, useContext, useEffect } from "react";
 import z from "zod";
@@ -34,6 +35,21 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
   const [selectedProject, _setSelectedProject] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    axios
+      .get<PrismaConfigContext | null>("/api/config-context")
+      .then((response) => {
+        if (
+          !response.data ||
+          !SearchEngine.findProjectByName(response.data.selectedProject)
+        )
+          return;
+
+        _setSelectedProject(response.data.selectedProject);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   const saveSimulationConfig = async (
     project: Project,
     data: SimulationConfigSchema,
@@ -62,14 +78,6 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
     _setSelectedProject(value);
     if (value) axios.post("/api/config-context", { selectedProject: value });
   };
-
-  useEffect(() => {
-    axios.get("/api/config-context").then((response) => {
-      if (SearchEngine.findProjectByName(response.data.selectedProject))
-        _setSelectedProject(response.data.selectedProject);
-      setLoading(false);
-    });
-  }, []);
 
   return (
     <ConfigContext.Provider

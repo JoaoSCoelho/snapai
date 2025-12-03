@@ -2,14 +2,22 @@
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import axios from "axios";
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { _set } from "zod/v4/core";
 import { AddNodesFormSchema } from "../components/AddNodesForm";
 import { Simulation } from "@/simulator/models/Simulation";
+import { UseFormReturn } from "react-hook-form";
+import { NodesFormContext } from "@prisma/client";
+import { useConfigContext } from "./ConfigContext";
 
 export type AddNodesContextProps = {
   defaultData: AddNodesFormSchema | null;
   addNodes: (simulation: Simulation, data: AddNodesFormSchema) => Promise<void>;
   loading: boolean;
+  dialogOpen: boolean;
+  openDialog: () => void;
+  closeDialog: () => void;
+  form: UseFormReturn<AddNodesFormSchema> | null;
+  setForm: (form: UseFormReturn<AddNodesFormSchema> | null) => void;
+  savePartialData: () => void;
 };
 
 const AddNodesContext = createContext<AddNodesContextProps | undefined>(
@@ -21,11 +29,51 @@ type AddNodesProviderProps = {
 };
 
 export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
+  // States
   const [defaultData, setDefaultData] = useState<AddNodesFormSchema | null>(
     null,
   );
+  const [form, setForm] = useState<UseFormReturn<AddNodesFormSchema> | null>(
+    null,
+  );
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Effects
+  useEffect(() => {
+    axios
+      .get<NodesFormContext | null>("/api/add-nodes-context")
+      .then((response) => {
+        if (!response.data) return;
+
+        setDefaultData({
+          numberOfNodes: response.data.numberOfNodes,
+          node: response.data.node,
+          nodeParameters: (response.data.nodeParameters ?? {}) as Record<
+            string,
+            any
+          >,
+          mobilityModel: response.data.mobilityModel,
+          mobilityModelParameters: (response.data.mobilityModelParameters ??
+            {}) as Record<string, any>,
+          connectivityModel: response.data.connectivityModel,
+          connectivityModelParameters: (response.data
+            .connectivityModelParameters ?? {}) as Record<string, any>,
+          interferenceModel: response.data.interferenceModel,
+          interferenceModelParameters: (response.data
+            .interferenceModelParameters ?? {}) as Record<string, any>,
+          reliabilityModel: response.data.reliabilityModel,
+          reliabilityModelParameters: (response.data
+            .reliabilityModelParameters ?? {}) as Record<string, any>,
+          distributionModel: response.data.distributionModel,
+          distributionModelParameters: (response.data
+            .distributionModelParameters ?? {}) as Record<string, any>,
+        });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Functions
   const addNodes = async (simulation: Simulation, data: AddNodesFormSchema) => {
     setDefaultData(data);
     if (data)
@@ -36,37 +84,40 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
     // TODO: really add nodes
   };
 
-  useEffect(() => {
-    axios.get("/api/add-nodes-context").then((response) => {
-      if (SearchEngine.findProjectByName(response.data.selectedProject))
-        setDefaultData({
-          numberOfNodes: response.data.numberOfNodes,
-          node: response.data.node,
-          nodeParameters: response.data.nodeParameters,
-          mobilityModel: response.data.mobilityModel,
-          mobilityModelParameters: response.data.mobilityModelParameters,
-          connectivityModel: response.data.connectivityModel,
-          connectivityModelParameters:
-            response.data.connectivityModelParameters,
-          interferenceModel: response.data.interferenceModel,
-          interferenceModelParameters:
-            response.data.interferenceModelParameters,
-          reliabilityModel: response.data.reliabilityModel,
-          reliabilityModelParameters: response.data.reliabilityModelParameters,
-          distributionModel: response.data.distributionModel,
-          distributionModelParameters:
-            response.data.distributionModelParameters,
-        });
-      setLoading(false);
-    });
-  }, []);
+  const openDialog = () => {
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    savePartialData();
+  };
+
+  const savePartialData = async () => {
+    if (!form) return;
+
+    const values = form.getValues();
+
+    setDefaultData(values);
+    // Safe partial data on database
+    await axios.post<any, any, Partial<NodesFormContext>>(
+      "/api/add-nodes-context",
+      values,
+    );
+  };
 
   return (
     <AddNodesContext.Provider
       value={{
         defaultData,
+        dialogOpen,
+        openDialog,
+        closeDialog,
         addNodes,
         loading,
+        form,
+        setForm,
+        savePartialData,
       }}
     >
       {children}

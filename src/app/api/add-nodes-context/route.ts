@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma/client";
+import { NodesFormContext } from "@prisma/client";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -31,10 +32,23 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const data = await request.json();
+  const data: Partial<NodesFormContext> = await request.json();
   const addNodesContext = await prisma.nodesFormContext.create({
     data: {
-      ...data,
+      addedToSimulation: data.addedToSimulation,
+      numberOfNodes: data.numberOfNodes ?? 0,
+      node: data.node ?? "",
+      nodeParameters: data.nodeParameters ?? {},
+      mobilityModel: data.mobilityModel ?? "",
+      mobilityModelParameters: data.mobilityModelParameters ?? {},
+      connectivityModel: data.connectivityModel ?? "",
+      connectivityModelParameters: data.connectivityModelParameters ?? {},
+      distributionModel: data.distributionModel ?? "",
+      distributionModelParameters: data.distributionModelParameters ?? {},
+      interferenceModel: data.interferenceModel ?? "",
+      interferenceModelParameters: data.interferenceModelParameters ?? {},
+      reliabilityModel: data.reliabilityModel ?? "",
+      reliabilityModelParameters: data.reliabilityModelParameters ?? {},
     },
   });
   return Response.json(addNodesContext);

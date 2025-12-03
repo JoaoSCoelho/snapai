@@ -3,9 +3,11 @@ import Link from "next/link";
 import StartIcon from "@mui/icons-material/Start";
 import SaveIcon from "@mui/icons-material/Save";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { MouseEventHandler } from "react";
 
 export type EndFormButtonBarProps = {
-  onResetButtonClick: () => void;
+  onSubmitButtonClick?: MouseEventHandler<HTMLButtonElement>;
+  onResetButtonClick: MouseEventHandler<HTMLButtonElement>;
   /** If provided, the "Next" button will redirect to this URL.
    * If not, the "Next" button will not be rendered */
   nextButtonHref?: string;
@@ -13,6 +15,7 @@ export type EndFormButtonBarProps = {
 
 export function EndFormButtonBar({
   onResetButtonClick,
+  onSubmitButtonClick,
   nextButtonHref,
 }: EndFormButtonBarProps) {
   return (
@@ -35,6 +38,7 @@ export function EndFormButtonBar({
           color="success"
           size="large"
           className="flex items-center gap-2"
+          onClick={onSubmitButtonClick}
         >
           <SaveIcon /> Save
         </Button>
