@@ -1,10 +1,10 @@
 import { Project } from "@/simulator/models/Project";
 import { useConfigContext } from "../contexts/ConfigContext";
-import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
+import { GenericProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
 import z from "zod";
 import { DefaultForm } from "./DefaultForm";
 
-type ProjectConfigFormSchema = z.infer<ProjectConfig["validatorSchema"]>;
+type ProjectConfigFormSchema = z.infer<GenericProjectConfig["validatorSchema"]>;
 
 type ProjectConfigFormProps = {
   project: Project;

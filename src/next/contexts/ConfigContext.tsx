@@ -1,5 +1,5 @@
 "use client";
-import { ProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
+import { GenericProjectConfig } from "@/simulator/configurations/Project/ProjectConfig";
 import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 import { Project } from "@/simulator/models/Project";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
@@ -9,7 +9,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import z from "zod";
 import { _set } from "zod/v4/core";
 
-type ProjectConfigSchema = z.infer<ProjectConfig["validatorSchema"]>;
+type ProjectConfigSchema = z.infer<GenericProjectConfig["validatorSchema"]>;
 
 export type ConfigContextProps = {
   selectedProject: string | null;

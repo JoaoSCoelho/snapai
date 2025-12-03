@@ -1,18 +1,18 @@
 import { OrderedSet } from "js-sdsl";
-import { NodeParametersSubsection } from "../configurations/layout/NodeParametersSubsection";
 import { Position } from "../tools/Position";
 import { ModelType, ModelTypeToModel } from "../utils/modelsUtils";
 import { ConnectivityModel } from "./ConnectivityModel";
 import { InterferenceModel } from "./InterferenceModel";
 import { MobilityModel } from "./MobilityModel";
-import { Module } from "./Module";
 import { NodeId } from "./Node";
 import { ReliabilityModel } from "./ReliabilityModel";
 import { Simulation } from "./Simulation";
 import { Timer } from "./Timer";
 import { Edge } from "./Edge";
+import { ParameterizedModule } from "../modules/ParameterizedModule";
+import { ParametersSubsection } from "../configurations/layout/ParametersSubsection";
 
-export abstract class BaseNode extends Module {
+export abstract class BaseNode extends ParameterizedModule {
   protected readonly timers: OrderedSet<Timer<true>> = new OrderedSet();
 
   public constructor(
@@ -58,14 +58,12 @@ export abstract class BaseNode extends Module {
   /**
    * **Child classes should implements this static method to get the parameters subsection layout.**
    *
-   * Returns the NodeParametersSubsection of the node, if it exists.
+   * Returns the ParametersSubsection of the node, if it exists.
    * This subsection contains the parameters of the node, which are
    * used to configure the node.
-   * @returns The NodeParametersSubsection of the node, if it exists. Otherwise, undefined.
+   * @returns The ParametersSubsection of the node, if it exists. Otherwise, undefined.
    */
-  public static getParametersSubsection():
-    | NodeParametersSubsection
-    | undefined {
+  public static getParametersSubsection(): ParametersSubsection | undefined {
     return undefined;
   }
 

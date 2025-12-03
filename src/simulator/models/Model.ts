@@ -1,13 +1,13 @@
-import { ModelParametersSubsection } from "../configurations/layout/ModelParametersSubsection";
+import { ParametersSubsection } from "../configurations/layout/ParametersSubsection";
+import { ParameterizedModule } from "../modules/ParameterizedModule";
 import { ModelType } from "../utils/modelsUtils";
-import { Module } from "./Module";
 import { Simulation } from "./Simulation";
 
 export type ConcreteModel<T extends Model> = new (
   parameters: Record<string, any>,
 ) => T;
 
-export abstract class Model extends Module {
+export abstract class Model extends ParameterizedModule {
   public static readonly type: ModelType;
 
   public constructor(
@@ -25,9 +25,7 @@ export abstract class Model extends Module {
    * used to configure the model.
    * @returns The ModelParametersSubsection of the model, if it exists. Otherwise, undefined.
    */
-  public static getParametersSubsection():
-    | ModelParametersSubsection
-    | undefined {
+  public static getParametersSubsection(): ParametersSubsection | undefined {
     return undefined;
   }
 }

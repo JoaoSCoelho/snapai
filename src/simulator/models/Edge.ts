@@ -1,16 +1,13 @@
-import { Module } from "./Module";
 import { NodeId } from "./Node";
 import { Packet } from "./Packet";
 
-export class Edge extends Module {
+export class Edge {
   private packetsQty = 0;
 
   constructor(
     public readonly source: NodeId,
     public readonly target: NodeId,
-  ) {
-    super();
-  }
+  ) {}
 
   /**
    * Creates an Edge from a pair of node IDs.

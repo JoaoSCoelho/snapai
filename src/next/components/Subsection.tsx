@@ -42,6 +42,7 @@ export default function Subsection({
             register={register}
             section={section}
             subsection={subsection}
+            disabled={subsection.disabled || section.disabled}
             key={line.id}
             {...props}
           />

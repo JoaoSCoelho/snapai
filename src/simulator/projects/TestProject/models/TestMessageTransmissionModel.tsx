@@ -5,7 +5,7 @@ import { ColorField } from "@/simulator/configurations/layout/fields/ColorField"
 import { NumberPairField } from "@/simulator/configurations/layout/fields/NumberPairField";
 import { TextField } from "@/simulator/configurations/layout/fields/TextField";
 import { Line } from "@/simulator/configurations/layout/Line";
-import { ModelParametersSubsection } from "@/simulator/configurations/layout/ModelParametersSubsection";
+import { ParametersSubsection } from "@/simulator/configurations/layout/ParametersSubsection";
 import { MessageTransmissionModel } from "@/simulator/models/MessageTransmissionModel";
 import { Packet } from "@/simulator/models/Packet";
 import { Simulation } from "@/simulator/models/Simulation";
@@ -33,10 +33,8 @@ export class TestMessageTransmissionModel extends MessageTransmissionModel {
     return 1;
   }
 
-  public static getParametersSubsection():
-    | ModelParametersSubsection
-    | undefined {
-    return ModelParametersSubsection.create({
+  public static getParametersSubsection(): ParametersSubsection | undefined {
+    return ParametersSubsection.create({
       lines: [
         new Line([
           TextField.create({

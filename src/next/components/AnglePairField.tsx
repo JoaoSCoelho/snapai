@@ -106,7 +106,7 @@ export default function AnglePairField({
                 {focusedLeft && (
                   <AngleDropdown
                     key="left"
-                    angle={renderField.value[0]}
+                    angle={renderField.value?.[0]}
                     isDegrees={field.angleUnit === AngleUnit.DEG}
                     isFloat={field.isFloat}
                     maxValue={field.maxLeft}
@@ -156,7 +156,7 @@ export default function AnglePairField({
                 {focusedRight && (
                   <AngleDropdown
                     key="right"
-                    angle={renderField.value[1]}
+                    angle={renderField.value?.[1]}
                     isDegrees={field.angleUnit === AngleUnit.DEG}
                     isFloat={field.isFloat}
                     maxValue={field.maxRight}

@@ -6,6 +6,7 @@ export class Subsection {
     public readonly lines: Line[],
     public readonly title?: string,
     public readonly nestedIn?: string,
+    public readonly disabled: boolean = false,
     public readonly id = ++Global.lastId,
   ) {}
 }

@@ -6,6 +6,7 @@ import { Global } from "@/simulator/Global";
 export type ParametersSubsectionOptions = {
   lines: Line[];
   title?: string;
+  disabled?: boolean;
 };
 
 export class ParametersSubsection extends Subsection {
@@ -13,10 +14,11 @@ export class ParametersSubsection extends Subsection {
     public readonly lines: Line[],
     public readonly title?: string,
     public readonly nestedIn?: string,
+    public readonly disabled: boolean = false,
     /** Only set it if you know what you're doing! */
     public readonly id = ++Global.lastId,
   ) {
-    super(lines, title, nestedIn, id);
+    super(lines, title, nestedIn, disabled, id);
   }
 
   /**
@@ -32,12 +34,14 @@ export class ParametersSubsection extends Subsection {
     lines?: Line[];
     title?: string;
     nestedIn?: string;
+    disabled?: boolean;
     id?: number;
   }): ParametersSubsection {
     return new ParametersSubsection(
       data?.lines ?? this.lines,
       data?.title ?? this.title,
       data?.nestedIn ?? this.nestedIn,
+      data?.disabled ?? this.disabled,
       data?.id ?? this.id,
     );
   }
@@ -50,7 +54,12 @@ export class ParametersSubsection extends Subsection {
   public static create(
     data: ParametersSubsectionOptions,
   ): ParametersSubsection {
-    return new ParametersSubsection(data.lines, data.title);
+    return new ParametersSubsection(
+      data.lines,
+      data.title,
+      undefined,
+      data.disabled,
+    );
   }
 
   /**

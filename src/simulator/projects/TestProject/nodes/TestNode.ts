@@ -2,7 +2,7 @@ import { CheckboxField } from "@/simulator/configurations/layout/fields/Checkbox
 import { ColorField } from "@/simulator/configurations/layout/fields/ColorField";
 import { NumberField } from "@/simulator/configurations/layout/fields/NumberField";
 import { Line } from "@/simulator/configurations/layout/Line";
-import { NodeParametersSubsection } from "@/simulator/configurations/layout/NodeParametersSubsection";
+import { ParametersSubsection } from "@/simulator/configurations/layout/ParametersSubsection";
 import { ConnectivityModel } from "@/simulator/models/ConnectivityModel";
 import { InterferenceModel } from "@/simulator/models/InterferenceModel";
 import { MobilityModel } from "@/simulator/models/MobilityModel";
@@ -47,7 +47,7 @@ export class TestNode extends Node {
   }
 
   public static getParametersSubsection() {
-    return NodeParametersSubsection.create({
+    return ParametersSubsection.create({
       lines: [
         new Line([
           ColorField.create({

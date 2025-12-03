@@ -1,6 +1,6 @@
 import { NumberField } from "@/simulator/configurations/layout/fields/NumberField";
 import { Line } from "@/simulator/configurations/layout/Line";
-import { ModelParametersSubsection } from "@/simulator/configurations/layout/ModelParametersSubsection";
+import { ParametersSubsection } from "@/simulator/configurations/layout/ParametersSubsection";
 import { MessageTransmissionModel } from "@/simulator/models/MessageTransmissionModel";
 import { Packet } from "@/simulator/models/Packet";
 import { Simulation } from "@/simulator/models/Simulation";
@@ -23,15 +23,13 @@ export class ConstantTime extends MessageTransmissionModel {
   }
 
   /**
-   * Returns the ModelParametersSubsection of the model.
+   * Returns the ParametersSubsection of the model.
    * This subsection contains the parameters of the model, which are
    * used to configure the model.
-   * @returns The ModelParametersSubsection of the model.
+   * @returns The ParametersSubsection of the model.
    */
-  public static getParametersSubsection():
-    | ModelParametersSubsection
-    | undefined {
-    return ModelParametersSubsection.create({
+  public static getParametersSubsection(): ParametersSubsection | undefined {
+    return ParametersSubsection.create({
       lines: [
         new Line([
           NumberField.create({

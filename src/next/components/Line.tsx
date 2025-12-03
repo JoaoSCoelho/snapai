@@ -12,6 +12,7 @@ export type LineProps = {
   section: Section;
   register: UseFormRegister<any>;
   control: Control;
+  disabled?: boolean;
   onModelNameChange?: (name: string, fullName: string, value: string) => void;
   onNodeNameChange?: (name: string, fullName: string, value: string) => void;
 };

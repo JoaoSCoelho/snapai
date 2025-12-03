@@ -2,18 +2,14 @@ import { Section } from "./Section";
 import { Subsection } from "./Subsection";
 import { Line } from "./Line";
 import z from "zod";
-import { SearchEngine } from "@/simulator/utils/SearchEngine";
-import { Simulator } from "@/simulator/Simulator";
 import { Global } from "@/simulator/Global";
-import { NodeSelectField } from "./fields/NodeSelectField";
-import { NodeParametersSubsection } from "./NodeParametersSubsection";
 import { FieldPartialInfoSchema } from "./fields/Field";
 import { ParameterizedSelectField } from "./fields/ParameterizedSelectField";
 import { SelectFieldOption } from "./fields/SelectField";
 import { ParametersSubsectionController } from "@/simulator/modules/ParametersSubsectionController";
 import { ParametersSubsection } from "./ParametersSubsection";
 
-export type ParameterizedSectionOptions = {
+export type ParameterizedSectionSelectOptions = {
   name: string;
   label: string;
   /** If null, all values are accepted */
@@ -26,7 +22,7 @@ export class ParameterizedSection extends Section {
   public readonly select: ParameterizedSelectField;
 
   public constructor(
-    select: ParameterizedSectionOptions | ParameterizedSelectField,
+    select: ParameterizedSectionSelectOptions | ParameterizedSelectField,
     public readonly parametersSubsectionController: ParametersSubsectionController,
     public readonly disabled: boolean = false,
     public readonly id = ++Global.lastId,
@@ -44,13 +40,12 @@ export class ParameterizedSection extends Section {
                 ? select.acceptedValues.includes(value)
                 : true;
             }),
-            disabled: disabled,
             info: select.info,
             options: select.options,
           });
 
     const subsection = new Subsection([new Line([generatedSelect])]);
-    super([subsection], undefined, id);
+    super([subsection], undefined, disabled, id);
     this.select = generatedSelect;
   }
 
@@ -71,24 +66,18 @@ export class ParameterizedSection extends Section {
     return this.getSelectFieldName() + "Parameters";
   }
 
-  /** // TODO: continue this file and replace all documentation
-   * Returns the parameters subsection for a given node identifier.
-   * If the node identifier is not found, it will throw an error.
-   * If the node identifier is found, but the node does not have
+  /**
+   * Returns the parameters subsection for a given identifier.
+   * If the identifier is not found, it will throw an error.
+   * If the identifier is found, but the thing does not have
    * a parameters subsection, it will return undefined.
-   * @param identifier The node identifier to get the parameters subsection for.
-   * @returns The parameters subsection for the given node identifier, or undefined if the node does not have a parameters subsection.
-   * @throws Error if the node identifier is not found.
+   * @param identifier The identifier to get the parameters subsection for.
+   * @returns The parameters subsection for the given identifier, or undefined if the thing does not have a parameters subsection.
+   * @throws Error if the identifier is not found.
    */
   public getParametersSubsection(
     identifier: string,
-  ): NodeParametersSubsection | undefined {
-    const nodeClass = SearchEngine.findNodeByIdentifier(
-      identifier as `${string}:${string}`,
-    );
-
-    if (!nodeClass) throw new Error(`Node ${identifier} not found`);
-
+  ): ParametersSubsection | undefined {
     const parametersSubsection =
       this.parametersSubsectionController.getParametersSubsection(identifier);
 
@@ -104,33 +93,32 @@ export class ParameterizedSection extends Section {
   }
 
   /**
-   * @returns The current parameters subsection for the current node, or undefined if the current node does not have a parameters subsection.
+   * @returns The current parameters subsection for the current section,
+   * or undefined if the current section does not have a parameters subsection.
    */
-  public getCurrentParametersSubsection():
-    | NodeParametersSubsection
-    | undefined {
-    return this.subsections[1] as NodeParametersSubsection;
+  public getCurrentParametersSubsection(): ParametersSubsection | undefined {
+    return this.subsections[1] as ParametersSubsection;
   }
 
   /**
-   * Sets the parameters subsection for a given node identifier.
-   * If parametersSubsection is given, it will be set as the parameters subsection for the given node identifier.
-   * If parametersSubsection is not given, it will try to find the parameters subsection for the given node identifier using getParametersSubsection.
-   * If the parameters subsection is found, it will be set as the parameters subsection for the given node identifier.
-   * If the parameters subsection is not found, it will delete the parameters subsection for the given node identifier if it exists.
-   * @param nodeIdentifier The node identifier to set the parameters subsection for.
-   * @param parametersSubsection The parameters subsection to set for the given node identifier.
+   * Sets the parameters subsection for a given identifier.
+   * If parametersSubsection is given, it will be set as the parameters subsection for the given identifier.
+   * If parametersSubsection is not given, it will try to find the parameters subsection for the given identifier using getParametersSubsection.
+   * If the parameters subsection is found, it will be set as the parameters subsection for the given identifier.
+   * If the parameters subsection is not found, it will delete the parameters subsection for the given identifier if it exists.
+   * @param identifier The identifier to set the parameters subsection for.
+   * @param parametersSubsection The parameters subsection to set for the given identifier.
    * @returns True if the parameters subsection was successfully set, false otherwise.
    */
   public setParametersSubsection(
-    nodeIdentifier: string,
-    parametersSubsection?: NodeParametersSubsection,
+    identifier: string,
+    parametersSubsection?: ParametersSubsection,
   ): boolean {
     if (parametersSubsection) {
       this.subsections[1] = parametersSubsection;
       return true;
     } else {
-      const parametersSubsection = this.getParametersSubsection(nodeIdentifier);
+      const parametersSubsection = this.getParametersSubsection(identifier);
 
       if (!parametersSubsection) {
         delete this.subsections[1];

@@ -1,5 +1,5 @@
 import z from "zod";
-import { Field, FieldPartialInfoSchema } from "./Field";
+import { FieldPartialInfoSchema } from "./Field";
 import {
   SelectField,
   SelectFieldOption,

@@ -138,18 +138,18 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
 
     // Models
     modelsSections.forEach((section) => {
-      const nameFieldName = section.getModelNameFieldName() as keyof FormSchema;
-      const selectedModel = getValues(nameFieldName as any) as string;
+      const selectFieldName = section.getSelectFieldName() as keyof FormSchema;
+      const selectedModel = getValues(selectFieldName as any) as string;
 
       if (selectedModel) {
         onModelNameChange(
-          nameFieldName as string,
+          selectFieldName as string,
 
           section.subsections[0].nestedIn
             ? ((section.subsections[0].nestedIn +
                 "." +
-                (nameFieldName as string)) as keyof FormSchema)
-            : nameFieldName,
+                (selectFieldName as string)) as keyof FormSchema)
+            : selectFieldName,
 
           selectedModel,
         );
@@ -158,18 +158,18 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
 
     // Nodes
     nodesSections.forEach((section) => {
-      const nameFieldName = section.getNodeNameFieldName() as keyof FormSchema;
-      const selectedNode = getValues(nameFieldName as any) as string;
+      const selectFieldName = section.getSelectFieldName() as keyof FormSchema;
+      const selectedNode = getValues(selectFieldName as any) as string;
 
       if (selectedNode) {
         onNodeNameChange(
-          nameFieldName as string,
+          selectFieldName as string,
 
           section.subsections[0].nestedIn
             ? ((section.subsections[0].nestedIn +
                 "." +
-                (nameFieldName as string)) as keyof FormSchema)
-            : nameFieldName,
+                (selectFieldName as string)) as keyof FormSchema)
+            : selectFieldName,
 
           selectedNode,
         );
@@ -195,14 +195,13 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     model: string,
   ) => {
     const section = layout.sections.find(
-      (s) => s instanceof ModelSection && s.getModelNameFieldName() === name,
+      (s) => s instanceof ModelSection && s.getSelectFieldName() === name,
     ) as ModelSection | undefined;
 
     if (!section) throw new Error(`Model ${name} not found in form`);
 
     const parametersSubsection = section.getParametersSubsection(model);
-    const parametersPrefix =
-      section.getModelParametersPrefix() as keyof FormSchema;
+    const parametersPrefix = section.getParametersPrefix() as keyof FormSchema;
 
     section.setParametersSubsection(model, parametersSubsection);
 
@@ -250,14 +249,13 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     node: string,
   ) => {
     const section = layout.sections.find(
-      (s) => s instanceof NodeSection && s.getNodeNameFieldName() === name,
+      (s) => s instanceof NodeSection && s.getSelectFieldName() === name,
     ) as NodeSection | undefined;
 
     if (!section) throw new Error(`Node ${name} not found in form`);
 
     const parametersSubsection = section.getParametersSubsection(node);
-    const parametersPrefix =
-      section.getNodeParametersPrefix() as keyof FormSchema;
+    const parametersPrefix = section.getParametersPrefix() as keyof FormSchema;
 
     section.setParametersSubsection(node, parametersSubsection);
 

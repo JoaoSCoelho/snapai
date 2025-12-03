@@ -22,8 +22,19 @@
   "connectivityEnabled": true,
   "interferenceEnabled": true,
   "interferenceIsAdditive": true,
-  "messageTransmissionModel": "default:ConstantTime",
+  "messageTransmissionModel": "TestProject:TestMessageTransmissionModel",
   "messageTransmissionModelParameters": {
-    "time": 5
+    "name": "6534321987463521",
+    "numberPair": [
+      63523556,
+      0
+    ],
+    "checkbox": true,
+    "angle": 0,
+    "color": "#000000",
+    "anglePair": [
+      138.1910677352222,
+      28.036255623043257
+    ]
   }
 }

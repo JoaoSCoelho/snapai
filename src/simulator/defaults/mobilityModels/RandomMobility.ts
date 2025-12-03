@@ -1,6 +1,6 @@
 import { SelectField } from "@/simulator/configurations/layout/fields/SelectField";
 import { Line } from "@/simulator/configurations/layout/Line";
-import { ModelParametersSubsection } from "@/simulator/configurations/layout/ModelParametersSubsection";
+import { ParametersSubsection } from "@/simulator/configurations/layout/ParametersSubsection";
 import { MobilityModel } from "@/simulator/models/MobilityModel";
 import { Node } from "@/simulator/models/Node";
 import { Simulation } from "@/simulator/models/Simulation";
@@ -20,8 +20,8 @@ export class RandomMobility extends MobilityModel {
     super(simulation, parameters);
   }
 
-  public static getParametersSubsection(): ModelParametersSubsection {
-    return ModelParametersSubsection.create({
+  public static getParametersSubsection(): ParametersSubsection {
+    return ParametersSubsection.create({
       lines: [
         new Line([
           SelectField.create({
