@@ -11,16 +11,18 @@ export type EndFormButtonBarProps = {
   /** If provided, the "Next" button will redirect to this URL.
    * If not, the "Next" button will not be rendered */
   nextButtonHref?: string;
+  spacer: boolean;
 };
 
 export function EndFormButtonBar({
   onResetButtonClick,
   onSubmitButtonClick,
   nextButtonHref,
+  spacer,
 }: EndFormButtonBarProps) {
   return (
     <>
-      <div className="button-bar-spacer h-18"></div>
+      {spacer && <div className="button-bar-spacer h-18"></div>}
       <div className="fixed flex gap-4 bottom-0 rounded-t-lg bg-white p-4 shadow-2xl shadow-gray-700 left-1/2 -translate-x-1/2 z-10">
         <Button
           type="button"

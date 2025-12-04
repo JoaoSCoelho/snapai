@@ -90,7 +90,7 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
         })
         .finally(() => setSubmitting(false));
     }
-    // TODO: really add nodes
+    simulation.addBatchOfNodes(data);
   };
 
   const openDialog = () => {

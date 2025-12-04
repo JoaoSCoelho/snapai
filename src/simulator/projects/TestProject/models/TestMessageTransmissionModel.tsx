@@ -23,10 +23,10 @@ export type TestMessageTransmissionModelParameters = {
 
 export class TestMessageTransmissionModel extends MessageTransmissionModel {
   public constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: TestMessageTransmissionModelParameters,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   public timeToReach(packet: Packet): number {

@@ -72,6 +72,7 @@ export class Simulator {
 
       const messageTransmissionModel = new MessageTransmissionModelType(
         project.simulationConfig.getMessageTransmissionModelParameters(),
+        undefined,
       );
 
       simulation = new SynchronousSimulation({
@@ -81,6 +82,8 @@ export class Simulator {
           useConsole: project.simulationConfig.getLoggerOptions().useConsole,
         },
       });
+
+      messageTransmissionModel.setSimulation(simulation);
     }
 
     if (!simulation) throw new Error("Simulation not initialized.");

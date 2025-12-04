@@ -12,11 +12,11 @@ export abstract class DistributionModel extends Model {
   public static readonly type = ModelType.Distribution;
 
   public constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: Record<string, any> &
       DistributionModelBaseParameters,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   /**

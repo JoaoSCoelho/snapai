@@ -1,4 +1,3 @@
-import { OrderedSet } from "js-sdsl";
 import { Inbox } from "../tools/Inbox";
 import { InboxPacketBuffer } from "../tools/InboxPacketBuffer";
 import { NackBox } from "../tools/NackBox";
@@ -18,6 +17,18 @@ import { Timer } from "./Timer";
 import { SynchronousSimulation } from "./SynchronousSimulation";
 
 export type NodeId = number;
+
+export type ConcreteNode = new (
+  id: NodeId,
+  mobilityModel: MobilityModel,
+  connectivityModel: ConnectivityModel,
+  interferenceModel: InterferenceModel,
+  reliabilityModel: ReliabilityModel,
+  UsedPacket: ConcretePacket,
+  position: Position,
+  parameters: Record<string, any>,
+  simulation: Simulation,
+) => Node;
 
 export abstract class Node extends BaseNode {
   private hasNeighborhoodChanges = false;

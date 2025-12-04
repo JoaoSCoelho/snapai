@@ -12,10 +12,10 @@ export type UDGConnectivityParametersSchema = {
 
 export class UDGConnectivity extends ConnectivityModel {
   public constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: UDGConnectivityParametersSchema,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   public static getParametersSubsection(): ParametersSubsection {

@@ -27,7 +27,7 @@ export default function Section({
         "rounded-md",
         "bg-white",
         "shadow-md",
-        "p-2",
+        "px-2 py-4",
         "mb-2",
         "flex",
         "flex-col",

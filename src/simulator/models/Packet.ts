@@ -22,6 +22,7 @@ export abstract class Packet extends ParameterizedModule {
   protected _sendingTime: number | null = null;
   protected _intensity: number | null = null;
   protected _edge: Edge | null = null;
+  protected abstract parameters: Record<string, any>;
 
   public constructor(
     public readonly message: Message,
@@ -46,6 +47,12 @@ export abstract class Packet extends ParameterizedModule {
   public get positiveDelivery(): boolean {
     return this._positiveDelivery;
   }
+
+  /**
+   * **Is mandatory to set the parameters object to guarantee the correct behavior of the packet.**
+   * @param parameters The parameters object to be set
+   */
+  public abstract setParameters(parameters: Record<string, any>): void;
 
   /**
    * Denies delivery of the packet to the destination node.

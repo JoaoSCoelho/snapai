@@ -14,10 +14,10 @@ export type RandomMobilityParameters = {
 
 export class RandomMobility extends MobilityModel {
   public constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: RandomMobilityParameters,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   public static getParametersSubsection(): ParametersSubsection {

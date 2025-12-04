@@ -7,6 +7,7 @@ export class Packet232Bytes extends Packet {
   protected _arrivingTime: number | null = null; // 64 bits
   protected _sendingTime: number | null = null; // 64 bits
   protected _intensity: number | null = null; // 32 bits
+  protected parameters = {};
 
   public constructor(
     public readonly message: Message, // Variable
@@ -59,6 +60,10 @@ export class Packet232Bytes extends Packet {
     if (intensity > 3.4e38)
       throw new Error("Intensity must be less than 3.4e38");
     this._intensity = intensity;
+  }
+
+  public setParameters(): void {
+    // This packet don't have parameters
   }
 
   public getByteSize(): number {

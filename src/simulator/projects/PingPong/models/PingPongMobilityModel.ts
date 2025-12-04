@@ -14,10 +14,10 @@ export type PingPongMobilityModelParameters = {
 
 export class PingPongMobilityModel extends MobilityModel {
   public constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: PingPongMobilityModelParameters,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   /**

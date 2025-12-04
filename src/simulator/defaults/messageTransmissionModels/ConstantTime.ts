@@ -12,10 +12,10 @@ export type ConstantTimeParameters = {
 
 export class ConstantTime extends MessageTransmissionModel {
   constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: ConstantTimeParameters,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   public timeToReach(packet: Packet): number {

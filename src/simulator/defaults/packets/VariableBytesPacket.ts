@@ -2,12 +2,16 @@ import { Message } from "../../models/Message";
 import { NodeId } from "../../models/Node";
 import { Packet, TransmissionType } from "../../models/Packet";
 
+export type VariableBytesPacketParameters = {
+  headersSize: number;
+};
+
 export class VariableBytesPacket extends Packet {
   protected _positiveDelivery: boolean = true;
   protected _arrivingTime: number | null = null;
   protected _sendingTime: number | null = null;
   protected _intensity: number | null = null;
-  private _headersSize: number | null = null;
+  protected parameters: VariableBytesPacketParameters = null!; // should be set by setParameters
 
   public constructor(
     public readonly message: Message,
@@ -38,8 +42,9 @@ export class VariableBytesPacket extends Packet {
     return this._intensity;
   }
 
-  private get headersSize(): number | null {
-    return this._headersSize;
+  private get headersSize(): number {
+    if (!this.parameters) throw new Error("Parameters not set");
+    return this.parameters.headersSize;
   }
 
   public set arrivingTime(time: number) {
@@ -66,14 +71,8 @@ export class VariableBytesPacket extends Packet {
     this._intensity = intensity;
   }
 
-  /**
-   * Sets the size of the headers of the packet in bytes.
-   *
-   * **Set this parameter is mandatory to the corrrectly calculate the size of the packet.**
-   * @param headersSize The size of the headers in bytes.
-   */
-  public setHeadersSize(headersSize: number) {
-    this._headersSize = headersSize;
+  public setParameters(parameters: VariableBytesPacketParameters): void {
+    this.parameters = parameters;
   }
 
   public getByteSize(): number {

@@ -5,8 +5,13 @@ import { MessageTransmissionModel } from "./MessageTransmissionModel";
 import { Global } from "@/simulator/Global";
 import { DirectedGraph } from "graphology";
 import { PacketsInTheAirBuffer } from "../tools/PacketsInTheAirBuffer";
-import { Node, NodeId } from "./Node";
+import { ConcreteNode, Node, NodeId } from "./Node";
 import { Edge } from "./Edge";
+import { AddNodesFormSchema } from "@/next/components/AddNodesForm";
+import { SearchEngine } from "../utils/SearchEngine";
+import { ConcreteModel } from "./Model";
+import { ModelType } from "../utils/modelsUtils";
+import { Position } from "../tools/Position";
 
 export type SimulationOptions = {
   loggerOptions?: { useConsole: boolean };
@@ -34,7 +39,7 @@ export abstract class Simulation {
   public currentTime: number = 0;
   public messageTransmissionModel: MessageTransmissionModel;
   public lastNodeId = 0;
-  public graph = new DirectedGraph<NodeAttributes, EdgeAttributes>();
+  public graph = new DirectedGraph<NodeAttributes, EdgeAttributes>(); // TODO: Turn it a multiDigraph
   public packetsInTheAir: PacketsInTheAirBuffer;
   private nodes = new Map<number, Node>();
   private edges = new Map<[number, number], Edge>();
@@ -124,11 +129,108 @@ export abstract class Simulation {
       throw new Error("Edge already exists");
 
     this.edges.set([edge.source, edge.target], edge);
-    this.graph.mergeEdgeAttributes(edge.source, edge.target, {
+    this.graph.addEdge(edge.source, edge.target, {
       implementation: edge,
     });
 
     this.notifyNeighborhoodChanged([edge.source, edge.target]);
+  }
+
+  public addBatchOfNodes(data: AddNodesFormSchema) {
+    for (let _ = 0; _ < data.numberOfNodes; _++) {
+      const NodeCls = SearchEngine.getNodeByIdentifier(data.node);
+      const MobilityModelCls = SearchEngine.getGenericModel(
+        data.mobilityModel,
+        ModelType.Mobility,
+      );
+      const ConnectivityModelCls = SearchEngine.getGenericModel(
+        data.connectivityModel,
+        ModelType.Connectivity,
+      );
+      const ReliabilityModelCls = SearchEngine.getGenericModel(
+        data.reliabilityModel,
+        ModelType.Reliability,
+      );
+      const InterferenceModelCls = SearchEngine.getGenericModel(
+        data.interferenceModel,
+        ModelType.Interference,
+      );
+      const DistributionModelCls = SearchEngine.getGenericModel(
+        data.distributionModel,
+        ModelType.Distribution,
+      );
+      const UsedPacketCls = SearchEngine.getPacketByIdentifier(data.usedPacket);
+
+      const mobilityModel = new MobilityModelCls(
+        data.mobilityModelParameters,
+        this,
+      );
+      const connectivityModel = new ConnectivityModelCls(
+        data.connectivityModelParameters,
+        this,
+      );
+      const reliabilityModel = new ReliabilityModelCls(
+        data.reliabilityModelParameters,
+        this,
+      );
+      const interferenceModel = new InterferenceModelCls(
+        data.interferenceModelParameters,
+        this,
+      );
+      const distributionModel = new DistributionModelCls(
+        data.distributionModelParameters,
+        this,
+      );
+
+      const node = new NodeCls(
+        ++this.lastNodeId,
+        mobilityModel,
+        connectivityModel,
+        interferenceModel,
+        reliabilityModel,
+        UsedPacketCls,
+        Position.inert(),
+        data.nodeParameters,
+        this,
+      );
+
+      node.reposition(distributionModel.getNextPosition(node)); // Set the initial position of the node based on the distributionModel.
+
+      if (!node.checkRequirements()) {
+        throw new Error(
+          `Node ${NodeCls.name} - ${node.id} does not satisfy its requirements.`,
+        );
+      }
+
+      node.init();
+
+      this.addNode(node);
+    }
+  }
+
+  protected addNode(node: Node) {
+    if (this.hasNode(node.id)) throw new Error("Node already exists");
+
+    this.nodes.set(node.id, node);
+    this.graph.addNode(node.id, {
+      implementation: node,
+    });
+  }
+
+  /**
+   * Checks if a node is stored in this.nodes and this.graph.
+   * Throws an error if the nodes are not consistent.
+   * @param {Node | NodeId} node - The node to check.
+   * @returns {boolean} True if the node is stored, false otherwise.
+   * @throws {Error} If the nodes are not consistent.
+   */
+  public hasNode(node: Node | NodeId): boolean {
+    node = node instanceof Node ? node.id : node;
+
+    if (!this.checkNodeConsistency(node))
+      throw new Error("Nodes not consistent");
+
+    return this.nodes.has(node);
   }
 
   /**
@@ -158,11 +260,25 @@ export abstract class Simulation {
   }
 
   /**
+   * Checks if the nodes stored in this.nodes and the nodes stored in this.graph are consistent.
+   *
+   * @param {NodeId} node - The node to check.
+   * @returns {boolean} True if the nodes are consistent, false otherwise.
+   */
+  private checkNodeConsistency(node: NodeId): boolean {
+    return (
+      (this.nodes.has(node) && this.graph.hasNode(node)) ||
+      (!this.nodes.has(node) && !this.graph.hasNode(node))
+    );
+  }
+
+  /**
    * Notifies all nodes in the provided array that their neighborhood has changed.
    *
-   * @param {Node[] | NodeId[]} nodes - The array of nodes to notify.
    * If the array contains NodeId, it will be converted to Node[].
    * If the array contains a mix of Node and NodeId, an error will be thrown.
+   *
+   * @param {Node[] | NodeId[]} nodes - The array of nodes to notify.
    */
   private notifyNeighborhoodChanged(nodes: Node[] | NodeId[]) {
     if (!nodes.length) return;
@@ -183,6 +299,15 @@ export abstract class Simulation {
     for (const node of nodes) (node as Node).onNeighborhoodChange();
   }
 
+  /**
+   * Retrieves all the edges that are leaving the given node.
+   *
+   * If the input is a NodeId, it will be converted to Node.
+   * If the input is a mix of Node and NodeId, an error will be thrown.
+   *
+   * @param {Node | NodeId} node - The node from which the edges are retrieved.
+   * @returns {Edge[]} The retrieved edges.
+   */
   public getOutgoingEdges(node: Node | NodeId): Edge[] {
     node = node instanceof Node ? node.id : node;
 

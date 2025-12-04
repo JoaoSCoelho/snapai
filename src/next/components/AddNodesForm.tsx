@@ -208,6 +208,7 @@ export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
   return (
     <DefaultForm<AddNodesFormSchema>
       id="add-nodes-form"
+      buttonBarSpacer={false}
       layout={addNodesFormLayout}
       validatorSchema={addNodesFormSchema}
       defaultValues={defaultData ?? ({} as AddNodesFormSchema)}

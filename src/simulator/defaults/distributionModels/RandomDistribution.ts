@@ -16,10 +16,10 @@ export type RandomMobilityParameters = DistributionModelBaseParameters & {
 
 export class RandomDistribution extends DistributionModel {
   public constructor(
-    protected readonly simulation: Simulation,
     public readonly parameters: RandomMobilityParameters,
+    protected readonly simulation: Simulation,
   ) {
-    super(simulation, parameters);
+    super(parameters, simulation);
   }
 
   public static getParametersSubsection(): ParametersSubsection {
