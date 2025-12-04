@@ -1,6 +1,9 @@
 "use client";
 import { Simulation } from "@/simulator/models/Simulation";
 import React, { createContext, useState, useContext } from "react";
+import { useGraphVisualizationContext } from "./GraphVisualizationContext";
+import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
+import { AsynchronousSimulation } from "@/simulator/models/AsynchronousSimulation";
 
 export type SimulationContextProps = {
   simulation: Simulation | null;
@@ -16,7 +19,31 @@ type SimulationProviderProps = {
 };
 
 export const SimulationProvider = ({ children }: SimulationProviderProps) => {
-  const [simulation, setSimulation] = useState<Simulation | null>(null);
+  // Contexts
+  const { setSimulationInfo, simulationInfo } = useGraphVisualizationContext();
+
+  const [simulation, _setSimulation] = useState<Simulation | null>(null);
+
+  const setSimulation = (simulation: Simulation | null) => {
+    _setSimulation(simulation);
+    if (simulation) {
+      setSimulationInfo({
+        ...simulationInfo,
+        nodes: simulation.nodeSize(),
+        edges: simulation.edgeSize(),
+        numberOfMessagesOverAll: simulation.statistics.getSentMessages(),
+        numberOfMessagesInThisRound: simulation.isAsyncMode
+          ? null
+          : (
+              simulation as SynchronousSimulation
+            ).statistics.getLastRoundSentMessages(),
+        remainingEvents: simulation.isAsyncMode
+          ? (simulation as AsynchronousSimulation).eventQueue.size()
+          : null,
+        time: simulation.currentTime,
+      });
+    }
+  };
 
   return (
     <SimulationContext.Provider

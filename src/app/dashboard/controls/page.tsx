@@ -1,8 +1,10 @@
 "use client";
 import AddNodesFormDialog from "@/next/components/AddNodesFormDialog";
 import ControlBar from "@/next/components/ControlBar";
+import { ControlsAndGraph } from "@/next/components/ControlsAndGraph";
 import { useAddNodesContext } from "@/next/contexts/AddNodesContext";
 import { useConfigContext } from "@/next/contexts/ConfigContext";
+import { Divider } from "@mui/material";
 import Link from "next/link";
 
 export default function DashboardControls() {
@@ -34,6 +36,8 @@ export default function DashboardControls() {
     <>
       <div className="flex gap-2 flex-col w-full justify-center min-h-dvh max-h-dvh px-4">
         <ControlBar />
+        <Divider variant="middle" />
+        <ControlsAndGraph />
       </div>
       <AddNodesFormDialog
         onClose={closeAddNodesDialog}

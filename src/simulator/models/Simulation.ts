@@ -29,20 +29,20 @@ export type EdgeAttributes = {
 };
 
 export abstract class Simulation {
-  public id: number = ++Global.lastId;
+  public readonly id: number = ++Global.lastId;
   public isRunnig: boolean = false;
-  public abstract isAsyncMode: boolean;
-  public startTime: Date | null = null;
-  public project: Project;
-  public logger: SimulationLogger;
+  public abstract readonly isAsyncMode: boolean;
+  public readonly startTime: Date | null = null; // TODO: Remember to set the start time
+  public readonly project: Project;
+  public readonly logger: SimulationLogger;
   public abstract statistics: SimulationStatistics;
   public currentTime: number = 0;
-  public messageTransmissionModel: MessageTransmissionModel;
+  public readonly messageTransmissionModel: MessageTransmissionModel;
   public lastNodeId = 0;
-  public graph = new DirectedGraph<NodeAttributes, EdgeAttributes>(); // TODO: Turn it a multiDigraph
-  public packetsInTheAir: PacketsInTheAirBuffer;
-  private nodes = new Map<number, Node>();
-  private edges = new Map<[number, number], Edge>();
+  public readonly graph = new DirectedGraph<NodeAttributes, EdgeAttributes>(); // TODO: Turn it a multiDigraph
+  public readonly packetsInTheAir: PacketsInTheAirBuffer;
+  private readonly nodes = new Map<number, Node>();
+  private readonly edges = new Map<[number, number], Edge>();
 
   public constructor({
     loggerOptions,
@@ -53,6 +53,40 @@ export abstract class Simulation {
     this.logger = new SimulationLogger(loggerOptions?.useConsole, this);
     this.messageTransmissionModel = messageTransmissionModel;
     this.packetsInTheAir = new PacketsInTheAirBuffer(this);
+  }
+
+  /**
+   * Retrieves all nodes in the simulation.
+   * @returns {Node[]} An array of all nodes in the simulation.
+   */
+  public getNodes(): Node[] {
+    this.checkNodeConsistency();
+    return this.nodes.values().toArray();
+  }
+
+  /**
+   * Retrieves the number of nodes in the simulation.
+   * @returns {number} The number of nodes in the simulation.
+   */
+  public nodeSize(): number {
+    return this.nodes.size;
+  }
+
+  /**
+   * Retrieves all edges in the simulation.
+   * @returns {Edge[]} An array of all edges in the simulation.
+   */
+  public getEdges(): Edge[] {
+    this.checkEdgeConsistency();
+    return this.edges.values().toArray();
+  }
+
+  /**
+   * Retrieves the number of edges in the simulation.
+   * @returns {number} The number of edges in the simulation.
+   */
+  public edgeSize(): number {
+    return this.edges.size;
   }
 
   /**
@@ -86,8 +120,7 @@ export abstract class Simulation {
    * @returns {boolean} True if the edge exists, false otherwise.
    */
   public hasEdge(source: number, target: number): boolean {
-    if (!this.checkEdgeConsistency([source, target]))
-      throw new Error("Edges not consistent");
+    this.checkEdgeConsistency([source, target]);
 
     return this.graph.hasEdge(source, target);
   }
@@ -227,8 +260,7 @@ export abstract class Simulation {
   public hasNode(node: Node | NodeId): boolean {
     node = node instanceof Node ? node.id : node;
 
-    if (!this.checkNodeConsistency(node))
-      throw new Error("Nodes not consistent");
+    this.checkNodeConsistency(node);
 
     return this.nodes.has(node);
   }
@@ -236,17 +268,30 @@ export abstract class Simulation {
   /**
    * Checks if the edges stored in this.edges and the edges stored in this.graph are consistent.
    *
+   * If an edge is provided, it is checked if it exists in both this.edges and this.graph.
+   * If no edge is provided, it is checked if the number of edges in this.edges and this.graph is the same.
+   * @throws {Error} If the edges are not consistent.
+   */
+  private checkEdgeConsistency(edge?: Edge | [number, number]): void {
+    if (!this.edgesAreConsistent(edge)) throw new Error("Edges not consistent");
+  }
+
+  /**
+   * Checks if the edges stored in this.edges and the edges stored in this.graph are consistent.
+   *
+   * If an edge is provided, it is checked if it exists in both this.edges and this.graph.
+   * If no edge is provided, it is checked if the number of edges in this.edges and this.graph is the same.
    * @param {Edge | [number, number]} edge - The edge to check. If an array is provided, it is assumed to be an edge in the format [source, target].
    * @returns {boolean} True if the edges are consistent, false otherwise.
    */
-  private checkEdgeConsistency(edge: Edge | [number, number]): boolean {
+  private edgesAreConsistent(edge?: Edge | [number, number]): boolean {
     if (Array.isArray(edge)) {
       if (
         (this.edges.has(edge) && !this.graph.hasEdge(...edge)) ||
         (!this.edges.has(edge) && this.graph.hasEdge(...edge))
       )
         return false;
-    } else {
+    } else if (edge instanceof Edge) {
       if (
         (this.edges.has([edge.source, edge.target]) &&
           !this.graph.hasEdge(edge.source, edge.target)) ||
@@ -254,6 +299,8 @@ export abstract class Simulation {
           this.graph.hasEdge(edge.source, edge.target))
       )
         return false;
+    } else {
+      return this.edges.size === this.graph.edges.length;
     }
 
     return true;
@@ -262,10 +309,38 @@ export abstract class Simulation {
   /**
    * Checks if the nodes stored in this.nodes and the nodes stored in this.graph are consistent.
    *
+   * If a list of nodes is provided, it is checked if all the nodes in the list exist in both this.nodes and this.graph.
+   * If no list of nodes is provided, it is checked if the number of nodes in this.nodes and this.graph is the same.
+   * @throws {Error} If the nodes are not consistent.
+   * @param {NodeId | NodeId[]} node - The node(s) to check. If an array is provided, it is assumed to be a list of node IDs.
+   */
+  private checkNodeConsistency(node?: NodeId) {
+    if (!this.nodesAreConsistent(node ? [node] : undefined))
+      throw new Error("Nodes not consistent");
+  }
+
+  /**
+   * Checks if the nodes stored in this.nodes and the nodes stored in this.graph are consistent.
+   * If a list of nodes is provided, it is checked if all the nodes in the list exist in both this.nodes and this.graph.
+   * If no list of nodes is provided, it is checked if the number of nodes in this.nodes and this.graph is the same.
+   * @param {NodeId[]} nodes - The list of nodes to check. If undefined, the number of nodes in this.nodes and this.graph is checked.
+   * @returns {boolean} True if the nodes are consistent, false otherwise.
+   */
+  private nodesAreConsistent(nodes?: NodeId[]): boolean {
+    if (nodes) {
+      return nodes.every((node) => this.nodeAreConsistent(node));
+    } else {
+      return this.nodes.size === this.graph.nodes.length;
+    }
+  }
+
+  /**
+   * Checks if the node stored in this.nodes and the node stored in this.graph are consistent.
+   *
    * @param {NodeId} node - The node to check.
    * @returns {boolean} True if the nodes are consistent, false otherwise.
    */
-  private checkNodeConsistency(node: NodeId): boolean {
+  private nodeAreConsistent(node: NodeId): boolean {
     return (
       (this.nodes.has(node) && this.graph.hasNode(node)) ||
       (!this.nodes.has(node) && !this.graph.hasNode(node))

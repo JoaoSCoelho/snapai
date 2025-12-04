@@ -13,16 +13,16 @@ export default function DashboardLayout({ children }: DashBoardLayoutProps) {
   return (
     <ErrorModalProvider>
       <ConfigProvider>
-        <SimulationProvider>
-          <AddNodesProvider>
-            <GraphVisualizationProvider>
+        <GraphVisualizationProvider>
+          <SimulationProvider>
+            <AddNodesProvider>
               <div className="flex">
                 <SideMenu />
                 {children}
               </div>
-            </GraphVisualizationProvider>
-          </AddNodesProvider>
-        </SimulationProvider>
+            </AddNodesProvider>
+          </SimulationProvider>{" "}
+        </GraphVisualizationProvider>
       </ConfigProvider>
     </ErrorModalProvider>
   );

@@ -7,6 +7,7 @@ import { Simulation } from "@/simulator/models/Simulation";
 import { UseFormReturn } from "react-hook-form";
 import { NodesFormContext } from "@prisma/client";
 import { useConfigContext } from "./ConfigContext";
+import { useGraphVisualizationContext } from "./GraphVisualizationContext";
 
 export type AddNodesContextProps = {
   defaultData: AddNodesFormSchema | null;
@@ -29,6 +30,9 @@ type AddNodesProviderProps = {
 };
 
 export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
+  // Contexts
+  const { simulationInfo, setSimulationInfo } = useGraphVisualizationContext();
+
   // States
   const [defaultData, setDefaultData] = useState<AddNodesFormSchema | null>(
     null,
@@ -91,6 +95,11 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
         .finally(() => setSubmitting(false));
     }
     simulation.addBatchOfNodes(data);
+    setSimulationInfo({
+      ...simulationInfo,
+      nodes: simulation.nodeSize(),
+      edges: simulation.edgeSize(),
+    });
   };
 
   const openDialog = () => {

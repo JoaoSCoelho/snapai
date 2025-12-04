@@ -12,15 +12,15 @@ export type SynchronousSimulationStatisticsOptions =
   };
 
 export class SynchronousSimulationStatistics extends SimulationStatistics {
-  public lastRoundSentMessages: number = 0;
-  public lastRoundReceivedMessages: number = 0;
-  public lastRoundSentBytes: number = 0;
-  public lastRoundReceivedBytes: number = 0;
-  public lastRoundSentMessageBytes: number = 0;
-  public lastRoundReceivedMessageBytes: number = 0;
-  public roundsWithMessageSending: number = 0;
-  public roundsWithMessageReceiving: number = 0;
-  public rounds: Map<number, RoundStatistics> | null = null;
+  protected lastRoundSentMessages: number = 0;
+  protected lastRoundReceivedMessages: number = 0;
+  protected lastRoundSentBytes: number = 0;
+  protected lastRoundReceivedBytes: number = 0;
+  protected lastRoundSentMessageBytes: number = 0;
+  protected lastRoundReceivedMessageBytes: number = 0;
+  protected roundsWithMessageSending: number = 0;
+  protected roundsWithMessageReceiving: number = 0;
+  protected rounds: Map<number, RoundStatistics> | null = null;
   private registeredSendingRoundTimes: Set<number> = new Set();
   private registeredReceivingRoundTimes: Set<number> = new Set();
   private lastSendingRoundTime: number = 0;
@@ -37,6 +37,42 @@ export class SynchronousSimulationStatistics extends SimulationStatistics {
     this.rounds = options.registerStatisticsForEveryRound ? new Map() : null;
   }
 
+  public getLastRoundSentMessages(): number {
+    return this.lastRoundSentMessages;
+  }
+  public getLastRoundReceivedMessages(): number {
+    return this.lastRoundReceivedMessages;
+  }
+  public getLastRoundSentBytes(): number {
+    return this.lastRoundSentBytes;
+  }
+  public getLastRoundReceivedBytes(): number {
+    return this.lastRoundReceivedBytes;
+  }
+  public getLastRoundSentMessageBytes(): number {
+    return this.lastRoundSentMessageBytes;
+  }
+  public getLastRoundReceivedMessageBytes(): number {
+    return this.lastRoundReceivedMessageBytes;
+  }
+  public getRoundsWithMessageSending(): number {
+    return this.roundsWithMessageSending;
+  }
+  public getRoundsWithMessageReceiving(): number {
+    return this.roundsWithMessageReceiving;
+  }
+  public getRounds(): Map<number, RoundStatistics> | null {
+    return this.rounds && new Map(this.rounds.entries());
+  }
+
+  /**
+   * Registers a sent message for the current round.
+   * If the current round is different from the last round,
+   * the last round is reset and the current round is updated.
+   * If the current round is not already registered, it is added to the list of rounds.
+   * @param packet The packet to register.
+   * @returns This object.
+   */
   public registerSentMessage(packet: Packet): this {
     super.registerSentMessage(packet);
 
@@ -74,6 +110,14 @@ export class SynchronousSimulationStatistics extends SimulationStatistics {
     return this;
   }
 
+  /**
+   * Registers a received message for the current round.
+   * If the current round is different from the last round,
+   * the last round is reset and the current round is updated.
+   * If the current round is not already registered, it is added to the list of rounds.
+   * @param packet The packet to register.
+   * @returns This object.
+   */
   public registerReceivedMessage(packet: Packet): this {
     super.registerReceivedMessage(packet);
 
