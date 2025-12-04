@@ -8,6 +8,10 @@
     0,
     1000
   ],
+  "dimZ": [
+    0,
+    0
+  ],
   "loggerOptions": {
     "useConsole": false
   },

@@ -21,8 +21,11 @@ export default function DashboardProjectConfiguration() {
                 !SearchEngine.getProjectByName(selectedProject)
                   .projectConfig ? (
                   <>
+                    <div className="text-9xl mb-10 -mt-32">✅</div>
                     The project{" "}
-                    <span className="text-blue-600">{selectedProject}</span>{" "}
+                    <span className="text-blue-600">
+                      {selectedProject}
+                    </span>{" "}
                     don't have specific configuration.
                     <br />
                     <br />
@@ -44,6 +47,7 @@ export default function DashboardProjectConfiguration() {
                 )
               ) : (
                 <>
+                  <div className="text-9xl mb-10 -mt-32">⚠️</div>
                   Go back to{" "}
                   <Link href="/dashboard/configuration/simulation">
                     <span className="text-blue-600 underline hover:no-underline">
