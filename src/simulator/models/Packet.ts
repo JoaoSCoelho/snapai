@@ -6,7 +6,7 @@ import { NodeId } from "./Node";
 export enum TransmissionType {
   UNICAST,
   BROADCAST,
-  // MULTICAST,
+  // MULTICAST, TODO: think about implement multicast
 }
 
 export type ConcretePacket = new (
@@ -47,6 +47,11 @@ export abstract class Packet extends ParameterizedModule {
     return this._positiveDelivery;
   }
 
+  /**
+   * Denies delivery of the packet to the destination node.
+   * This method is typically called when the packet is dropped by the network.
+   * After calling this method, the packet will no longer be considered as having been delivered to the destination.
+   */
   public denyDelivery() {
     this._positiveDelivery = false;
   }
@@ -55,5 +60,9 @@ export abstract class Packet extends ParameterizedModule {
     this._edge = edge;
   }
 
+  /**
+   * Returns the size of the packet in bytes.
+   * Calculated by the size of headers plus the size of the payload
+   */
   public abstract getByteSize(): number;
 }

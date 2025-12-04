@@ -10,6 +10,7 @@ import { ConstantTime } from "./messageTransmissionModels/ConstantTime";
 import { RandomMobility } from "./mobilityModels/RandomMobility";
 import { InertNode } from "./nodes/InertNode";
 import { ReliableDelivery } from "./reliabilityModels/ReliableDelivery";
+import { VariableBytesPacket } from "./packets/VariableBytesPacket";
 
 export class DefaultProject extends Project {
   protected constructor() {
@@ -27,7 +28,8 @@ export class DefaultProject extends Project {
     this.addModel("RandomDistribution", RandomDistribution);
     this.addModel("ReliableDelivery", ReliableDelivery);
     this.addModel("UDGConnectivity", UDGConnectivity);
-    this.addPacket("232Bytes", Packet232Bytes);
+    this.addPacket("232BytesPacket", Packet232Bytes);
+    this.addPacket("VariableBytesPacket", VariableBytesPacket);
     this.addNode("InertNode", InertNode);
   }
 

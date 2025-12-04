@@ -197,13 +197,7 @@ export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
 
   // Functions
   const onFormSubmit = async (data: AddNodesFormSchema) => {
-    await addNodes(simulation, data)
-      .then(() => {
-        toast.success("Nodes added");
-      })
-      .catch((e) => {
-        ErrorSystem.emitError(e, "Error adding nodes");
-      });
+    await addNodes(simulation, data);
     onSubmit?.(data);
   };
 
