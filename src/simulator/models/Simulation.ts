@@ -12,6 +12,11 @@ import { SearchEngine } from "../utils/SearchEngine";
 import { ConcreteModel } from "./Model";
 import { ModelType } from "../utils/modelsUtils";
 import { Position } from "../tools/Position";
+import { Graph } from "../modules/Graph";
+import { set } from "zod";
+import { Thread } from "./Thread";
+import { SynchronousThread } from "./SynchronousThread";
+import { SynchronousSimulation } from "./SynchronousSimulation";
 
 export type SimulationOptions = {
   loggerOptions?: { useConsole: boolean };
@@ -20,29 +25,20 @@ export type SimulationOptions = {
   messageTransmissionModel: MessageTransmissionModel;
 };
 
-export type NodeAttributes = {
-  implementation: Node;
-};
-
-export type EdgeAttributes = {
-  implementation: Edge;
-};
-
 export abstract class Simulation {
   public readonly id: number = ++Global.lastId;
   public isRunnig: boolean = false;
   public abstract readonly isAsyncMode: boolean;
-  public readonly startTime: Date | null = null; // TODO: Remember to set the start time
+  public readonly startTime: Date | null = null;
   public readonly project: Project;
   public readonly logger: SimulationLogger;
   public abstract statistics: SimulationStatistics;
   public currentTime: number = 0;
   public readonly messageTransmissionModel: MessageTransmissionModel;
   public lastNodeId = 0;
-  public readonly graph = new DirectedGraph<NodeAttributes, EdgeAttributes>(); // TODO: Turn it a multiDigraph
+  public readonly graph = new Graph();
   public readonly packetsInTheAir: PacketsInTheAirBuffer;
-  private readonly nodes = new Map<number, Node>();
-  private readonly edges = new Map<[number, number], Edge>();
+  private currentThread: Thread | null = null;
 
   public constructor({
     loggerOptions,
@@ -56,12 +52,39 @@ export abstract class Simulation {
   }
 
   /**
+   * Runs the simulation using the given thread.
+   * @param thread the thread to be used for the simulation
+   * @returns a promise that resolves when the simulation is finished
+   */
+  public async run(thread: Thread): Promise<void> {
+    if (this.isRunnig) return;
+
+    this.currentThread = thread;
+
+    await this.project.preRun();
+    await this.currentThread.run();
+  }
+
+  /**
+   * Stops the simulation.
+   * @returns a promise that resolves when the simulation is stopped
+   */
+  public async stop() {
+    await this.currentThread?.stop();
+    this.isRunnig = false;
+    this.currentThread = null;
+  }
+
+  /**
    * Retrieves all nodes in the simulation.
    * @returns {Node[]} An array of all nodes in the simulation.
    */
   public getNodes(): Node[] {
-    this.checkNodeConsistency();
-    return this.nodes.values().toArray();
+    return this.graph.reduceNodes(
+      (acc, _, { implementation }) =>
+        implementation ? [...acc, implementation] : acc,
+      [] as Node[],
+    );
   }
 
   /**
@@ -69,7 +92,7 @@ export abstract class Simulation {
    * @returns {number} The number of nodes in the simulation.
    */
   public nodeSize(): number {
-    return this.nodes.size;
+    return this.graph.nodes().length;
   }
 
   /**
@@ -77,8 +100,11 @@ export abstract class Simulation {
    * @returns {Edge[]} An array of all edges in the simulation.
    */
   public getEdges(): Edge[] {
-    this.checkEdgeConsistency();
-    return this.edges.values().toArray();
+    return this.graph.reduceEdges(
+      (acc, _, { implementation }) =>
+        implementation ? [...acc, implementation] : acc,
+      [] as Edge[],
+    );
   }
 
   /**
@@ -86,7 +112,7 @@ export abstract class Simulation {
    * @returns {number} The number of edges in the simulation.
    */
   public edgeSize(): number {
-    return this.edges.size;
+    return this.graph.edges().length;
   }
 
   /**
@@ -95,7 +121,7 @@ export abstract class Simulation {
    * @returns {Node} The retrieved node or undefined if the node does not exist.
    */
   public getNode(id: number): Node | undefined {
-    return this.nodes.get(id);
+    return this.graph.getNodeAttribute(id, "implementation");
   }
 
   /**
@@ -120,8 +146,6 @@ export abstract class Simulation {
    * @returns {boolean} True if the edge exists, false otherwise.
    */
   public hasEdge(source: number, target: number): boolean {
-    this.checkEdgeConsistency([source, target]);
-
     return this.graph.hasEdge(source, target);
   }
 
@@ -132,7 +156,7 @@ export abstract class Simulation {
    * @returns {Edge} The retrieved edge or undefined if the edge does not exist.
    */
   public getEdge(source: number, target: number): Edge | undefined {
-    return this.edges.get([source, target]);
+    return this.graph.getEdgeAttribute(source, target, "implementation");
   }
 
   /**
@@ -161,14 +185,66 @@ export abstract class Simulation {
     if (this.hasEdge(edge.source, edge.target))
       throw new Error("Edge already exists");
 
-    this.edges.set([edge.source, edge.target], edge);
-    this.graph.addEdge(edge.source, edge.target, {
-      implementation: edge,
-    });
+    this.onlyAddEdge(edge);
 
     this.notifyNeighborhoodChanged([edge.source, edge.target]);
   }
 
+  /**
+   * Adds an edge to the graph without checking if the edge already exists.
+   * @param {Edge | [number, number]} edge - The edge to add. If an array is provided, it is assumed to be an edge in the format [source, target].
+   */
+  public onlyAddEdge(edge: Edge | [number, number]) {
+    if (Array.isArray(edge)) edge = Edge.fromPair(edge);
+    this.graph.addEdge(edge.source, edge.target, {
+      implementation: edge,
+      width: 1,
+      type: "arrow", // TODO: turn it dinamically
+    });
+  }
+
+  /**
+   * Removes an edge from the graph.
+   * The edge is expected to be an instance of the Edge class or an array in the format [source, target].
+   * If the edge is provided as an array, it is assumed to be an edge in the format [source, target].
+   * The edge is then removed from the graph and deleted from the this.edges map.
+   * The edge is also removed from the graph with the implementation as the attribute.
+   *
+   * @example
+   * // Remove an edge using an Edge instance
+   * const edge = new Edge(1, 2);
+   * simulation.removeEdge(edge);
+   *
+   * @example
+   * // Remove an edge using an array
+   * simulation.removeEdge([1, 2]);
+   *
+   * @param {Edge | [number, number]} edge - The edge to remove. If an array is provided, it is assumed to be an edge in the format [source, target].
+   */
+  public removeEdge(edge: Edge | [number, number]) {
+    if (!Array.isArray(edge)) edge = [edge.source, edge.target];
+
+    this.onlyRemoveEdge(edge);
+
+    this.notifyNeighborhoodChanged(edge);
+  }
+
+  public onlyRemoveEdge(edge: Edge | [number, number]) {
+    if (!Array.isArray(edge)) edge = [edge.source, edge.target];
+
+    this.graph.dropEdge(edge[0], edge[1]);
+  }
+
+  /**
+   * Adds a batch of nodes to the simulation.
+   * The nodes are expected to be of the same type and have the same parameters.
+   * The nodes are added to the simulation and their initial positions are set based on the distributionModel.
+   * The nodes are also initialized and added to the graph.
+   * The nodes are stored in the this.nodes map.
+   *
+   * @param {AddNodesFormSchema} data - The data to add the batch of nodes.
+   * @throws {Error} If a node does not satisfy its requirements.
+   */
   public addBatchOfNodes(data: AddNodesFormSchema) {
     for (let _ = 0; _ < data.numberOfNodes; _++) {
       const NodeCls = SearchEngine.getNodeByIdentifier(data.node);
@@ -241,12 +317,24 @@ export abstract class Simulation {
     }
   }
 
+  /**
+   * Adds a node to the simulation.
+   *
+   * If a node with the same id already exists, an error is thrown.
+   *
+   * @param {Node} node - The node to add.
+   * @throws {Error} If a node with the same id already exists.
+   */
   protected addNode(node: Node) {
     if (this.hasNode(node.id)) throw new Error("Node already exists");
 
-    this.nodes.set(node.id, node);
     this.graph.addNode(node.id, {
+      x: node.position.x,
+      y: node.position.y,
+      z: node.position.z,
+      size: 5,
       implementation: node,
+      label: node.id.toString(),
     });
   }
 
@@ -260,91 +348,7 @@ export abstract class Simulation {
   public hasNode(node: Node | NodeId): boolean {
     node = node instanceof Node ? node.id : node;
 
-    this.checkNodeConsistency(node);
-
-    return this.nodes.has(node);
-  }
-
-  /**
-   * Checks if the edges stored in this.edges and the edges stored in this.graph are consistent.
-   *
-   * If an edge is provided, it is checked if it exists in both this.edges and this.graph.
-   * If no edge is provided, it is checked if the number of edges in this.edges and this.graph is the same.
-   * @throws {Error} If the edges are not consistent.
-   */
-  private checkEdgeConsistency(edge?: Edge | [number, number]): void {
-    if (!this.edgesAreConsistent(edge)) throw new Error("Edges not consistent");
-  }
-
-  /**
-   * Checks if the edges stored in this.edges and the edges stored in this.graph are consistent.
-   *
-   * If an edge is provided, it is checked if it exists in both this.edges and this.graph.
-   * If no edge is provided, it is checked if the number of edges in this.edges and this.graph is the same.
-   * @param {Edge | [number, number]} edge - The edge to check. If an array is provided, it is assumed to be an edge in the format [source, target].
-   * @returns {boolean} True if the edges are consistent, false otherwise.
-   */
-  private edgesAreConsistent(edge?: Edge | [number, number]): boolean {
-    if (Array.isArray(edge)) {
-      if (
-        (this.edges.has(edge) && !this.graph.hasEdge(...edge)) ||
-        (!this.edges.has(edge) && this.graph.hasEdge(...edge))
-      )
-        return false;
-    } else if (edge instanceof Edge) {
-      if (
-        (this.edges.has([edge.source, edge.target]) &&
-          !this.graph.hasEdge(edge.source, edge.target)) ||
-        (!this.edges.has([edge.target, edge.source]) &&
-          this.graph.hasEdge(edge.source, edge.target))
-      )
-        return false;
-    } else {
-      return this.edges.size === this.graph.edges.length;
-    }
-
-    return true;
-  }
-
-  /**
-   * Checks if the nodes stored in this.nodes and the nodes stored in this.graph are consistent.
-   *
-   * If a list of nodes is provided, it is checked if all the nodes in the list exist in both this.nodes and this.graph.
-   * If no list of nodes is provided, it is checked if the number of nodes in this.nodes and this.graph is the same.
-   * @throws {Error} If the nodes are not consistent.
-   * @param {NodeId | NodeId[]} node - The node(s) to check. If an array is provided, it is assumed to be a list of node IDs.
-   */
-  private checkNodeConsistency(node?: NodeId) {
-    if (!this.nodesAreConsistent(node ? [node] : undefined))
-      throw new Error("Nodes not consistent");
-  }
-
-  /**
-   * Checks if the nodes stored in this.nodes and the nodes stored in this.graph are consistent.
-   * If a list of nodes is provided, it is checked if all the nodes in the list exist in both this.nodes and this.graph.
-   * If no list of nodes is provided, it is checked if the number of nodes in this.nodes and this.graph is the same.
-   * @param {NodeId[]} nodes - The list of nodes to check. If undefined, the number of nodes in this.nodes and this.graph is checked.
-   * @returns {boolean} True if the nodes are consistent, false otherwise.
-   */
-  private nodesAreConsistent(nodes?: NodeId[]): boolean {
-    if (nodes) {
-      return nodes.every((node) => this.nodeAreConsistent(node));
-    } else {
-      return this.nodes.size === this.graph.nodes.length;
-    }
-  }
-
-  /**
-   * Checks if the node stored in this.nodes and the node stored in this.graph are consistent.
-   *
-   * @param {NodeId} node - The node to check.
-   * @returns {boolean} True if the nodes are consistent, false otherwise.
-   */
-  private nodeAreConsistent(node: NodeId): boolean {
-    return (
-      (this.nodes.has(node) && this.graph.hasNode(node)) ||
-      (!this.nodes.has(node) && !this.graph.hasNode(node))
-    );
+    return this.graph.hasNode(node);
   }
 
   /**
@@ -388,6 +392,7 @@ export abstract class Simulation {
 
     return this.graph
       .outEdges(node)
-      .map((e) => this.graph.getEdgeAttributes(e).implementation);
+      .filter((e) => this.graph.getEdgeAttributes(e).implementation)
+      .map((e) => this.graph.getEdgeAttributes(e).implementation!);
   }
 }

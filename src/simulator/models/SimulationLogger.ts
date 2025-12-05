@@ -12,17 +12,17 @@ export class SimulationLogger {
   }
 
   public log(message: string): void {
-    prisma.simulationLog
-      .create({
-        data: {
-          simulationId: this.simulation.id,
-          project: this.simulation.project.name,
-          content: message,
-        },
-      })
-      .catch((error: any) => {
-        console.warn("Failed to append log to simulation log.", error);
-      });
+    // prisma.simulationLog
+    //   .create({
+    //     data: {
+    //       simulationId: this.simulation.id,
+    //       project: this.simulation.project.name,
+    //       content: message,
+    //     },
+    //   })
+    //   .catch((error: any) => {
+    //     console.warn("Failed to append log to simulation log.", error);
+    //   }); // TODO: implement it as a route in api
     if (this.useConsole) console.log(message);
   }
 }

@@ -1,7 +1,9 @@
 import { Tooltip } from "@mui/material";
 import clsx from "clsx";
 import Image from "next/image";
-import { HTMLAttributes, ReactElement, ReactNode } from "react";
+import { forwardRef, HTMLAttributes, ReactElement, ReactNode } from "react";
+
+export type SimulationInfoChipRef = HTMLParagraphElement;
 
 export type SimulationInfoChipProps = {
   icon?: ReactElement;
@@ -16,14 +18,10 @@ export type SimulationInfoChipProps = {
 };
 
 //TODO: Review this component
-export default function SimulationInfoChip({
-  icon,
-  iconImage,
-  text,
-  fullWidth,
-  title,
-  boxAttr,
-}: SimulationInfoChipProps) {
+export const SimulationInfoChip = forwardRef<
+  SimulationInfoChipRef,
+  SimulationInfoChipProps
+>(({ icon, iconImage, text, fullWidth, title, boxAttr }, ref) => {
   return (
     <Tooltip arrow title={title}>
       <div
@@ -52,8 +50,10 @@ export default function SimulationInfoChip({
               height={35}
             />
           ))}
-        <p className="block font-bold text-gray-700 font-mono">{text}</p>
+        <p ref={ref} className="block font-bold text-gray-700 font-mono">
+          {text}
+        </p>
       </div>
     </Tooltip>
   );
-}
+});

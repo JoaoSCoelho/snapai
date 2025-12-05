@@ -83,6 +83,7 @@ export default function NumberPairField({
                   }}
                   slotProps={{
                     htmlInput: {
+                      step: field.isFloat ? 0.0000000000000000001 : 1,
                       min: field.minLeft,
                       max: field.maxLeft,
                     },
@@ -101,6 +102,7 @@ export default function NumberPairField({
                   }}
                   slotProps={{
                     htmlInput: {
+                      step: field.isFloat ? 0.0000000000000000001 : 1,
                       min: field.minRight,
                       max: field.maxRight,
                     },

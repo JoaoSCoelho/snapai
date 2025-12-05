@@ -31,7 +31,7 @@ type AddNodesProviderProps = {
 
 export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
   // Contexts
-  const { simulationInfo, setSimulationInfo } = useGraphVisualizationContext();
+  const { interfaceUpdater } = useGraphVisualizationContext();
 
   // States
   const [defaultData, setDefaultData] = useState<AddNodesFormSchema | null>(
@@ -42,7 +42,6 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
   // Effects
   useEffect(() => {
@@ -84,22 +83,8 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
   // Functions
   const addNodes = async (simulation: Simulation, data: AddNodesFormSchema) => {
     setDefaultData(data);
-
-    if (data) {
-      setSubmitting(true);
-      axios
-        .post("/api/add-nodes-context", {
-          ...data,
-          addedToSimulation: simulation.id.toString(),
-        })
-        .finally(() => setSubmitting(false));
-    }
     simulation.addBatchOfNodes(data);
-    setSimulationInfo({
-      ...simulationInfo,
-      nodes: simulation.nodeSize(),
-      edges: simulation.edgeSize(),
-    });
+    interfaceUpdater(simulation);
   };
 
   const openDialog = () => {
@@ -117,8 +102,6 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
     const values = form.getValues();
 
     setDefaultData(values);
-
-    if (submitting) return;
 
     // Safe partial data on database
     await axios.post<any, any, Partial<NodesFormContext>>(

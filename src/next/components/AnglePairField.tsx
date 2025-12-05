@@ -93,6 +93,7 @@ export default function AnglePairField({
                   }}
                   slotProps={{
                     htmlInput: {
+                      step: field.isFloat ? 0.0000000000000000001 : 1,
                       min: field.minLeft,
                       max: field.maxLeft,
                     },
@@ -131,6 +132,7 @@ export default function AnglePairField({
                   onChange={(e) => setMax(Number(e.target.value))}
                   slotProps={{
                     htmlInput: {
+                      step: field.isFloat ? 0.0000000000000000001 : 1,
                       min: field.minRight,
                       max: field.maxRight,
                     },

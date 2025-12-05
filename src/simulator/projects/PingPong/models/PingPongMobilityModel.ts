@@ -34,11 +34,18 @@ export class PingPongMobilityModel extends MobilityModel {
     const radius = RandomUtils.randomFloat(minSpeed, maxSpeed);
     const angle = RandomUtils.randomFloat(0, 2 * Math.PI);
 
-    return Position.fromPositionAndDelta(node.position, [
-      Math.cos(angle) * radius,
-      Math.sin(angle) * radius,
-      0,
-    ]);
+    return Position.cropToDimensions(
+      Position.fromPositionAndDelta(node.position, [
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius,
+        0,
+      ]),
+      [
+        this.simulation.project.simulationConfig.dimX,
+        this.simulation.project.simulationConfig.dimY,
+        this.simulation.project.simulationConfig.dimZ,
+      ],
+    );
   }
 
   public static getParametersSubsection(): ParametersSubsection {

@@ -54,7 +54,7 @@ export default function NumberField({
                 value={controllerField.value}
                 slotProps={{
                   htmlInput: {
-                    step: "any",
+                    step: field.isFloat ? 0.0000000000000000001 : 1,
                     min: field.min,
                     max: field.max,
                   },

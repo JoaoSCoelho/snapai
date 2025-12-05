@@ -49,6 +49,25 @@ export class Position {
   }
 
   /**
+   * Returns a new Position object that is the result of cropping the given position to the given dimensions.
+   * The given position is cropped to fit within the given dimensions.
+   * The dimensions are given as an array of three arrays, each containing two numbers representing the minimum and maximum values of the x, y and z coordinates respectively.
+   * @param position The position to crop
+   * @param dimensions The dimensions to crop to
+   * @returns A new Position object that is the result of cropping the given position to the given dimensions
+   */
+  public static cropToDimensions(
+    position: Position,
+    dimensions: [[number, number], [number, number], [number, number]],
+  ) {
+    return new Position(
+      Math.min(Math.max(position.x, dimensions[0][0]), dimensions[0][1]),
+      Math.min(Math.max(position.y, dimensions[1][0]), dimensions[1][1]),
+      Math.min(Math.max(position.z, dimensions[2][0]), dimensions[2][1]),
+    );
+  }
+
+  /**
    * Returns a special inert Position object.
    * This position object has all its coordinates set to 0 and its isInert property set to true.
    * Inert positions are used to represent positions that are not applicable in the context of the simulation.

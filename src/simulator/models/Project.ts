@@ -64,4 +64,31 @@ export abstract class Project {
    * **Should be implemented in child classes.**
    */
   public abstract checkRequirementsOnInitializing(): boolean;
+
+  /**
+   * Executed before the round starts.\
+   * **Should be implemented in child classes.**\
+   * **Only called for the simulation in the synchronous mode.**
+   */
+  public abstract preRound(): Promise<void>;
+
+  /**
+   * Executed after the round ends.\
+   * **Should be implemented in child classes.**\
+   * **Only called for the simulation in the synchronous mode.**
+   */
+  public abstract postRound(): Promise<void>;
+
+  /**
+   * Executed before the simulation starts.\
+   * **Should be implemented in child classes.**
+   */
+  public abstract preRun(): Promise<void>;
+
+  /**
+   * Executed after every round.\
+   * **Should be implemented in child classes.**\
+   * **Only called for the simulation in the synchronous mode.**
+   */
+  public abstract hasTerminated(): boolean;
 }

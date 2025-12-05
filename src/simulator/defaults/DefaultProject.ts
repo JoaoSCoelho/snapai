@@ -40,4 +40,20 @@ export class DefaultProject extends Project {
   public checkRequirementsOnInitializing(): boolean {
     return true;
   }
+
+  public async preRound(): Promise<void> {
+    // Do nothing
+  }
+
+  public async postRound(): Promise<void> {
+    // Do nothing
+  }
+
+  public async preRun(): Promise<void> {
+    // Do nothing
+  }
+
+  public hasTerminated(): boolean {
+    return false;
+  }
 }

@@ -1,4 +1,3 @@
-import { OrderedSet } from "js-sdsl";
 import { Position } from "../tools/Position";
 import { ModelType, ModelTypeToModel } from "../utils/modelsUtils";
 import { ConnectivityModel } from "./ConnectivityModel";
@@ -11,9 +10,10 @@ import { Timer } from "./Timer";
 import { Edge } from "./Edge";
 import { ParameterizedModule } from "../modules/ParameterizedModule";
 import { ParametersSubsection } from "../configurations/layout/ParametersSubsection";
+import { OrderedTimerSet } from "../modules/OrderedTimerSet";
 
 export abstract class BaseNode extends ParameterizedModule {
-  protected readonly timers: OrderedSet<Timer<true>> = new OrderedSet();
+  protected readonly timers: OrderedTimerSet = new OrderedTimerSet(); // TODO: Put the comparison function here
 
   public constructor(
     public readonly id: NodeId,
@@ -41,7 +41,7 @@ export abstract class BaseNode extends ParameterizedModule {
    * the global event queue.
    * @return The set of timers currently active at this node.
    */
-  public getTimers(): OrderedSet<Timer<true>> {
+  public getTimers(): OrderedTimerSet {
     return this.timers;
   }
 

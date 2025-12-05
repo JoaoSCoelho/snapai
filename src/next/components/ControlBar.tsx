@@ -13,20 +13,29 @@ import { Divider } from "@mui/material";
 import ControlInput from "./ControlInput";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
+import z, { set } from "zod";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import { ErrorSystem } from "../utils/ErrorSystem";
 import { toast } from "sonner";
 import { useAddNodesContext } from "../contexts/AddNodesContext";
+import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
+import { SynchronousThread } from "@/simulator/models/SynchronousThread";
 
 export type ControlBarProps = {};
 
 const preRunFormSchema = z.object({
-  rounds: z.number().int().min(1).optional(),
+  rounds: z.number().int().min(1),
   refreshRate: z.number().int().min(0).optional(),
+  frameRate: z.number().int().min(0).optional(),
 });
 
 export type PreRunFormSchema = z.infer<typeof preRunFormSchema>;
+
+export const defaultPreRunFormValues: PreRunFormSchema = {
+  rounds: 1,
+  refreshRate: 0,
+  frameRate: 30,
+};
 
 export default function ControlBar({}: ControlBarProps) {
   const { selectedProject } = useConfigContext();
@@ -36,8 +45,9 @@ export default function ControlBar({}: ControlBarProps) {
     setShouldShowArrows,
     shouldShowIds,
     setShouldShowIds,
+    debouncedInterfaceUpdater,
   } = useGraphVisualizationContext();
-  const { setSimulation } = useSimulationContext();
+  const { setSimulation, simulation } = useSimulationContext();
 
   const [initializeButtonLoading, setInitializeButtonLoading] = useState(false);
   const [initializeButtonDisabled, setInitializeButtonDisabled] =
@@ -54,6 +64,7 @@ export default function ControlBar({}: ControlBarProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<PreRunFormSchema>({
+    defaultValues: defaultPreRunFormValues,
     resolver: zodResolver(preRunFormSchema),
   });
 
@@ -103,6 +114,12 @@ export default function ControlBar({}: ControlBarProps) {
   };
   const onPauseButtonClick = () => {
     // TODO: implement it
+    if (!simulation)
+      return ErrorSystem.emitError(
+        new Error("Simulation not initialized"),
+        "Simulation not initialized",
+      );
+    simulation.stop();
   };
   const onResetCamButtonClick = () => {
     // TODO: implement it
@@ -110,11 +127,34 @@ export default function ControlBar({}: ControlBarProps) {
   const onDownloadGraphButtonClick = () => {
     // TODO: implement it
   };
-  const onPlay = (data: PreRunFormSchema) => {
+  const onPlay = (data: Required<PreRunFormSchema>) => {
     // TODO: implement it
+    if (!simulation)
+      return ErrorSystem.emitError(
+        new Error("Simulation not initialized"),
+        "Simulation not initialized",
+      );
+    if (simulation.isAsyncMode) {
+      // TODO: implement it
+    } else {
+      simulation.run(
+        new SynchronousThread(
+          simulation as SynchronousSimulation,
+          data.rounds,
+          data.refreshRate,
+          data.frameRate,
+          undefined,
+          undefined,
+          undefined,
+          () => {
+            debouncedInterfaceUpdater(simulation);
+          },
+        ),
+      );
+    }
   };
 
-  const handlePreRunFormSubmit = (data: PreRunFormSchema) => {
+  const handlePreRunFormSubmit = (data: Required<PreRunFormSchema>) => {
     if (onPlay) onPlay(data);
   };
 
@@ -122,7 +162,8 @@ export default function ControlBar({}: ControlBarProps) {
     return (data: PreRunFormSchema) => {
       if (oneRound) data.rounds = 1;
       if (!data.refreshRate) data.refreshRate = 0;
-      return handlePreRunFormSubmit(data);
+      if (!data.frameRate) data.frameRate = 0;
+      return handlePreRunFormSubmit(data as Required<PreRunFormSchema>);
     };
   };
 
@@ -178,6 +219,29 @@ export default function ControlBar({}: ControlBarProps) {
             setValueAs: (value) => (value ? Number(value) : undefined),
           })}
           error={errors.refreshRate?.message}
+          type="number"
+          min={0}
+        />
+        <ControlInput
+          title="Frame Rate (Frames per second)"
+          placeholder="Frame rate"
+          helpText=<>
+            <p>
+              The number of frames that the simulator should render for each
+              second. For no limit, set to 0 or leave blank.
+            </p>
+            <p>
+              {" "}
+              <b>
+                Note that more frames per second will result in a slower
+                simulation.
+              </b>
+            </p>
+          </>
+          register={register("frameRate", {
+            setValueAs: (value) => (value ? Number(value) : undefined),
+          })}
+          error={errors.frameRate?.message}
           type="number"
           min={0}
         />

@@ -31,7 +31,7 @@ export type ConcreteNode = new (
 ) => Node;
 
 export abstract class Node extends BaseNode {
-  private hasNeighborhoodChanges = false;
+  public hasNeighborhoodChanges = false;
   private packetBuffer = new InboxPacketBuffer(this.simulation);
   private nackBufferOdd: Packet[] = [];
   private nackBufferEven: Packet[] = [];

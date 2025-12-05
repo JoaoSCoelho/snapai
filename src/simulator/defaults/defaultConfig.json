@@ -13,13 +13,13 @@
     0
   ],
   "loggerOptions": {
-    "useConsole": false
+    "useConsole": true
   },
   "isAsynchronous": false,
   "shouldSaveTrace": false,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": false,
-  "connectivityEnabled": false,
+  "connectivityEnabled": true,
   "interferenceEnabled": true,
   "interferenceIsAdditive": true,
   "messageTransmissionModel": "default:ConstantTime",

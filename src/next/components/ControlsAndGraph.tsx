@@ -1,8 +1,11 @@
+import { GraphViewer, GraphViewerRef } from "./GraphViewer";
 import { SimulationSideInfoBar } from "./SimulationSideInfoBar";
 
-export type ControlsAndGraphProps = {};
+export type ControlsAndGraphProps = {
+  graphViewerRef?: React.RefObject<GraphViewerRef>;
+};
 
-export function ControlsAndGraph({}: ControlsAndGraphProps) {
+export function ControlsAndGraph({ graphViewerRef }: ControlsAndGraphProps) {
   return (
     <div className="grid grid-cols-2 gap-2 controls-and-graph">
       <div
@@ -12,17 +15,15 @@ export function ControlsAndGraph({}: ControlsAndGraphProps) {
         <SimulationSideInfoBar />
       </div>
 
-      {/* <div
+      <div
         className="graph-container"
         style={{ minWidth: "90dvh", width: "90dvh", height: "90dvh" }}
       >
         <GraphViewer
           ref={graphViewerRef}
-          arrowHeadSize={1.5}
-          renderLabels={showIds}
-          showArrows={showArrows}
+          arrowHeadSize={1.5} // Put it as a configuration
         />
-      </div> TODO: implement it */}
+      </div>
     </div>
   );
 }

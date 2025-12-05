@@ -29,7 +29,7 @@ export default function ControlInput({
   error,
 }: ControlInputProps) {
   return (
-    <Tooltip title={title ?? placeholder} placement="left" arrow>
+    <Tooltip title={title ?? placeholder} placement="bottom" arrow>
       <TextField
         hiddenLabel
         variant="outlined"

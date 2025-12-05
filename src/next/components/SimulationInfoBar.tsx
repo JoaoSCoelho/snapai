@@ -1,9 +1,9 @@
-import SimulationInfoChip from "./SimulationInfoChip";
 import AccessTimeFilledRoundedIcon from "@mui/icons-material/AccessTimeFilledRounded";
 import SendAndArchiveRoundedIcon from "@mui/icons-material/SendAndArchiveRounded";
 import ScheduleSendRoundedIcon from "@mui/icons-material/ScheduleSendRounded";
-import { ReactElement } from "react";
+import { forwardRef, ReactElement, useImperativeHandle, useRef } from "react";
 import EventRepeatRoundedIcon from "@mui/icons-material/EventRepeatRounded";
+import { SimulationInfoChip } from "./SimulationInfoChip";
 
 export enum SimulationInfoCardType {
   TotalMessagesSent,
@@ -19,10 +19,22 @@ export type SimulationInfoCard = {
   value: string | number | null;
 };
 
+export type SimulationInfoBarRef = HTMLParagraphElement[];
+
 export type SimulationInfoBarProps = {
   cards: SimulationInfoCard[];
 };
-export function SimulationInfoBar({ cards }: SimulationInfoBarProps) {
+export const SimulationInfoBar = forwardRef<
+  SimulationInfoBarRef,
+  SimulationInfoBarProps
+>(({ cards }, ref) => {
+  const chipRefs = useRef<HTMLParagraphElement[]>([]);
+
+  // Garante que o array tenha o mesmo tamanho de cards
+  chipRefs.current = [];
+
+  useImperativeHandle(ref, () => chipRefs.current);
+
   return (
     <div className="flex w-full gap-2">
       {cards.map((card, index) => {
@@ -77,6 +89,11 @@ export function SimulationInfoBar({ cards }: SimulationInfoBarProps) {
         }
         return (
           <SimulationInfoChip
+            ref={(el) => {
+              if (el) {
+                chipRefs.current[index] = el;
+              }
+            }}
             key={index}
             fullWidth
             title={title}
@@ -88,4 +105,4 @@ export function SimulationInfoBar({ cards }: SimulationInfoBarProps) {
       })}
     </div>
   );
-}
+});

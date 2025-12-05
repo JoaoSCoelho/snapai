@@ -43,7 +43,7 @@ export default function PercentageField({
           slotProps={{
             formHelperText: { error: true },
             htmlInput: {
-              step: field.isFloat ? "any" : "1",
+              step: field.isFloat ? 0.0000000000000000001 : 1,
               min: field.min,
               max: field.max,
             },

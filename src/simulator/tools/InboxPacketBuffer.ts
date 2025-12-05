@@ -1,11 +1,11 @@
-import { OrderedSet } from "js-sdsl";
 import { Packet } from "../models/Packet";
 import { Simulation } from "../models/Simulation";
 import { Inbox } from "./Inbox";
 import { Edge } from "../models/Edge";
+import { OrderedPacketSet } from "../modules/OrderedPacketSet";
 
 export class InboxPacketBuffer {
-  private readonly arrivingPackets: OrderedSet<Packet> = new OrderedSet([]);
+  private readonly arrivingPackets: OrderedPacketSet = new OrderedPacketSet();
   private readonly buffer: Set<Packet> = new Set([]);
   private readonly inbox: Inbox = new Inbox([]);
 
