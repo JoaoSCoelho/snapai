@@ -1,6 +1,5 @@
 "use client";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { downloadAsPNG } from "@sigma/export-image";
 import { Sigma } from "sigma";
 import { createEdgeArrowProgram } from "sigma/rendering";
 import { useSimulationContext } from "../contexts/SimulationContext";
@@ -16,49 +15,55 @@ export type GraphViewerProps = {
 };
 
 export type GraphViewerRef = {
-  resetCam: () => void;
-  getSigma: () => Sigma<NodeAttributes, EdgeAttributes>;
-  toImage: () => void;
+  getSigma: () => Sigma<NodeAttributes, EdgeAttributes> | null;
 };
 
 export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
   ({ arrowHeadSize }, ref) => {
     // Contexts
     const { simulation } = useSimulationContext();
-    const { cameraState, setCameraState, shouldShowIds, shouldShowArrows } =
-      useGraphVisualizationContext();
+    const {
+      cameraState,
+      setCameraState,
+      shouldShowIds,
+      shouldShowArrows,
+      sigmaRef,
+      onUpdateSigma,
+    } = useGraphVisualizationContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const sigmaRef = useRef<Sigma<NodeAttributes, EdgeAttributes> | null>(null);
 
     useEffect(() => {
-      console.log(containerRef.current, sigmaRef.current?.getContainer());
       if (!containerRef.current || !simulation) return;
 
-      const current = sigmaRef.current;
-
-      if (current) {
-        current.kill(); // @ts-ignore
+      if (sigmaRef.current) {
+        sigmaRef.current.kill(); // @ts-ignore
         delete sigmaRef.current;
-        sigmaRef.current = null;
       }
-      console.log("setting new sigmaRef");
-      sigmaRef.current = new Sigma(
-        simulation.graph,
-        current?.getContainer() ?? containerRef.current,
-        {
-          renderEdgeLabels: true, // TODO : review its configurations
-          autoCenter: false,
-          renderLabels: shouldShowIds ?? true,
-          allowInvalidContainer: true,
-          edgeProgramClasses: {
-            arrow: createEdgeArrowProgram({
-              lengthToThicknessRatio: 2.5 * (arrowHeadSize ?? 1),
-              widenessToThicknessRatio: 2 * (arrowHeadSize ?? 1),
-            }),
-          },
-        },
+
+      containerRef.current = document.getElementById(
+        "graph-container",
+      ) as HTMLDivElement;
+
+      console.log(
+        containerRef.current,
+        containerRef.current instanceof Element,
+        document.contains(containerRef.current),
       );
+
+      sigmaRef.current = new Sigma(simulation.graph, containerRef.current, {
+        renderEdgeLabels: true, // TODO : review its configurations
+        autoCenter: false,
+        renderLabels: shouldShowIds ?? true,
+        // allowInvalidContainer: true,
+        edgeProgramClasses: {
+          arrow: createEdgeArrowProgram({
+            lengthToThicknessRatio: 2.5 * (arrowHeadSize ?? 1),
+            widenessToThicknessRatio: 2 * (arrowHeadSize ?? 1),
+          }),
+        },
+      });
+      onUpdateSigma();
 
       // enableDrag(); // TODO: enable it
       // enableNodeInfo(); // TODO: enable it
@@ -150,9 +155,7 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
     }, [simulation]);
 
     useImperativeHandle(ref, () => ({
-      resetCam,
-      toImage,
-      getSigma: () => sigmaRef.current!,
+      getSigma: () => sigmaRef.current,
     }));
 
     const initCamera = () => {
@@ -162,27 +165,6 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       sigmaRef.current
         .getCamera()
         .on("updated", (state) => setCameraState(state));
-    };
-
-    const resetCam = () => {
-      if (sigmaRef.current) {
-        sigmaRef.current.getCamera().animatedReset({
-          duration: 300,
-        });
-      }
-    };
-
-    const toImage = () => {
-      if (!sigmaRef.current) return;
-
-      downloadAsPNG(sigmaRef.current as any, {
-        fileName: "graph", // nome do arquivo sem extensão
-        backgroundColor: "#fff", // cor de fundo (ou transparente)
-        width: null, // usa largura do container
-        height: null, // usa altura do container
-        layers: null, // exporta todos os layers
-        cameraState: null, // estado atual da câmera
-      });
     };
 
     const createBoundary = (g: Graph) => {
@@ -293,7 +275,12 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
     return (
       <>
         <div
-          ref={containerRef}
+          id="graph-container"
+          ref={(el) => {
+            if (el) {
+              containerRef.current = el;
+            }
+          }}
           style={{ width: "100%", height: "100%", border: "1px solid #ccc" }}
         />
       </>

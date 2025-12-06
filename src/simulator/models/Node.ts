@@ -146,12 +146,10 @@ export abstract class Node extends BaseNode {
   public abstract init(): void;
 
   /**
-   * Indicates that the neighborhood of this node has changed.
-   * This can happen when a node moves or when a node is added/removed from the simulation.
+   * This method is invoked when the neighborhood of this node has changed.
+   * @see Node#step() for the calling sequence of the node methods.
    */
-  public onNeighborhoodChange() {
-    this.hasNeighborhoodChanges = true;
-  }
+  public abstract onNeighborhoodChange(): void;
 
   /**
    * The node calls this method at the end of its step.
@@ -498,7 +496,7 @@ export abstract class Node extends BaseNode {
     if (this.simulation.project.simulationConfig.interferenceEnabled) {
       let longestPacket: Packet | null = null; // the packet with the longest transmission time
 
-      for (const edge of this.getOutgoingEdges()) {
+      for (const [, edge] of this.getOutgoingEdges()) {
         const target = this.simulation.getCertainNode(edge.target);
 
         const packet = this.sendMessage(
@@ -538,7 +536,7 @@ export abstract class Node extends BaseNode {
       }
     } else {
       // No Interference
-      for (const edge of this.getOutgoingEdges()) {
+      for (const [, edge] of this.getOutgoingEdges()) {
         const target = this.simulation.getCertainNode(edge.target);
 
         this.sendMessage(

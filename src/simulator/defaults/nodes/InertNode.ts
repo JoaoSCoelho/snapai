@@ -59,6 +59,10 @@ export class InertNode extends Node {
     // Do nothing
   }
 
+  public onNeighborhoodChange() {
+    // Do nothing
+  }
+
   public onModelChange<MT extends ModelType>(
     modelType: MT,
     oldModel: ModelTypeToModel[MT],

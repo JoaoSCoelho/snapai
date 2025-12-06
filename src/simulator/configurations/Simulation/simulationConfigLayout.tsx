@@ -8,6 +8,7 @@ import { Section } from "../layout/Section";
 import { Layout } from "../layout/Layout";
 import { ModelSection } from "../layout/ModelSection";
 import { ModelType } from "@/simulator/utils/modelsUtils";
+import { NumberField } from "../layout/fields/NumberField";
 
 export const simulationConfigLayout = new Layout([
   Section.create({
@@ -96,7 +97,7 @@ export const simulationConfigLayout = new Layout([
           CheckboxField.create({
             name: "connectivityEnabled",
             label: "Connectivity enabled",
-            occupedColumns: 4,
+            occupedColumns: 3,
             schema: z.boolean(),
             info: {
               title:
@@ -106,7 +107,7 @@ export const simulationConfigLayout = new Layout([
           CheckboxField.create({
             name: "interferenceEnabled",
             label: "Interference enabled",
-            occupedColumns: 4,
+            occupedColumns: 3,
             schema: z.boolean(),
             info: {
               title:
@@ -116,7 +117,7 @@ export const simulationConfigLayout = new Layout([
           CheckboxField.create({
             name: "interferenceIsAdditive",
             label: "Interference is additive",
-            occupedColumns: 4,
+            occupedColumns: 3,
             schema: z.boolean(),
             info: {
               title:
@@ -138,8 +139,31 @@ export const simulationConfigLayout = new Layout([
               ),
             },
           }),
+          CheckboxField.create({
+            name: "shouldSaveTrace",
+            label: "Save trace",
+            occupedColumns: 3,
+            schema: z.boolean(),
+            info: {
+              title:
+                "If this option is enabled, the simulation will save the positions of all nodes in all times (only in synchronous mode).",
+            },
+          }),
         ]),
         new Line([
+          NumberField.create({
+            name: "maxConnectionRadius",
+            label: "Max connection radius",
+            isFloat: true,
+            min: 0,
+            required: false,
+            schema: z.number().min(0).optional(),
+            occupedColumns: 4,
+            info: {
+              title:
+                "The maximum distance between two nodes that the simulator will test for connectivity.",
+            },
+          }),
           CheckboxField.create({
             name: "nackMessagesEnabled",
             label: "NACK messages enabled",
@@ -150,16 +174,7 @@ export const simulationConfigLayout = new Layout([
                 "If this option is enabled, the simulation will generate NACK messages.",
             },
           }),
-          CheckboxField.create({
-            name: "shouldSaveTrace",
-            label: "Save trace",
-            occupedColumns: 4,
-            schema: z.boolean(),
-            info: {
-              title:
-                "If this option is enabled, the simulation will save the positions of all nodes in all times (only in synchronous mode).",
-            },
-          }),
+
           CheckboxField.create({
             name: "registerStatisticsForEveryRound",
             label: "Register statistics for every round",

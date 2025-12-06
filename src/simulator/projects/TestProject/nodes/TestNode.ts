@@ -111,6 +111,10 @@ export class TestNode extends Node {
     // Do nothing
   }
 
+  public onNeighborhoodChange(): void {
+    // Do nothing
+  }
+
   public onModelChange<MT extends ModelType>(
     modelType: MT,
     oldModel: ModelTypeToModel[MT],

@@ -3,11 +3,14 @@ import { Packet } from "./Packet";
 
 export class Edge {
   private packetsQty = 0;
+  public readonly id: string;
 
   constructor(
     public readonly source: NodeId,
     public readonly target: NodeId,
-  ) {}
+  ) {
+    this.id = `${source}:${target}`;
+  }
 
   /**
    * Creates an Edge from a pair of node IDs.

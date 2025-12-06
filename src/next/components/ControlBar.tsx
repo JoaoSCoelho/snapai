@@ -6,7 +6,6 @@ import { useSimulationContext } from "../contexts/SimulationContext";
 import { Simulation } from "@/simulator/models/Simulation";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import StopCircleRoundedIcon from "@mui/icons-material/StopCircleRounded";
-import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
 import FitScreenIcon from "@mui/icons-material/FitScreen";
 import PlayCircleRoundedIcon from "@mui/icons-material/PlayCircleRounded";
 import { Divider } from "@mui/material";
@@ -20,6 +19,11 @@ import { toast } from "sonner";
 import { useAddNodesContext } from "../contexts/AddNodesContext";
 import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
 import { SynchronousThread } from "@/simulator/models/SynchronousThread";
+import { downloadAsPNG, toBlob } from "@sigma/export-image";
+import { exportSigmaToSVG } from "../utils/graphAsSvg";
+import ScreenshotMonitorIcon from "@mui/icons-material/ScreenshotMonitor";
+import PolylineIcon from "@mui/icons-material/Polyline";
+import { useLoading } from "../contexts/LoadingContext";
 
 export type ControlBarProps = {};
 
@@ -38,6 +42,7 @@ export const defaultPreRunFormValues: PreRunFormSchema = {
 };
 
 export default function ControlBar({}: ControlBarProps) {
+  const { showLoading, hideLoading } = useLoading();
   const { selectedProject } = useConfigContext();
   const { openDialog: openAddNodesDialog } = useAddNodesContext();
   const {
@@ -46,6 +51,7 @@ export default function ControlBar({}: ControlBarProps) {
     shouldShowIds,
     setShouldShowIds,
     debouncedInterfaceUpdater,
+    sigmaRef,
   } = useGraphVisualizationContext();
   const { setSimulation, simulation } = useSimulationContext();
 
@@ -109,6 +115,37 @@ export default function ControlBar({}: ControlBarProps) {
     }, 1000);
   };
 
+  const resetCam = () => {
+    if (sigmaRef.current) {
+      sigmaRef.current.getCamera().animatedReset({
+        duration: 300,
+      });
+    }
+  };
+
+  const toPng = () => {
+    if (!sigmaRef.current) return;
+
+    downloadAsPNG(sigmaRef.current as any, {
+      fileName: "graph", // nome do arquivo sem extensão
+      backgroundColor: "#fff", // cor de fundo (ou transparente)
+      width: null, // usa largura do container
+      height: null, // usa altura do container
+      layers: null, // exporta todos os layers
+      cameraState: null, // estado atual da câmera
+    });
+  };
+
+  const toSvg = async () => {
+    if (!sigmaRef.current) return;
+
+    await exportSigmaToSVG(sigmaRef.current.getGraph(), (perc) => {
+      showLoading(`${perc * 100}%`);
+    });
+
+    hideLoading();
+  };
+
   const onAddNodesButtonClick = () => {
     openAddNodesDialog();
   };
@@ -124,15 +161,23 @@ export default function ControlBar({}: ControlBarProps) {
   const onResetCamButtonClick = () => {
     // TODO: implement it
   };
-  const onDownloadGraphButtonClick = () => {
-    // TODO: implement it
+  const onScreenshotGraphButtonClick = () => {
+    toPng();
+  };
+  const onGraphToSvgButtonClick = () => {
+    toSvg();
   };
   const onPlay = (data: Required<PreRunFormSchema>) => {
-    // TODO: implement it
     if (!simulation)
       return ErrorSystem.emitError(
         new Error("Simulation not initialized"),
         "Simulation not initialized",
+      );
+
+    if (!sigmaRef.current)
+      return ErrorSystem.emitError(
+        new Error("Sigma not initialized"),
+        "Sigma not initialized",
       );
     if (simulation.isAsyncMode) {
       // TODO: implement it
@@ -143,6 +188,7 @@ export default function ControlBar({}: ControlBarProps) {
           data.rounds,
           data.refreshRate,
           data.frameRate,
+          sigmaRef.current as any,
           undefined,
           undefined,
           undefined,
@@ -288,10 +334,15 @@ export default function ControlBar({}: ControlBarProps) {
       />
       <ControlButton
         icon={
-          <FileDownloadRoundedIcon className="text-gray-400" fontSize="small" />
+          <ScreenshotMonitorIcon className="text-gray-400" fontSize="small" />
         }
-        helpText="Download the network graph as an image."
-        onClick={onDownloadGraphButtonClick}
+        helpText="Download the current visualization as a PNG image."
+        onClick={onScreenshotGraphButtonClick}
+      />
+      <ControlButton
+        icon={<PolylineIcon className="text-gray-400" fontSize="small" />}
+        helpText="Download the current graph drawned as a SVG file."
+        onClick={onGraphToSvgButtonClick}
       />
     </div>
   );

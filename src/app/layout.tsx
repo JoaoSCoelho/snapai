@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { LoadingProvider } from "@/next/contexts/LoadingContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +30,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body
         className={`${geistSans.className} ${geistMono.className} antialiased`}
       >
-        <NuqsAdapter>{children}</NuqsAdapter>
-        <Toaster richColors position="top-right" visibleToasts={5} />
+        <LoadingProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+          <Toaster richColors position="top-right" visibleToasts={5} />
+        </LoadingProvider>
       </body>
     </html>
   );

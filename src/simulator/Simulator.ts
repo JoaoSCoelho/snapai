@@ -3,6 +3,8 @@ import { ConcreteMessageTransmissionModel } from "./models/MessageTransmissionMo
 import { Project } from "./models/Project";
 import { Simulation } from "./models/Simulation";
 import { SynchronousSimulation } from "./models/SynchronousSimulation";
+import { PlaneNodeCollection } from "./modules/PlaneNodeCollection";
+import { SpatialNodeCollection } from "./modules/SpatialNodeCollection";
 import { PingPongProject } from "./projects/PingPong/PingPongProject";
 import { TestProject } from "./projects/TestProject/TestProject";
 import { ModelType } from "./utils/modelsUtils";
@@ -52,6 +54,9 @@ export class Simulator {
       project = SearchEngine.getProjectByName(project);
 
     const isAsyncMode = project.simulationConfig.getIsAsynchronous();
+    const is3D =
+      project.simulationConfig.dimZ[0] !== 0 ||
+      project.simulationConfig.dimZ[1] !== 0;
 
     let simulation: Simulation | null = null;
 
@@ -81,6 +86,13 @@ export class Simulator {
         loggerOptions: {
           useConsole: project.simulationConfig.getLoggerOptions().useConsole,
         },
+        nodeCollection: is3D
+          ? new SpatialNodeCollection(
+              project.simulationConfig.maxConnectionRadius ?? Infinity,
+            )
+          : new PlaneNodeCollection(
+              project.simulationConfig.maxConnectionRadius ?? Infinity,
+            ),
       });
 
       messageTransmissionModel.setSimulation(simulation);

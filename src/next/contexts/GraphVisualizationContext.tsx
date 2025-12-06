@@ -2,6 +2,7 @@
 import { AsynchronousSimulation } from "@/simulator/models/AsynchronousSimulation";
 import { Simulation } from "@/simulator/models/Simulation";
 import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
+import { EdgeAttributes, NodeAttributes } from "@/simulator/modules/Graph";
 import React, {
   createContext,
   useState,
@@ -10,6 +11,7 @@ import React, {
   useRef,
   useEffect,
 } from "react";
+import { Sigma } from "sigma";
 import { CameraState } from "sigma/types";
 
 export type GraphVisualizationContentProps = {
@@ -22,6 +24,9 @@ export type GraphVisualizationContentProps = {
   infoBarRef: RefObject<HTMLParagraphElement[][]>;
   interfaceUpdater: (simulation: Simulation) => void;
   debouncedInterfaceUpdater: (simulation: Simulation) => void;
+  // sigmaRef: React.RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
+  sigmaRef: RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
+  onUpdateSigma: () => void;
 };
 
 const GraphVisualizationContext = createContext<
@@ -37,9 +42,9 @@ export const GraphVisualizationProvider = ({
 }: GraphVisualizationProviderProps) => {
   const [shouldShowArrows, setShouldShowArrows] = useState<boolean>(false);
   const [shouldShowIds, setShouldShowIds] = useState<boolean>(false);
-  // const [isRunning, setIsRunning] = useState<boolean>(false);
   const [cameraState, setCameraState] = useState<CameraState | null>(null);
-  // const [isDirty, setIsDirty] = useState<boolean>(false);
+  const [sigmaChanged, setSigmaChanged] = useState<boolean>(false);
+
   const nameArray = [
     "time",
     "totalMessagesSent",
@@ -49,6 +54,7 @@ export const GraphVisualizationProvider = ({
     "remainingEvents",
   ];
   const infoBarRef = useRef<HTMLParagraphElement[][]>([]);
+  const sigmaRef = useRef<Sigma<NodeAttributes, EdgeAttributes> | null>(null);
   const lastInterfaceUpdate = useRef(0);
   const interfaceUpdaterTimeout = useRef<NodeJS.Timeout | null>(null);
   infoBarRef.current = [];
@@ -104,6 +110,10 @@ export const GraphVisualizationProvider = ({
     }, 18);
   };
 
+  const onUpdateSigma = () => {
+    setSigmaChanged(!sigmaChanged);
+  };
+
   return (
     <GraphVisualizationContext.Provider
       value={{
@@ -116,6 +126,8 @@ export const GraphVisualizationProvider = ({
         infoBarRef,
         interfaceUpdater,
         debouncedInterfaceUpdater,
+        sigmaRef,
+        onUpdateSigma,
       }}
     >
       {children}

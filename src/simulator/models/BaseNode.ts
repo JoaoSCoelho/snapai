@@ -14,6 +14,7 @@ import { OrderedTimerSet } from "../modules/OrderedTimerSet";
 
 export abstract class BaseNode extends ParameterizedModule {
   protected readonly timers: OrderedTimerSet = new OrderedTimerSet(); // TODO: Put the comparison function here
+  protected readonly outEdges: Map<NodeId, Edge> = new Map();
 
   public constructor(
     public readonly id: NodeId,
@@ -28,10 +29,36 @@ export abstract class BaseNode extends ParameterizedModule {
   }
 
   /**
+   * Adds an edge to the set of outgoing edges.
+   * The edge to be added must have this node as its source.
+   * If the edge is not found or does not have this node as its source,
+   * an Error is thrown.
+   * @param edge - The edge to add.
+   * @throws {Error} If the edge is not found or does not have this node as its source.
+   */
+  public addOutgoingEdge(edge: Edge) {
+    if (edge.source !== this.id) throw new Error("Invalid edge");
+    this.outEdges.set(edge.target, edge);
+  }
+
+  /**
+   * Removes an edge from the set of outgoing edges.
+   * The edge to be removed must have this node as its source.
+   * If the edge is not found or does not have this node as its source,
+   * an Error is thrown.
+   * @param edge - The edge to remove.
+   * @throws {Error} If the edge is not found or does not have this node as its source.
+   */
+  public removeOutgoingEdge(edge: Edge) {
+    if (edge.source !== this.id) throw new Error("Invalid edge");
+    this.outEdges.delete(edge.target);
+  }
+
+  /**
    * @returns All the edges that are leaving this node.
    */
-  public getOutgoingEdges(): Edge[] {
-    return this.simulation.getOutgoingEdges(this.id);
+  public getOutgoingEdges(): Map<NodeId, Edge> {
+    return this.outEdges;
   }
 
   /**

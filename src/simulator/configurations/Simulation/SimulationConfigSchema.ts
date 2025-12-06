@@ -41,6 +41,7 @@ export const simulationConfigSchema = z.object({
   connectivityEnabled: z.boolean(),
   interferenceEnabled: z.boolean(),
   interferenceIsAdditive: z.boolean(),
+  maxConnectionRadius: z.number().min(0).optional(),
   messageTransmissionModel: z.string().refine(
     (value) => {
       return Simulator.inited

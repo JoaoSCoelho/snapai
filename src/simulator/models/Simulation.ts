@@ -17,12 +17,15 @@ import { set } from "zod";
 import { Thread } from "./Thread";
 import { SynchronousThread } from "./SynchronousThread";
 import { SynchronousSimulation } from "./SynchronousSimulation";
+import { NodeCollection } from "../modules/NodeCollection";
+import { EdgeMap } from "../modules/EdgeMap";
 
 export type SimulationOptions = {
   loggerOptions?: { useConsole: boolean };
   project: Project;
-
   messageTransmissionModel: MessageTransmissionModel;
+  nodeCollection: NodeCollection;
+  
 };
 
 export abstract class Simulation {
@@ -39,16 +42,21 @@ export abstract class Simulation {
   public readonly graph = new Graph();
   public readonly packetsInTheAir: PacketsInTheAirBuffer;
   private currentThread: Thread | null = null;
+  public readonly nodesCollection: NodeCollection;
+  public readonly nodes: Map<NodeId, Node> = new Map();
+  public readonly edges: EdgeMap = new EdgeMap();
 
   public constructor({
     loggerOptions,
     project,
     messageTransmissionModel,
+    nodeCollection,
   }: SimulationOptions) {
     this.project = project;
     this.logger = new SimulationLogger(loggerOptions?.useConsole, this);
     this.messageTransmissionModel = messageTransmissionModel;
     this.packetsInTheAir = new PacketsInTheAirBuffer(this);
+    this.nodesCollection = nodeCollection;
   }
 
   /**
@@ -75,16 +83,25 @@ export abstract class Simulation {
     this.currentThread = null;
   }
 
+  /** Reevaluates the connections between nodes */
+  public abstract reevaluateConnections(): Promise<void>;
+
   /**
    * Retrieves all nodes in the simulation.
+   * @complexity O(n)
    * @returns {Node[]} An array of all nodes in the simulation.
    */
-  public getNodes(): Node[] {
-    return this.graph.reduceNodes(
-      (acc, _, { implementation }) =>
-        implementation ? [...acc, implementation] : acc,
-      [] as Node[],
-    );
+  public getNodesArray(): Node[] {
+    return this.nodes.values().toArray();
+  }
+
+  /**
+   * Retrieves the tree of nodes in the simulation.
+   * The tree is used to efficiently query nodes in range.
+   * @returns {NodeCollection} The tree of nodes in the simulation.
+   */
+  public getNodesTree(): NodeCollection {
+    return this.nodesCollection;
   }
 
   /**
@@ -92,19 +109,16 @@ export abstract class Simulation {
    * @returns {number} The number of nodes in the simulation.
    */
   public nodeSize(): number {
-    return this.graph.nodes().length;
+    return this.nodes.size;
   }
 
   /**
    * Retrieves all edges in the simulation.
+   * @complexity O(n)
    * @returns {Edge[]} An array of all edges in the simulation.
    */
-  public getEdges(): Edge[] {
-    return this.graph.reduceEdges(
-      (acc, _, { implementation }) =>
-        implementation ? [...acc, implementation] : acc,
-      [] as Edge[],
-    );
+  public getEdgesArray(): Edge[] {
+    return this.edges.values().toArray();
   }
 
   /**
@@ -112,7 +126,7 @@ export abstract class Simulation {
    * @returns {number} The number of edges in the simulation.
    */
   public edgeSize(): number {
-    return this.graph.edges().length;
+    return this.edges.size;
   }
 
   /**
@@ -121,7 +135,7 @@ export abstract class Simulation {
    * @returns {Node} The retrieved node or undefined if the node does not exist.
    */
   public getNode(id: number): Node | undefined {
-    return this.graph.getNodeAttribute(id, "implementation");
+    return this.nodes.get(id);
   }
 
   /**
@@ -146,7 +160,7 @@ export abstract class Simulation {
    * @returns {boolean} True if the edge exists, false otherwise.
    */
   public hasEdge(source: number, target: number): boolean {
-    return this.graph.hasEdge(source, target);
+    return this.edges.has(`${source}:${target}`);
   }
 
   /**
@@ -156,7 +170,7 @@ export abstract class Simulation {
    * @returns {Edge} The retrieved edge or undefined if the edge does not exist.
    */
   public getEdge(source: number, target: number): Edge | undefined {
-    return this.graph.getEdgeAttribute(source, target, "implementation");
+    return this.edges.get(`${source}:${target}`);
   }
 
   /**
@@ -187,7 +201,10 @@ export abstract class Simulation {
 
     this.onlyAddEdge(edge);
 
-    this.notifyNeighborhoodChanged([edge.source, edge.target]);
+    this.notifyNeighborhoodChanged([
+      this.getCertainNode(edge.source),
+      this.getCertainNode(edge.target),
+    ]);
   }
 
   /**
@@ -196,11 +213,19 @@ export abstract class Simulation {
    */
   public onlyAddEdge(edge: Edge | [number, number]) {
     if (Array.isArray(edge)) edge = Edge.fromPair(edge);
-    this.graph.addEdge(edge.source, edge.target, {
-      implementation: edge,
-      width: 1,
-      type: "arrow", // TODO: turn it dinamically
-    });
+    const sourceNode = this.getCertainNode(edge.source);
+    this.graph.addEdgeWithKey(
+      `${edge.source}:${edge.target}`,
+      edge.source,
+      edge.target,
+      {
+        implementation: edge,
+        width: 1,
+        type: "arrow", // TODO: turn it dinamically
+      },
+    );
+    this.edges.set(`${edge.source}:${edge.target}`, edge);
+    sourceNode.addOutgoingEdge(edge);
   }
 
   /**
@@ -226,13 +251,24 @@ export abstract class Simulation {
 
     this.onlyRemoveEdge(edge);
 
-    this.notifyNeighborhoodChanged(edge);
+    this.notifyNeighborhoodChanged(edge.map((n) => this.getCertainNode(n)));
   }
 
+  /**
+   * Removes an edge from the graph without notifying the listeners.
+   * The edge is expected to be an instance of the Edge class or an array in the format [source, target].
+   * If the edge is provided as an array, it is assumed to be an edge in the format [source, target].
+   * The edge is then removed from the graph and deleted from the this.edges map.
+   * The edge is also removed from the graph with the implementation as the attribute.
+   * @param {Edge | [number, number]} edge - The edge to remove. If an array is provided, it is assumed to be an edge in the format [source, target].
+   */
   public onlyRemoveEdge(edge: Edge | [number, number]) {
     if (!Array.isArray(edge)) edge = [edge.source, edge.target];
+    const sourceNode = this.getCertainNode(edge[0]);
 
-    this.graph.dropEdge(edge[0], edge[1]);
+    this.graph.dropEdge(`${edge[0]}:${edge[1]}`);
+    this.edges.delete(`${edge[0]}:${edge[1]}`);
+    sourceNode.removeOutgoingEdge(Edge.fromPair(edge));
   }
 
   /**
@@ -336,6 +372,8 @@ export abstract class Simulation {
       implementation: node,
       label: node.id.toString(),
     });
+    this.nodes.set(node.id, node);
+    this.nodesCollection.insert(node);
   }
 
   /**
@@ -348,51 +386,27 @@ export abstract class Simulation {
   public hasNode(node: Node | NodeId): boolean {
     node = node instanceof Node ? node.id : node;
 
-    return this.graph.hasNode(node);
+    return this.nodes.has(node);
   }
 
   /**
    * Notifies all nodes in the provided array that their neighborhood has changed.
    *
-   * If the array contains NodeId, it will be converted to Node[].
-   * If the array contains a mix of Node and NodeId, an error will be thrown.
-   *
-   * @param {Node[] | NodeId[]} nodes - The array of nodes to notify.
+   * @param {Node[]} nodes - The array of nodes to notify.
    */
-  private notifyNeighborhoodChanged(nodes: Node[] | NodeId[]) {
-    if (!nodes.length) return;
-
-    if (nodes.some((n) => !(n instanceof Node))) {
-      nodes = nodes.map((id) => {
-        if (id instanceof Node)
-          throw new Error(
-            "Node array not consistent, should be entire Node[] or entire NodeId[]",
-          );
-
-        const node = this.getCertainNode(id);
-
-        return node;
-      });
+  private notifyNeighborhoodChanged(nodes: Node[]) {
+    for (const node of nodes) {
+      node.onNeighborhoodChange();
     }
-
-    for (const node of nodes) (node as Node).onNeighborhoodChange();
   }
 
   /**
    * Retrieves all the edges that are leaving the given node.
-   *
-   * If the input is a NodeId, it will be converted to Node.
-   * If the input is a mix of Node and NodeId, an error will be thrown.
-   *
-   * @param {Node | NodeId} node - The node from which the edges are retrieved.
-   * @returns {Edge[]} The retrieved edges.
+   * @param {number} node - The ID of the node from which to retrieve the outgoing edges.
+   * @returns {Map<number, edge>} A map of edges that are leaving the given node, with the key being the ID of the node to which the edge is directed and the value being the edge itself.
+   * @throws {Error} If the node does not exist.
    */
-  public getOutgoingEdges(node: Node | NodeId): Edge[] {
-    node = node instanceof Node ? node.id : node;
-
-    return this.graph
-      .outEdges(node)
-      .filter((e) => this.graph.getEdgeAttributes(e).implementation)
-      .map((e) => this.graph.getEdgeAttributes(e).implementation!);
+  public getOutgoingEdges(node: NodeId): Map<NodeId, Edge> {
+    return this.getCertainNode(node).getOutgoingEdges();
   }
 }

@@ -21,6 +21,7 @@ export const defaultSimulationConfig: Partial<SimulationConfigSchema> = {
   nackMessagesEnabled: false,
   interferenceEnabled: false,
   interferenceIsAdditive: false,
+  maxConnectionRadius: undefined,
   messageTransmissionModel: "default:ConstantTime",
   messageTransmissionModelParameters: {},
 };
@@ -77,6 +78,10 @@ export class SimulationConfig extends Config<
 
   public get connectivityEnabled(): boolean {
     return this.data.connectivityEnabled;
+  }
+
+  public get maxConnectionRadius(): number | undefined {
+    return this.data.maxConnectionRadius;
   }
 
   public get interferenceEnabled(): boolean {
@@ -156,6 +161,7 @@ export class SimulationConfig extends Config<
       loggerOptions: this.data.loggerOptions,
       isAsynchronous: this.data.isAsynchronous,
       shouldSaveTrace: this.data.shouldSaveTrace,
+      maxConnectionRadius: this.data.maxConnectionRadius,
       registerStatisticsForEveryRound:
         this.data.registerStatisticsForEveryRound,
       nackMessagesEnabled: this.data.nackMessagesEnabled,

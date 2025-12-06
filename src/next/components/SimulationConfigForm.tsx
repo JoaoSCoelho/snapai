@@ -1,12 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
-
 import { Project } from "@/simulator/models/Project";
 import { SimulationConfigSchema } from "@/simulator/configurations/Simulation/simulationConfigSchema";
 
 import { useConfigContext } from "../contexts/ConfigContext";
-import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
-import { Layout } from "@/simulator/configurations/layout/Layout";
 
 import { DefaultForm } from "./DefaultForm";
 

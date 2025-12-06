@@ -1,6 +1,9 @@
+import { Sigma } from "sigma";
 import { Node } from "./Node";
 import { SynchronousSimulation } from "./SynchronousSimulation";
 import { Thread } from "./Thread";
+import { Graph } from "../modules/Graph";
+import { Edge } from "./Edge";
 
 export class SynchronousThread extends Thread {
   public constructor(
@@ -8,6 +11,7 @@ export class SynchronousThread extends Thread {
     public readonly rounds: number,
     public readonly refreshRate: number,
     public readonly frameRate: number,
+    public readonly sigma: Sigma,
     public readonly onStart: () => void = () => {},
     public readonly onEnd: () => void = () => {},
     public readonly onInterrupt: () => void = () => {},
@@ -69,10 +73,12 @@ export class SynchronousThread extends Thread {
       this.simulation.currentTime++;
       this.simulation.isEvenRound = !this.simulation.isEvenRound;
 
+      this.sigma.setGraph(new Graph());
       await this.simulation.project.preRound();
       this.round();
       await this.simulation.project.postRound();
       this.onRoundEnd();
+      this.sigma.setGraph(this.simulation.graph);
       if (this.simulation.project.hasTerminated()) this.stop();
     }
 
@@ -97,9 +103,7 @@ export class SynchronousThread extends Thread {
     this.moveNodes();
 
     if (this.simulation.project.simulationConfig.connectivityEnabled) {
-      let startTime = performance.now();
       await this.updateConnections();
-      console.log(`updateConnections took ${performance.now() - startTime} ms`);
     }
 
     if (this.simulation.project.simulationConfig.interferenceEnabled) {
@@ -115,7 +119,7 @@ export class SynchronousThread extends Thread {
    * The node attributes in the simulation graph are then updated with the new position of the node.
    */
   private moveNodes() {
-    for (const node of this.simulation.getNodes()) {
+    for (const [, node] of this.simulation.nodes) {
       this.repositionNode(node);
     }
   }
@@ -128,12 +132,20 @@ export class SynchronousThread extends Thread {
    * @param node The node to reposition.
    */
   private repositionNode(node: Node): void {
-    node.reposition(node.mobilityModel.getNextPosition(node));
+    const newPosition = node.mobilityModel.getNextPosition(node);
+
+    // This call should be before node reposition
+    this.simulation.nodesCollection.reposition(
+      node,
+      newPosition.getCoordinates(),
+    );
+
+    node.reposition(newPosition);
     this.simulation.graph.updateNodeAttributes(node.id, (att) => ({
       ...att,
-      x: node.position.x,
-      y: node.position.y,
-      z: node.position.z,
+      x: newPosition.x,
+      y: newPosition.y,
+      z: newPosition.z,
     }));
   }
 
@@ -145,28 +157,7 @@ export class SynchronousThread extends Thread {
    * The onNeighborhoodChange method is called on each node that has a change in its neighborhood.
    */
   private async updateConnections() {
-    const simulationNodes = this.simulation.getNodes();
-
-    for (const node of simulationNodes) {
-      node.hasNeighborhoodChanges = false;
-
-      for (const other of simulationNodes) {
-        if (node === other) continue;
-
-        const isConnected = node.connectivityModel.isConnected(node, other);
-
-        if (isConnected && !this.simulation.graph.hasEdge(node.id, other.id)) {
-          this.simulation.addEdge([node.id, other.id]);
-          node.onNeighborhoodChange();
-        } else if (
-          !isConnected &&
-          this.simulation.graph.hasEdge(node.id, other.id)
-        ) {
-          this.simulation.removeEdge([node.id, other.id]);
-          node.onNeighborhoodChange();
-        }
-      }
-    }
+    this.simulation.reevaluateConnections()
   }
 
   /**
@@ -175,7 +166,7 @@ export class SynchronousThread extends Thread {
    * The step method is responsible for updating the node's internal state and sending messages.
    */
   private stepNodes() {
-    for (const node of this.simulation.getNodes()) {
+    for (const [, node] of this.simulation.nodes) {
       node.step();
     }
   }

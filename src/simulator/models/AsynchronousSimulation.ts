@@ -14,4 +14,8 @@ export class AsynchronousSimulation extends Simulation {
     super(options);
     this.statistics = new AsynchronousSimulationStatistics(this, {});
   }
+
+  public async reevaluateConnections(): Promise<void> {
+    // TODO: implement it
+  }
 }
