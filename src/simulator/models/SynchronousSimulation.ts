@@ -59,7 +59,6 @@ export class SynchronousSimulation extends Simulation {
         timer = Date.now();
         if (callback) callback(progress / this.nodes.size);
         await new Promise((r) => setTimeout(r));
-        console.log(progress);
       }
 
       const deprecatedEdges = new Map<number, Edge>();

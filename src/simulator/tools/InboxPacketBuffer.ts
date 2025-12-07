@@ -70,7 +70,7 @@ export class InboxPacketBuffer {
         if (packet.positiveDelivery) {
           this.arrivingPackets.insert(packet);
           this.simulation.logger.log(
-            `Message \"${packet.message.data}\" (${packet.originId}->${packet.destinationId}) arrived`,
+            `Message \"${JSON.stringify(packet.message.data, null, 2)}\" (${packet.originId}->${packet.destinationId}) arrived`,
           );
         } else {
           if (this.simulation.project.simulationConfig.nackMessagesEnabled) {

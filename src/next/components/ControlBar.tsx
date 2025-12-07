@@ -110,10 +110,6 @@ export default function ControlBar({}: ControlBarProps) {
     );
   }, [reevaluateButtonState]);
 
-  useEffect(() => {
-    console.log(isRunning);
-  }, [isRunning]);
-
   if (!selectedProject) return;
 
   const onInitializeButtonClick = async () => {

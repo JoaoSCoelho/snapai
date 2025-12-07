@@ -144,7 +144,6 @@ export async function renderGraphAsSvg(
     (node, attrs) => [node, attrs] as const,
   )) {
     if (Date.now() - startTime > 500) {
-      console.log(current, total);
       await new Promise((resolve) => setTimeout(resolve));
       callback?.(current / total);
       startTime = Date.now();

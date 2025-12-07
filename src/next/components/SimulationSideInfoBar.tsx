@@ -1,8 +1,13 @@
 import { Divider } from "@mui/material";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
-import { SimulationInfoBar, SimulationInfoCardType } from "./SimulationInfoBar";
+import {
+  SimulationInfoBar,
+  SimulationInfoBarRef,
+  SimulationInfoCardType,
+} from "./SimulationInfoBar";
 import { useSimulationContext } from "../contexts/SimulationContext";
 import { AsynchronousSimulation } from "@/simulator/models/AsynchronousSimulation";
+import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
 
 export type SimulationSideInfoBarProps = {};
 
@@ -10,14 +15,20 @@ export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
   const { infoBarRef } = useGraphVisualizationContext();
   const { simulation } = useSimulationContext();
 
+  const refFunc = (el: SimulationInfoBarRef | null) => {
+    if (el) {
+      for (const key in el) {
+        if (el[key as SimulationInfoCardType] === null) continue;
+        infoBarRef.current[key as SimulationInfoCardType] =
+          el[key as SimulationInfoCardType];
+      }
+    }
+  };
+
   return (
     <div className="flex w-full flex-col h-full gap-2">
       <SimulationInfoBar
-        ref={(el) => {
-          if (el) {
-            infoBarRef.current[0] = el;
-          }
-        }}
+        ref={refFunc}
         cards={[
           {
             type: SimulationInfoCardType.Time,
@@ -32,17 +43,21 @@ export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
             value: simulation?.statistics.getReceivedMessages() ?? null,
           },
           {
+            type: SimulationInfoCardType.MessagesSentOnRound,
+            value: simulation?.isAsyncMode
+              ? null
+              : ((simulation as SynchronousSimulation | undefined)?.statistics
+                  .getLastRoundSentMessages()
+                  .toString() ?? null),
+          },
+          {
             type: SimulationInfoCardType.FramingRate,
             value: simulation?.currentThread?.framingRate ?? null,
           },
         ]}
       />
       <SimulationInfoBar
-        ref={(el) => {
-          if (el) {
-            infoBarRef.current[1] = el;
-          }
-        }}
+        ref={refFunc}
         cards={[
           {
             type: SimulationInfoCardType.Nodes,

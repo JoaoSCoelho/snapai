@@ -12,6 +12,9 @@ import React, {
 } from "react";
 import type { Sigma } from "sigma";
 import { CameraState } from "sigma/types";
+import { SimulationInfoCardType } from "../components/SimulationInfoBar";
+import { SimulationInfoChipRef } from "../components/SimulationInfoChip";
+import { info } from "console";
 
 export type GraphVisualizationContextProps = {
   shouldShowArrows: boolean;
@@ -22,7 +25,9 @@ export type GraphVisualizationContextProps = {
   setShouldShowEdges: (shouldShowEdges: boolean) => void;
   cameraState: CameraState | null;
   setCameraState: React.Dispatch<React.SetStateAction<CameraState | null>>;
-  infoBarRef: RefObject<HTMLParagraphElement[][]>;
+  infoBarRef: RefObject<
+    Record<SimulationInfoCardType, SimulationInfoChipRef | null>
+  >;
   interfaceUpdater: (simulation: Simulation) => void;
   debouncedInterfaceUpdater: (simulation: Simulation) => void;
   sigmaRef: RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
@@ -41,9 +46,9 @@ type GraphVisualizationProviderProps = {
 export const GraphVisualizationProvider = ({
   children,
 }: GraphVisualizationProviderProps) => {
-  const [shouldShowArrows, setShouldShowArrows] = useState<boolean>(false);
-  const [shouldShowIds, setShouldShowIds] = useState<boolean>(false);
-  const [shouldShowEdges, setShouldShowEdges] = useState<boolean>(false);
+  const [shouldShowArrows, setShouldShowArrows] = useState<boolean>(true);
+  const [shouldShowIds, setShouldShowIds] = useState<boolean>(true);
+  const [shouldShowEdges, setShouldShowEdges] = useState<boolean>(true);
   const [cameraState, setCameraState] = useState<CameraState | null>(null);
   const [sigmaChanged, setSigmaChanged] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -59,11 +64,22 @@ export const GraphVisualizationProvider = ({
     "remainingEvents",
     "refreshingRate",
   ];
-  const infoBarRef = useRef<HTMLParagraphElement[][]>([]);
+  const infoBarRef = useRef<
+    Record<SimulationInfoCardType, SimulationInfoChipRef | null>
+  >({
+    [SimulationInfoCardType.Time]: null,
+    [SimulationInfoCardType.TotalMessagesSent]: null,
+    [SimulationInfoCardType.TotalReceivedMessages]: null,
+    [SimulationInfoCardType.FramingRate]: null,
+    [SimulationInfoCardType.Nodes]: null,
+    [SimulationInfoCardType.Edges]: null,
+    [SimulationInfoCardType.RemainingEvents]: null,
+    [SimulationInfoCardType.RefreshingRate]: null,
+    [SimulationInfoCardType.MessagesSentOnRound]: null,
+  });
   const sigmaRef = useRef<Sigma<NodeAttributes, EdgeAttributes> | null>(null);
   const lastInterfaceUpdate = useRef(0);
   const interfaceUpdaterTimeout = useRef<NodeJS.Timeout | null>(null);
-  infoBarRef.current = [];
 
   /**
    * Updates the Graph Visualization Context with the current state of the simulation.
@@ -73,32 +89,48 @@ export const GraphVisualizationProvider = ({
    * @param {Simulation} simulation The current state of the simulation.
    */
   const interfaceUpdater = (simulation: Simulation) => {
-    const obj = infoBarRef.current
-      .flatMap((el) => el)
-      .reduce(
-        (acc, el, i) => {
-          acc[nameArray[i]] = el;
-          return acc;
-        },
-        {} as { [key: string]: HTMLParagraphElement },
-      );
+    const obj = infoBarRef.current;
+    obj.time?.text?.textContent &&
+      (obj.time.text.textContent = simulation.currentTime.toString());
 
-    obj.time.textContent = simulation.currentTime.toString();
-    obj.totalMessagesSent.textContent = simulation.statistics
-      .getSentMessages()
-      .toString();
-    obj.totalReceivedMessages.textContent = simulation.statistics
-      .getReceivedMessages()
-      .toString();
-    obj.framingRate.textContent =
-      simulation.currentThread?.framingRate.toFixed(0) ?? "----";
-    obj.refreshingRate.textContent =
-      simulation.currentThread?.refreshingRate.toFixed(0) ?? "----";
-    obj.nodes.textContent = simulation.nodeSize().toString();
-    obj.edges.textContent = simulation.edgeSize().toString();
-    obj.remainingEvents.textContent = simulation.isAsyncMode
-      ? (simulation as AsynchronousSimulation).eventQueue.size().toString()
-      : "----";
+    obj.totalMessagesSent?.text?.textContent &&
+      (obj.totalMessagesSent.text.textContent = simulation.statistics
+        .getSentMessages()
+        .toString());
+
+    obj.totalMessagesSent?.hoverBox?.textContent &&
+      (obj.totalMessagesSent.hoverBox.innerHTML = `<p>Total sent bytes: ${simulation.statistics.getSentBytes()}</p><p>Total sent message bytes: ${simulation.statistics.getSentMessageBytes()}</p>`);
+
+    obj.totalReceivedMessages?.text?.textContent &&
+      (obj.totalReceivedMessages.text.textContent = simulation.statistics
+        .getReceivedMessages()
+        .toString());
+
+    obj.framingRate?.text?.textContent &&
+      (obj.framingRate.text.textContent =
+        simulation.currentThread?.framingRate.toFixed(0) ?? "----");
+
+    obj.refreshingRate?.text?.textContent &&
+      (obj.refreshingRate.text.textContent =
+        simulation.currentThread?.refreshingRate.toFixed(0) ?? "----");
+
+    obj.nodes?.text?.textContent &&
+      (obj.nodes.text.textContent = simulation.nodeSize().toString());
+
+    obj.edges?.text?.textContent &&
+      (obj.edges.text.textContent = simulation.edgeSize().toString());
+
+    obj.remainingEvents?.text?.textContent &&
+      (obj.remainingEvents.text.textContent = simulation.isAsyncMode
+        ? (simulation as AsynchronousSimulation).eventQueue.size().toString()
+        : "----");
+
+    obj.messagesSentOnRound?.text?.textContent &&
+      (obj.messagesSentOnRound.text.textContent = simulation.isAsyncMode
+        ? "----"
+        : (simulation as SynchronousSimulation).statistics
+            .getLastRoundSentMessages()
+            .toString());
 
     if (!interalIsRunning.current && simulation.isRunnig) {
       setIsRunning(true);

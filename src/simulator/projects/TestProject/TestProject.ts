@@ -7,6 +7,7 @@ import testProjectJsonConfig from "./config/testProjectConfig.json";
 import { TestProjectConfig } from "./config/TestProjectConfig";
 import { TestMessageTransmissionModel } from "./models/TestMessageTransmissionModel";
 import { TestNode } from "./nodes/TestNode";
+import { RandomMessageNode } from "./nodes/RandomMessageNode";
 
 export class TestProject extends Project {
   protected constructor() {
@@ -24,6 +25,7 @@ export class TestProject extends Project {
 
     this.addModel("TestMessageTransmissionModel", TestMessageTransmissionModel);
     this.addNode("TestNode", TestNode);
+    this.addNode("RandomMessageNode", RandomMessageNode);
   }
 
   public static create(): TestProject {

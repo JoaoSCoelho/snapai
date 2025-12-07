@@ -1,5 +1,8 @@
 export class Message {
-  public constructor(public readonly data: any) {}
+  public constructor(
+    /** **DATA SHOULD BE SERIALIZABLE** */
+    public readonly data: any,
+  ) {}
 
   /**
    * Create a deep copy of the message.
@@ -7,7 +10,7 @@ export class Message {
    * @returns A new instance of the message class with the same data.
    */
   public clone(): Message {
-    return structuredClone(this);
+    return new Message(JSON.parse(JSON.stringify(this.data)));
   }
 
   public getByteSize(): number {

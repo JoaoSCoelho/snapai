@@ -1,23 +1,27 @@
 import AccessTimeFilledRoundedIcon from "@mui/icons-material/AccessTimeFilledRounded";
 import { forwardRef, ReactElement, useImperativeHandle, useRef } from "react";
 import EventRepeatRoundedIcon from "@mui/icons-material/EventRepeatRounded";
-import { SimulationInfoChip } from "./SimulationInfoChip";
+import {
+  SimulationInfoChip,
+  SimulationInfoChipRef,
+} from "./SimulationInfoChip";
 import { PiGraphDuotone } from "react-icons/pi";
 import { GrNodes } from "react-icons/gr";
 import { Md30FpsSelect, MdOutbox } from "react-icons/md";
 import { HiInboxIn } from "react-icons/hi";
 import { FaFastForward } from "react-icons/fa";
+import { TbMessage2Up } from "react-icons/tb";
 
 export enum SimulationInfoCardType {
-  TotalMessagesSent,
-  TotalReceivedMessages,
-  MessagesSentOnRound,
-  FramingRate,
-  Time,
-  Nodes,
-  Edges,
-  RemainingEvents,
-  RefreshingRate,
+  TotalMessagesSent = "totalMessagesSent",
+  TotalReceivedMessages = "totalReceivedMessages",
+  MessagesSentOnRound = "messagesSentOnRound",
+  FramingRate = "framingRate",
+  Time = "time",
+  Nodes = "nodes",
+  Edges = "edges",
+  RemainingEvents = "remainingEvents",
+  RefreshingRate = "refreshingRate",
 }
 // TODO: review this component
 export type SimulationInfoCard = {
@@ -25,7 +29,10 @@ export type SimulationInfoCard = {
   value: string | number | null;
 };
 
-export type SimulationInfoBarRef = HTMLParagraphElement[];
+export type SimulationInfoBarRef = Record<
+  SimulationInfoCardType,
+  SimulationInfoChipRef | null
+>;
 
 export type SimulationInfoBarProps = {
   cards: SimulationInfoCard[];
@@ -34,10 +41,19 @@ export const SimulationInfoBar = forwardRef<
   SimulationInfoBarRef,
   SimulationInfoBarProps
 >(({ cards }, ref) => {
-  const chipRefs = useRef<HTMLParagraphElement[]>([]);
-
-  // Garante que o array tenha o mesmo tamanho de cards
-  chipRefs.current = [];
+  const chipRefs = useRef<
+    Record<SimulationInfoCardType, SimulationInfoChipRef | null>
+  >({
+    [SimulationInfoCardType.Time]: null,
+    [SimulationInfoCardType.TotalMessagesSent]: null,
+    [SimulationInfoCardType.TotalReceivedMessages]: null,
+    [SimulationInfoCardType.FramingRate]: null,
+    [SimulationInfoCardType.Nodes]: null,
+    [SimulationInfoCardType.Edges]: null,
+    [SimulationInfoCardType.RemainingEvents]: null,
+    [SimulationInfoCardType.RefreshingRate]: null,
+    [SimulationInfoCardType.MessagesSentOnRound]: null,
+  });
 
   useImperativeHandle(ref, () => chipRefs.current);
 
@@ -79,6 +95,9 @@ export const SimulationInfoBar = forwardRef<
               style={{ color: "#666" }}
             />
           );
+        } else if (card.type === SimulationInfoCardType.MessagesSentOnRound) {
+          title = "Messages sent on round";
+          icon = <TbMessage2Up color="#666" fontSize={24} />;
         } else if (card.type === SimulationInfoCardType.RefreshingRate) {
           title = "Refresh Rate";
           icon = <FaFastForward fontSize="medium" style={{ color: "#666" }} />;
@@ -87,7 +106,7 @@ export const SimulationInfoBar = forwardRef<
           <SimulationInfoChip
             ref={(el) => {
               if (el) {
-                chipRefs.current[index] = el;
+                chipRefs.current[card.type] = el;
               }
             }}
             key={index}

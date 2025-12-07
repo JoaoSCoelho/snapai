@@ -19,7 +19,7 @@
   "shouldSaveTrace": true,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": true,
-  "connectivityEnabled": false,
+  "connectivityEnabled": true,
   "interferenceEnabled": true,
   "interferenceIsAdditive": true,
   "maxConnectionRadius": 60,
