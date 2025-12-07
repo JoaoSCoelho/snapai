@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import ControlButton from "./ControlButton";
 import { useConfigContext } from "../contexts/ConfigContext";
@@ -19,11 +20,12 @@ import { toast } from "sonner";
 import { useAddNodesContext } from "../contexts/AddNodesContext";
 import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
 import { SynchronousThread } from "@/simulator/models/SynchronousThread";
-import { downloadAsPNG, toBlob } from "@sigma/export-image";
 import { exportSigmaToSVG } from "../utils/graphAsSvg";
 import ScreenshotMonitorIcon from "@mui/icons-material/ScreenshotMonitor";
 import PolylineIcon from "@mui/icons-material/Polyline";
 import { useLoading } from "../contexts/LoadingContext";
+import Graph from "graphology";
+import { PiFileSvg } from "react-icons/pi";
 
 export type ControlBarProps = {};
 
@@ -64,6 +66,15 @@ export default function ControlBar({}: ControlBarProps) {
   const [initializeButtonBg, setInitializeButtonBg] = useState<
     string | undefined
   >(undefined);
+  const [reevaluateButtonLoading, setReevaluateButtonLoading] = useState(false);
+  const [reevaluateButtonDisabled, setReevaluateButtonDisabled] =
+    useState(false);
+  const [reevaluateButtonState, setReevaluateButtonState] = useState<
+    "success" | "error" | "idle"
+  >("idle");
+  const [reevaluateButtonBg, setReevaluateButtonBg] = useState<
+    string | undefined
+  >(undefined);
 
   const {
     register,
@@ -83,6 +94,16 @@ export default function ControlBar({}: ControlBarProps) {
           : undefined,
     );
   }, [initializeButtonState]);
+
+  useEffect(() => {
+    setReevaluateButtonBg(
+      reevaluateButtonState === "success"
+        ? "#fedd2172"
+        : reevaluateButtonState === "error"
+          ? "#ff4d4d72"
+          : undefined,
+    );
+  }, [reevaluateButtonState]);
 
   if (!selectedProject) return;
 
@@ -116,23 +137,24 @@ export default function ControlBar({}: ControlBarProps) {
   };
 
   const resetCam = () => {
-    if (sigmaRef.current) {
-      sigmaRef.current.getCamera().animatedReset({
-        duration: 300,
-      });
-    }
+    if (!sigmaRef.current) return toast.warning("Simulation not initialized");
+
+    sigmaRef.current.getCamera().animatedReset({
+      duration: 300,
+    });
   };
 
   const toPng = () => {
-    if (!sigmaRef.current) return;
-
-    downloadAsPNG(sigmaRef.current as any, {
-      fileName: "graph", // nome do arquivo sem extensão
-      backgroundColor: "#fff", // cor de fundo (ou transparente)
-      width: null, // usa largura do container
-      height: null, // usa altura do container
-      layers: null, // exporta todos os layers
-      cameraState: null, // estado atual da câmera
+    if (!sigmaRef.current) return toast.warning("Simulation not initialized");
+    import("@sigma/export-image").then(({ downloadAsPNG }) => {
+      downloadAsPNG(sigmaRef.current as any, {
+        fileName: "graph", // nome do arquivo sem extensão
+        backgroundColor: "#fff", // cor de fundo (ou transparente)
+        width: null, // usa largura do container
+        height: null, // usa altura do container
+        layers: null, // exporta todos os layers
+        cameraState: null, // estado atual da câmera
+      });
     });
   };
 
@@ -159,7 +181,7 @@ export default function ControlBar({}: ControlBarProps) {
     simulation.stop();
   };
   const onResetCamButtonClick = () => {
-    // TODO: implement it
+    resetCam();
   };
   const onScreenshotGraphButtonClick = () => {
     toPng();
@@ -198,6 +220,47 @@ export default function ControlBar({}: ControlBarProps) {
         ),
       );
     }
+  };
+
+  const onReevaluateConnectionsButtonClick = async () => {
+    setReevaluateButtonLoading(true);
+
+    if (!simulation || !sigmaRef.current) {
+      setReevaluateButtonDisabled(true);
+      setReevaluateButtonState("error");
+      toast.warning("Simulation not initialized");
+      setTimeout(() => {
+        setReevaluateButtonDisabled(false);
+        setReevaluateButtonLoading(false);
+        setReevaluateButtonState("idle");
+      }, 1000);
+      return;
+    }
+
+    sigmaRef.current.setGraph(new Graph());
+    await simulation
+      .reevaluateConnections(async (prog) => {
+        showLoading(`${prog * 100}%`);
+        debouncedInterfaceUpdater(simulation);
+      })
+      .then(
+        () => {
+          toast.success("Connections reevaluated");
+          debouncedInterfaceUpdater(simulation);
+          setReevaluateButtonState("success");
+        },
+        (e) => {
+          ErrorSystem.emitError(e, "Failed to reevaluate connections");
+          setReevaluateButtonState("error");
+        },
+      );
+    sigmaRef.current.setGraph(simulation.graph);
+
+    hideLoading();
+    setTimeout(() => {
+      setReevaluateButtonState("idle");
+      setReevaluateButtonLoading(false);
+    }, 1000);
   };
 
   const handlePreRunFormSubmit = (data: Required<PreRunFormSchema>) => {
@@ -242,6 +305,7 @@ export default function ControlBar({}: ControlBarProps) {
           alt: "Network icon",
           src: "/assets/reevaluate-connections.svg",
         }}
+        onClick={onReevaluateConnectionsButtonClick}
         helpText="Reevaluate the connections between the nodes in the network."
       />
       <Divider orientation="vertical" flexItem />
@@ -340,7 +404,7 @@ export default function ControlBar({}: ControlBarProps) {
         onClick={onScreenshotGraphButtonClick}
       />
       <ControlButton
-        icon={<PolylineIcon className="text-gray-400" fontSize="small" />}
+        icon={<PiFileSvg className="text-gray-400" />}
         helpText="Download the current graph drawned as a SVG file."
         onClick={onGraphToSvgButtonClick}
       />

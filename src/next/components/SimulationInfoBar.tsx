@@ -1,17 +1,23 @@
 import AccessTimeFilledRoundedIcon from "@mui/icons-material/AccessTimeFilledRounded";
-import SendAndArchiveRoundedIcon from "@mui/icons-material/SendAndArchiveRounded";
-import ScheduleSendRoundedIcon from "@mui/icons-material/ScheduleSendRounded";
 import { forwardRef, ReactElement, useImperativeHandle, useRef } from "react";
 import EventRepeatRoundedIcon from "@mui/icons-material/EventRepeatRounded";
 import { SimulationInfoChip } from "./SimulationInfoChip";
+import { PiGraphDuotone } from "react-icons/pi";
+import { GrNodes } from "react-icons/gr";
+import { Md30FpsSelect, MdOutbox } from "react-icons/md";
+import { HiInboxIn } from "react-icons/hi";
+import { FaFastForward } from "react-icons/fa";
 
 export enum SimulationInfoCardType {
   TotalMessagesSent,
+  TotalReceivedMessages,
   MessagesSentOnRound,
+  FramingRate,
   Time,
   Nodes,
   Edges,
   RemainingEvents,
+  RefreshingRate,
 }
 // TODO: review this component
 export type SimulationInfoCard = {
@@ -46,46 +52,36 @@ export const SimulationInfoBar = forwardRef<
           title = "Simulation time";
           icon = (
             <AccessTimeFilledRoundedIcon
-              fontSize="large"
+              fontSize="medium"
               style={{ color: "#666" }}
             />
           );
         } else if (card.type === SimulationInfoCardType.TotalMessagesSent) {
           title = "Total messages sent";
-          icon = (
-            <SendAndArchiveRoundedIcon
-              fontSize="large"
-              style={{ color: "#666" }}
-            />
-          );
-        } else if (card.type === SimulationInfoCardType.MessagesSentOnRound) {
-          title = "Messages sent on this round";
-          icon = (
-            <ScheduleSendRoundedIcon
-              fontSize="large"
-              style={{ color: "#666" }}
-            />
-          );
+          icon = <MdOutbox color="#666" fontSize={24} />;
+        } else if (card.type === SimulationInfoCardType.TotalReceivedMessages) {
+          title = "Total received messages";
+          icon = <HiInboxIn color="#666" fontSize={24} />;
+        } else if (card.type === SimulationInfoCardType.FramingRate) {
+          title = "Frame Rate";
+          icon = <Md30FpsSelect color="#666" fontSize={24} />;
         } else if (card.type === SimulationInfoCardType.Nodes) {
           title = "Number of Nodes";
-          iconImage = {
-            src: "/assets/num-nodes.svg",
-            alt: "Number of Nodes icon",
-          };
+          icon = <GrNodes fontSize={24} color="#666" />;
         } else if (card.type === SimulationInfoCardType.Edges) {
           title = "Number of Edges";
-          iconImage = {
-            src: "/assets/num-links.svg",
-            alt: "Number of Edges icon",
-          };
+          icon = <PiGraphDuotone fontSize={24} color="#666" />;
         } else if (card.type === SimulationInfoCardType.RemainingEvents) {
           title = "Remaining Events";
           icon = (
             <EventRepeatRoundedIcon
-              fontSize="large"
+              fontSize="medium"
               style={{ color: "#666" }}
             />
           );
+        } else if (card.type === SimulationInfoCardType.RefreshingRate) {
+          title = "Refresh Rate";
+          icon = <FaFastForward fontSize="medium" style={{ color: "#666" }} />;
         }
         return (
           <SimulationInfoChip

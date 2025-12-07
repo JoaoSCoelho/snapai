@@ -9,9 +9,8 @@ import React, {
   useContext,
   RefObject,
   useRef,
-  useEffect,
 } from "react";
-import { Sigma } from "sigma";
+import type { Sigma } from "sigma";
 import { CameraState } from "sigma/types";
 
 export type GraphVisualizationContentProps = {
@@ -24,7 +23,6 @@ export type GraphVisualizationContentProps = {
   infoBarRef: RefObject<HTMLParagraphElement[][]>;
   interfaceUpdater: (simulation: Simulation) => void;
   debouncedInterfaceUpdater: (simulation: Simulation) => void;
-  // sigmaRef: React.RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
   sigmaRef: RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
   onUpdateSigma: () => void;
 };
@@ -48,10 +46,12 @@ export const GraphVisualizationProvider = ({
   const nameArray = [
     "time",
     "totalMessagesSent",
-    "messagesSentOnRound",
+    "totalReceivedMessages",
+    "framingRate",
     "nodes",
     "edges",
     "remainingEvents",
+    "refreshingRate",
   ];
   const infoBarRef = useRef<HTMLParagraphElement[][]>([]);
   const sigmaRef = useRef<Sigma<NodeAttributes, EdgeAttributes> | null>(null);
@@ -81,11 +81,13 @@ export const GraphVisualizationProvider = ({
     obj.totalMessagesSent.textContent = simulation.statistics
       .getSentMessages()
       .toString();
-    obj.messagesSentOnRound.textContent = simulation.isAsyncMode
-      ? "----"
-      : (simulation as SynchronousSimulation).statistics
-          .getLastRoundSentMessages()
-          .toString();
+    obj.totalReceivedMessages.textContent = simulation.statistics
+      .getReceivedMessages()
+      .toString();
+    obj.framingRate.textContent =
+      simulation.currentThread?.framingRate.toFixed(0) ?? "----";
+    obj.refreshingRate.textContent =
+      simulation.currentThread?.refreshingRate.toFixed(0) ?? "----";
     obj.nodes.textContent = simulation.nodeSize().toString();
     obj.edges.textContent = simulation.edgeSize().toString();
     obj.remainingEvents.textContent = simulation.isAsyncMode

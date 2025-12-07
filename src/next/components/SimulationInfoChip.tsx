@@ -46,8 +46,8 @@ export const SimulationInfoChip = forwardRef<
             <Image
               src={iconImage.src}
               alt={iconImage.alt}
-              width={35}
-              height={35}
+              width={24}
+              height={24}
             />
           ))}
         <p ref={ref} className="block font-bold text-gray-700 font-mono">

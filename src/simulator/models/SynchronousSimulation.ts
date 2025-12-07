@@ -41,14 +41,26 @@ export class SynchronousSimulation extends Simulation {
    * If a connection is not found and there is an edge between the nodes, the edge is removed from the simulation graph.
    * The onNeighborhoodChange method is called on each node that has a change in its neighborhood.
    */
-  public async reevaluateConnections(): Promise<void> {
+  public async reevaluateConnections(
+    callback?: (progress: number) => Promise<void>,
+  ): Promise<void> {
     const maxConnectionRadius =
       this.project.simulationConfig.maxConnectionRadius;
 
+    let timer = Date.now();
+    let progress = 0;
     for (const [, node] of this.nodes) {
+      progress++;
       const possibleNeighborhood = maxConnectionRadius
         ? this.nodesCollection.getPossibleNeighbors(node)
         : this.nodes;
+
+      if (Date.now() - timer > 1000 && callback) {
+        timer = Date.now();
+        if (callback) callback(progress / this.nodes.size);
+        await new Promise((r) => setTimeout(r));
+        console.log(progress);
+      }
 
       const deprecatedEdges = new Map<number, Edge>();
       node.getOutgoingEdges().forEach((edge) => {

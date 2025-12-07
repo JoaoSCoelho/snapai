@@ -5,7 +5,9 @@ export type ControlsAndGraphProps = {
   graphViewerRef?: React.RefObject<GraphViewerRef>;
 };
 
-export function ControlsAndGraph({ graphViewerRef }: ControlsAndGraphProps) {
+export default function ControlsAndGraph({
+  graphViewerRef,
+}: ControlsAndGraphProps) {
   return (
     <div className="grid grid-cols-2 gap-2 controls-and-graph">
       <div

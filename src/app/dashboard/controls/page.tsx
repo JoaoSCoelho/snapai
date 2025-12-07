@@ -1,11 +1,15 @@
 "use client";
 import AddNodesFormDialog from "@/next/components/AddNodesFormDialog";
 import ControlBar from "@/next/components/ControlBar";
-import { ControlsAndGraph } from "@/next/components/ControlsAndGraph";
 import { useAddNodesContext } from "@/next/contexts/AddNodesContext";
 import { useConfigContext } from "@/next/contexts/ConfigContext";
 import { Divider } from "@mui/material";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const ControlsAndGraph = dynamic(
+  () => import("@/next/components/ControlsAndGraph"),
+);
 
 export default function DashboardControls() {
   const { dialogOpen: addNodesDialogOpen, closeDialog: closeAddNodesDialog } =

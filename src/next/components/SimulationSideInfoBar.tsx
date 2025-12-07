@@ -2,10 +2,7 @@ import { Divider } from "@mui/material";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import { SimulationInfoBar, SimulationInfoCardType } from "./SimulationInfoBar";
 import { useSimulationContext } from "../contexts/SimulationContext";
-import { Ref, RefObject, useEffect, useRef } from "react";
-import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
 import { AsynchronousSimulation } from "@/simulator/models/AsynchronousSimulation";
-import { Simulation } from "@/simulator/models/Simulation";
 
 export type SimulationSideInfoBarProps = {};
 
@@ -31,12 +28,12 @@ export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
             value: simulation?.statistics.getSentMessages() ?? null,
           },
           {
-            type: SimulationInfoCardType.MessagesSentOnRound,
-            value: simulation?.isAsyncMode
-              ? "----"
-              : ((
-                  simulation as SynchronousSimulation
-                )?.statistics.getLastRoundSentMessages() ?? null),
+            type: SimulationInfoCardType.TotalReceivedMessages,
+            value: simulation?.statistics.getReceivedMessages() ?? null,
+          },
+          {
+            type: SimulationInfoCardType.FramingRate,
+            value: simulation?.currentThread?.framingRate ?? null,
           },
         ]}
       />
@@ -59,7 +56,11 @@ export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
             type: SimulationInfoCardType.RemainingEvents,
             value: simulation?.isAsyncMode
               ? (simulation as AsynchronousSimulation)?.eventQueue.size()
-              : "----",
+              : null,
+          },
+          {
+            type: SimulationInfoCardType.RefreshingRate,
+            value: simulation?.currentThread?.refreshingRate ?? null,
           },
         ]}
       />

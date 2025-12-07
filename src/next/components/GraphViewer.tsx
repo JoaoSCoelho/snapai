@@ -51,7 +51,7 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
         document.contains(containerRef.current),
       );
 
-      sigmaRef.current = new Sigma(simulation.graph, containerRef.current, {
+      sigmaRef.current = new Sigma(simulation.graph, containerRef.current!, {
         renderEdgeLabels: true, // TODO : review its configurations
         autoCenter: false,
         renderLabels: shouldShowIds ?? true,
@@ -69,6 +69,7 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       // enableNodeInfo(); // TODO: enable it
 
       initCamera();
+
       // let interval: NodeJS.Timeout | null | undefined = null;
       // const animate = () => {
       //     if (graphRef.current) {

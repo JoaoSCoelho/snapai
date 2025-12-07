@@ -25,7 +25,6 @@ export type SimulationOptions = {
   project: Project;
   messageTransmissionModel: MessageTransmissionModel;
   nodeCollection: NodeCollection;
-  
 };
 
 export abstract class Simulation {
@@ -41,7 +40,7 @@ export abstract class Simulation {
   public lastNodeId = 0;
   public readonly graph = new Graph();
   public readonly packetsInTheAir: PacketsInTheAirBuffer;
-  private currentThread: Thread | null = null;
+  public currentThread: Thread | null = null;
   public readonly nodesCollection: NodeCollection;
   public readonly nodes: Map<NodeId, Node> = new Map();
   public readonly edges: EdgeMap = new EdgeMap();
@@ -84,7 +83,9 @@ export abstract class Simulation {
   }
 
   /** Reevaluates the connections between nodes */
-  public abstract reevaluateConnections(): Promise<void>;
+  public abstract reevaluateConnections(
+    callback?: (progress: number) => Promise<void>,
+  ): Promise<void>;
 
   /**
    * Retrieves all nodes in the simulation.

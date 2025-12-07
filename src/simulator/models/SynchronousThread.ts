@@ -1,9 +1,9 @@
-import { Sigma } from "sigma";
+"use client";
+import type { Sigma } from "sigma";
 import { Node } from "./Node";
 import { SynchronousSimulation } from "./SynchronousSimulation";
 import { Thread } from "./Thread";
 import { Graph } from "../modules/Graph";
-import { Edge } from "./Edge";
 
 export class SynchronousThread extends Thread {
   public constructor(
@@ -47,8 +47,16 @@ export class SynchronousThread extends Thread {
     this.simulation.startTimeOfRound = startTime;
     this.onStart();
 
-    const frameEach = 1000 / Math.max(this.frameRate, 4);
+    const frameEach = this.frameRate === 0 ? 0 : 1000 / this.frameRate;
+    const roundEach = 1000 / this.refreshRate;
+    const shouldSleepRound = roundEach !== Infinity;
+    let lastFrameTime = Date.now();
+    let refreshingTime = Date.now();
     let lastTime = Date.now();
+    let lastFrameCount = 0;
+    let framingCount = [];
+    let refreshingCount = [];
+    let pendent = 0;
     for (let i = 0; i < this.rounds; i++) {
       if ((this.simulation.isRunnig as boolean) === false) {
         this.onInterrupt();
@@ -57,17 +65,37 @@ export class SynchronousThread extends Thread {
         );
         return;
       }
-      if (this.refreshRate > 8) {
-        const sleepTime = 1000 / this.refreshRate - (Date.now() - lastTime);
 
+      if (shouldSleepRound) {
+        const sleepTime = roundEach - (Date.now() - lastTime) - pendent;
+        pendent = 0;
         if (sleepTime > 0) {
+          if (sleepTime < 6) {
+            pendent += 6 - sleepTime;
+          }
           await new Promise((resolve) => setTimeout(resolve, sleepTime));
         }
+        lastTime = Date.now();
       }
 
-      if (Date.now() - lastTime > frameEach) {
-        lastTime = Date.now();
+      let passedTime = Date.now() - lastFrameTime;
+      if (passedTime > frameEach) {
+        framingCount.push(1000 / passedTime);
+        if (framingCount.length > 10) framingCount.shift();
+        this.framingRate =
+          framingCount.reduce((a, b) => a + b, 0) / framingCount.length;
         await new Promise((resolve) => setTimeout(resolve, 0));
+        lastFrameTime = Date.now();
+      }
+
+      passedTime = Date.now() - refreshingTime;
+      if (passedTime > 250) {
+        refreshingCount.push((1000 / passedTime) * (i - lastFrameCount));
+        if (refreshingCount.length > 10) refreshingCount.shift();
+        this.refreshingRate =
+          refreshingCount.reduce((a, b) => a + b, 0) / refreshingCount.length;
+        lastFrameCount = i;
+        refreshingTime = Date.now();
       }
 
       this.simulation.currentTime++;
@@ -75,7 +103,7 @@ export class SynchronousThread extends Thread {
 
       this.sigma.setGraph(new Graph());
       await this.simulation.project.preRound();
-      this.round();
+      await this.round();
       await this.simulation.project.postRound();
       this.onRoundEnd();
       this.sigma.setGraph(this.simulation.graph);
@@ -157,7 +185,7 @@ export class SynchronousThread extends Thread {
    * The onNeighborhoodChange method is called on each node that has a change in its neighborhood.
    */
   private async updateConnections() {
-    this.simulation.reevaluateConnections()
+    await this.simulation.reevaluateConnections();
   }
 
   /**
