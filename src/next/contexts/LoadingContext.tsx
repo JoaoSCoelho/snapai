@@ -82,7 +82,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useLoading() {
+export function useLoadingContext() {
   const ctx = useContext(LoadingContext);
   if (!ctx) throw new Error("useLoading must be used inside <LoadingProvider>");
   return ctx;

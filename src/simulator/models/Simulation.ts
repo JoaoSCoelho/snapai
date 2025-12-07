@@ -222,7 +222,7 @@ export abstract class Simulation {
       {
         implementation: edge,
         width: 1,
-        type: "arrow", // TODO: turn it dinamically
+        // type: "arrow", // TODO: turn it dinamically
       },
     );
     this.edges.set(`${edge.source}:${edge.target}`, edge);

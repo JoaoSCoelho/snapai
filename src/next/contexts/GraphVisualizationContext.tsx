@@ -13,11 +13,13 @@ import React, {
 import type { Sigma } from "sigma";
 import { CameraState } from "sigma/types";
 
-export type GraphVisualizationContentProps = {
+export type GraphVisualizationContextProps = {
   shouldShowArrows: boolean;
   setShouldShowArrows: (shouldShowArrows: boolean) => void;
   shouldShowIds: boolean;
   setShouldShowIds: (shouldShowIds: boolean) => void;
+  shouldShowEdges: boolean;
+  setShouldShowEdges: (shouldShowEdges: boolean) => void;
   cameraState: CameraState | null;
   setCameraState: React.Dispatch<React.SetStateAction<CameraState | null>>;
   infoBarRef: RefObject<HTMLParagraphElement[][]>;
@@ -25,10 +27,11 @@ export type GraphVisualizationContentProps = {
   debouncedInterfaceUpdater: (simulation: Simulation) => void;
   sigmaRef: RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
   onUpdateSigma: () => void;
+  isRunning: boolean;
 };
 
 const GraphVisualizationContext = createContext<
-  GraphVisualizationContentProps | undefined
+  GraphVisualizationContextProps | undefined
 >(undefined);
 
 type GraphVisualizationProviderProps = {
@@ -40,8 +43,11 @@ export const GraphVisualizationProvider = ({
 }: GraphVisualizationProviderProps) => {
   const [shouldShowArrows, setShouldShowArrows] = useState<boolean>(false);
   const [shouldShowIds, setShouldShowIds] = useState<boolean>(false);
+  const [shouldShowEdges, setShouldShowEdges] = useState<boolean>(false);
   const [cameraState, setCameraState] = useState<CameraState | null>(null);
   const [sigmaChanged, setSigmaChanged] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const interalIsRunning = useRef<boolean>(false);
 
   const nameArray = [
     "time",
@@ -93,6 +99,15 @@ export const GraphVisualizationProvider = ({
     obj.remainingEvents.textContent = simulation.isAsyncMode
       ? (simulation as AsynchronousSimulation).eventQueue.size().toString()
       : "----";
+
+    if (!interalIsRunning.current && simulation.isRunnig) {
+      setIsRunning(true);
+      interalIsRunning.current = true;
+    }
+    if (interalIsRunning.current && !simulation.isRunnig) {
+      setIsRunning(false);
+      interalIsRunning.current = false;
+    }
   };
 
   /**
@@ -103,13 +118,13 @@ export const GraphVisualizationProvider = ({
   const debouncedInterfaceUpdater = (simulation: Simulation) => {
     interfaceUpdaterTimeout.current &&
       clearTimeout(interfaceUpdaterTimeout.current);
-    if (Date.now() - lastInterfaceUpdate.current > 18) {
+    if (Date.now() - lastInterfaceUpdate.current > 60) {
       interfaceUpdater(simulation);
       lastInterfaceUpdate.current = Date.now();
     }
     interfaceUpdaterTimeout.current = setTimeout(() => {
       interfaceUpdater(simulation);
-    }, 18);
+    }, 60);
   };
 
   const onUpdateSigma = () => {
@@ -123,6 +138,9 @@ export const GraphVisualizationProvider = ({
         setShouldShowArrows,
         shouldShowIds,
         setShouldShowIds,
+        shouldShowEdges,
+        setShouldShowEdges,
+        isRunning,
         cameraState,
         setCameraState,
         infoBarRef,
@@ -138,7 +156,7 @@ export const GraphVisualizationProvider = ({
 };
 
 export const useGraphVisualizationContext =
-  (): GraphVisualizationContentProps => {
+  (): GraphVisualizationContextProps => {
     const context = useContext(GraphVisualizationContext);
     if (!context) {
       throw new Error(

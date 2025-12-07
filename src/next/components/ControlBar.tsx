@@ -23,28 +23,30 @@ import { SynchronousThread } from "@/simulator/models/SynchronousThread";
 import { exportSigmaToSVG } from "../utils/graphAsSvg";
 import ScreenshotMonitorIcon from "@mui/icons-material/ScreenshotMonitor";
 import PolylineIcon from "@mui/icons-material/Polyline";
-import { useLoading } from "../contexts/LoadingContext";
+import { useLoadingContext } from "../contexts/LoadingContext";
 import Graph from "graphology";
 import { PiFileSvg } from "react-icons/pi";
+import { useRuntimeContext } from "../contexts/RuntimeContext";
+import clsx from "clsx";
+import { MdLinearScale } from "react-icons/md";
 
 export type ControlBarProps = {};
 
-const preRunFormSchema = z.object({
+const runtimeFormSchema = z.object({
   rounds: z.number().int().min(1),
   refreshRate: z.number().int().min(0).optional(),
   frameRate: z.number().int().min(0).optional(),
 });
 
-export type PreRunFormSchema = z.infer<typeof preRunFormSchema>;
-
-export const defaultPreRunFormValues: PreRunFormSchema = {
-  rounds: 1,
-  refreshRate: 0,
-  frameRate: 30,
-};
+export type RuntimeFormSchema = z.infer<typeof runtimeFormSchema>;
 
 export default function ControlBar({}: ControlBarProps) {
-  const { showLoading, hideLoading } = useLoading();
+  const {
+    isLoading: runtimeIsLoading,
+    defaultData: runtimeDefaultData,
+    updateDefaultData: updateRuntimeDefaultData,
+  } = useRuntimeContext();
+  const { showLoading, hideLoading } = useLoadingContext();
   const { selectedProject } = useConfigContext();
   const { openDialog: openAddNodesDialog } = useAddNodesContext();
   const {
@@ -54,6 +56,9 @@ export default function ControlBar({}: ControlBarProps) {
     setShouldShowIds,
     debouncedInterfaceUpdater,
     sigmaRef,
+    isRunning,
+    setShouldShowEdges,
+    shouldShowEdges,
   } = useGraphVisualizationContext();
   const { setSimulation, simulation } = useSimulationContext();
 
@@ -80,9 +85,9 @@ export default function ControlBar({}: ControlBarProps) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<PreRunFormSchema>({
-    defaultValues: defaultPreRunFormValues,
-    resolver: zodResolver(preRunFormSchema),
+  } = useForm<RuntimeFormSchema>({
+    defaultValues: runtimeDefaultData,
+    resolver: zodResolver(runtimeFormSchema),
   });
 
   useEffect(() => {
@@ -104,6 +109,10 @@ export default function ControlBar({}: ControlBarProps) {
           : undefined,
     );
   }, [reevaluateButtonState]);
+
+  useEffect(() => {
+    console.log(isRunning);
+  }, [isRunning]);
 
   if (!selectedProject) return;
 
@@ -189,7 +198,7 @@ export default function ControlBar({}: ControlBarProps) {
   const onGraphToSvgButtonClick = () => {
     toSvg();
   };
-  const onPlay = (data: Required<PreRunFormSchema>) => {
+  const onPlay = (data: Required<RuntimeFormSchema>) => {
     if (!simulation)
       return ErrorSystem.emitError(
         new Error("Simulation not initialized"),
@@ -220,6 +229,11 @@ export default function ControlBar({}: ControlBarProps) {
         ),
       );
     }
+    updateRuntimeDefaultData({
+      rounds: data.rounds,
+      refreshRate: data.refreshRate ?? undefined,
+      frameRate: data.frameRate ?? undefined,
+    });
   };
 
   const onReevaluateConnectionsButtonClick = async () => {
@@ -263,16 +277,16 @@ export default function ControlBar({}: ControlBarProps) {
     }, 1000);
   };
 
-  const handlePreRunFormSubmit = (data: Required<PreRunFormSchema>) => {
+  const handleRuntimeFormSubmit = (data: Required<RuntimeFormSchema>) => {
     if (onPlay) onPlay(data);
   };
 
-  const handlePreRunFormSubmitBuilder = (oneRound: boolean) => {
-    return (data: PreRunFormSchema) => {
+  const handleRuntimeFormSubmitBuilder = (oneRound: boolean) => {
+    return (data: RuntimeFormSchema) => {
       if (oneRound) data.rounds = 1;
       if (!data.refreshRate) data.refreshRate = 0;
       if (!data.frameRate) data.frameRate = 0;
-      return handlePreRunFormSubmit(data as Required<PreRunFormSchema>);
+      return handleRuntimeFormSubmit(data as Required<RuntimeFormSchema>);
     };
   };
 
@@ -356,7 +370,9 @@ export default function ControlBar({}: ControlBarProps) {
           min={0}
         />
         <ControlButton
-          onClick={handleSubmit(handlePreRunFormSubmitBuilder(true))}
+          onClick={handleSubmit(handleRuntimeFormSubmitBuilder(true))}
+          disabled={isRunning}
+          className={"disabled:cursor-not-allowed disabled:opacity-50"}
           iconImage={{
             alt: "Play icon with a number 1",
             src: "/assets/run1.svg",
@@ -364,11 +380,15 @@ export default function ControlBar({}: ControlBarProps) {
           helpText="Run the simulation for one round."
         />
         <ControlButton
-          onClick={handleSubmit(handlePreRunFormSubmitBuilder(false))}
+          disabled={isRunning}
+          className={"disabled:cursor-not-allowed disabled:opacity-50"}
+          onClick={handleSubmit(handleRuntimeFormSubmitBuilder(false))}
           icon={<PlayCircleRoundedIcon style={{ color: "#27ae60" }} />}
           helpText="Run the simulation for the specified number of rounds."
         />
         <ControlButton
+          disabled={!isRunning}
+          className={"disabled:cursor-not-allowed disabled:opacity-50"}
           icon={<StopCircleRoundedIcon style={{ color: "#E74C3C" }} />}
           helpText="Stop the simulation."
           onClick={onPauseButtonClick}
@@ -381,19 +401,42 @@ export default function ControlBar({}: ControlBarProps) {
         onClick={onResetCamButtonClick}
       />
       <ControlButton
+        disabled={isRunning}
+        className={"disabled:cursor-not-allowed disabled:opacity-50"}
+        icon={<MdLinearScale className="text-gray-400" />}
+        helpText={
+          isRunning
+            ? "Only usable when the simulation is paused."
+            : `${shouldShowEdges ? "Hide" : "Show"} the network graph edges.`
+        }
+        onClick={() => setShouldShowEdges(!shouldShowEdges)}
+      />
+      <ControlButton
+        disabled={isRunning}
+        className={"disabled:cursor-not-allowed disabled:opacity-50"}
         iconImage={{
           src: `/assets/arrow-${shouldShowArrows ? "closed" : "open"}-eye.svg`,
           alt: "Arrow with an eye icon",
         }}
-        helpText={`${shouldShowArrows ? "Hide" : "Show"} the network graph arrows.`}
+        helpText={
+          isRunning
+            ? "Only usable when the simulation is paused."
+            : `${shouldShowArrows ? "Hide" : "Show"} the network graph arrows.`
+        }
         onClick={() => setShouldShowArrows(!shouldShowArrows)}
       />
       <ControlButton
+        disabled={isRunning}
+        className={"disabled:cursor-not-allowed disabled:opacity-50"}
         iconImage={{
           src: `/assets/${shouldShowIds ? "not-" : ""}id.svg`,
           alt: "ID icon",
         }}
-        helpText={`${shouldShowIds ? "Hide" : "Show"} the network nodes IDs.`}
+        helpText={
+          isRunning
+            ? "Only usable when the simulation is paused."
+            : `${shouldShowIds ? "Hide" : "Show"} the network nodes IDs.`
+        }
         onClick={() => setShouldShowIds(!shouldShowIds)}
       />
       <ControlButton

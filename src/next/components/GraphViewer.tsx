@@ -1,7 +1,7 @@
 "use client";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { Sigma } from "sigma";
-import { createEdgeArrowProgram } from "sigma/rendering";
+import { createEdgeArrowProgram, EdgeRectangleProgram } from "sigma/rendering";
 import { useSimulationContext } from "../contexts/SimulationContext";
 import {
   EdgeAttributes,
@@ -9,6 +9,7 @@ import {
   NodeAttributes,
 } from "@/simulator/modules/Graph";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
+import { NoEdgeProgram } from "../utils/NoEdgeProgram";
 
 export type GraphViewerProps = {
   arrowHeadSize?: number;
@@ -27,6 +28,7 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       setCameraState,
       shouldShowIds,
       shouldShowArrows,
+      shouldShowEdges,
       sigmaRef,
       onUpdateSigma,
     } = useGraphVisualizationContext();
@@ -45,24 +47,25 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
         "graph-container",
       ) as HTMLDivElement;
 
-      console.log(
-        containerRef.current,
-        containerRef.current instanceof Element,
-        document.contains(containerRef.current),
-      );
-
-      sigmaRef.current = new Sigma(simulation.graph, containerRef.current!, {
-        renderEdgeLabels: true, // TODO : review its configurations
-        autoCenter: false,
-        renderLabels: shouldShowIds ?? true,
-        // allowInvalidContainer: true,
-        edgeProgramClasses: {
-          arrow: createEdgeArrowProgram({
-            lengthToThicknessRatio: 2.5 * (arrowHeadSize ?? 1),
-            widenessToThicknessRatio: 2 * (arrowHeadSize ?? 1),
-          }),
+      sigmaRef.current = new Sigma<NodeAttributes, EdgeAttributes>(
+        simulation.graph,
+        containerRef.current!,
+        {
+          renderEdgeLabels: true, // TODO : review its configurations
+          autoCenter: false,
+          renderLabels: shouldShowIds ?? true,
+          defaultEdgeType: shouldShowArrows ? "arrow" : "line",
+          edgeProgramClasses: {
+            line: shouldShowEdges ? EdgeRectangleProgram : NoEdgeProgram,
+            arrow: shouldShowEdges
+              ? createEdgeArrowProgram({
+                  lengthToThicknessRatio: 2.5 * (arrowHeadSize ?? 1),
+                  widenessToThicknessRatio: 2 * (arrowHeadSize ?? 1),
+                })
+              : NoEdgeProgram,
+          },
         },
-      });
+      );
       onUpdateSigma();
 
       // enableDrag(); // TODO: enable it
@@ -148,7 +151,14 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       // interval = isRunning ? setInterval(animate) : undefined;
 
       // return () => interval && clearTimeout(interval);
-    }, [shouldShowIds, arrowHeadSize, simulation, containerRef]);
+    }, [
+      shouldShowEdges,
+      shouldShowIds,
+      arrowHeadSize,
+      simulation,
+      containerRef,
+      shouldShowArrows,
+    ]);
 
     useEffect(() => {
       if (!simulation) return;
@@ -169,7 +179,6 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
     };
 
     const createBoundary = (g: Graph) => {
-      console.log("createBoundary");
       if (!simulation) return;
       if (g.hasNode("b-lb")) return;
 
@@ -203,7 +212,6 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
           { source: "b-rt", target: "b-rb" },
         ],
       };
-      console.log("creating");
       boundData.nodes.forEach((n) =>
         g.addNode(n.id, {
           ...n,

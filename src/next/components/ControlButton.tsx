@@ -44,7 +44,7 @@ export default function ControlButton<Label extends string | undefined>({
             }
             label={<span className="font-bold">{label}</span>}
             variant="outlined"
-            clickable
+            clickable={!props.disabled}
             {...(props as ChipProps)}
           />
         ) : (
