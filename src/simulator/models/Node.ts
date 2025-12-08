@@ -231,7 +231,7 @@ export abstract class Node extends BaseNode {
         new PacketEvent(packet, packet.arrivingTime, simulation),
       );
     } else {
-      if (!this.simulation.isRunnig) {
+      if (!this.simulation.isRunning) {
         throw new Error("Simulation is not running");
       }
       target.packetBuffer.addPacket(packet);
@@ -443,7 +443,8 @@ export abstract class Node extends BaseNode {
     radioIntensity: number,
     transmissionType: TransmissionType,
   ): Packet {
-    if (!this.simulation.isRunnig) throw new Error("Simulation is not running");
+    if (!this.simulation.isRunning)
+      throw new Error("Simulation is not running");
 
     const clonedMsg = message.clone();
     const simulation = this.simulation as SynchronousSimulation;
@@ -490,7 +491,7 @@ export abstract class Node extends BaseNode {
    * @param intensity The intensity to send the messages with.
    */
   private broadcastMessage(message: Message, radioIntensity: number) {
-    if (!this.simulation.isRunnig && !this.simulation.isAsyncMode)
+    if (!this.simulation.isRunning && !this.simulation.isAsyncMode)
       throw new Error("Simulation is not running");
 
     if (this.simulation.project.simulationConfig.interferenceEnabled) {

@@ -17,13 +17,13 @@ import { ModelType, ModelTypeToModel } from "@/simulator/utils/modelsUtils";
 import { RandomUtils } from "@/simulator/utils/RandomUtils";
 import z from "zod";
 
-export type RandomMessageNodeParametersSchema = {
+export type BroadcastNodeParametersSchema = {
   initialColor: string;
   size: number;
   haveMobility: boolean;
 };
 
-export class RandomMessageNode extends Node {
+export class BroadcastNode extends Node {
   public constructor(
     public readonly id: NodeId,
     public mobilityModel: MobilityModel,
@@ -32,7 +32,7 @@ export class RandomMessageNode extends Node {
     public reliabilityModel: ReliabilityModel,
     public UsedPacket: ConcretePacket,
     public position: Position,
-    public readonly parameters: RandomMessageNodeParametersSchema,
+    public readonly parameters: BroadcastNodeParametersSchema,
     public readonly simulation: Simulation,
   ) {
     super(
@@ -89,16 +89,9 @@ export class RandomMessageNode extends Node {
   }
 
   public handleMessages(inbox: Inbox): void {
-    const edge = RandomUtils.randomChoice(
-      this.getOutgoingEdges().values().toArray(),
-    );
+    const message = new Message(`Broadcast from ${this.id}`);
 
-    if (!edge) return;
-
-    const target = this.simulation.getCertainNode(edge.target);
-
-    const message = new Message(`Message from ${this.id} to ${target.id}`);
-    this.send(message, target);
+    this.broadcast(message);
   }
 
   public preStep(): void {

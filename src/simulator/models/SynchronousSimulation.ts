@@ -3,6 +3,7 @@ import { SynchronousSimulationStatistics } from "./SynchronousSimulationStatisti
 import { OrderedTimerSet } from "../modules/OrderedTimerSet";
 import { Edge } from "./Edge";
 import { Node } from "./Node";
+import { SynchronousThread } from "./SynchronousThread";
 
 export type SynchronousSimulationOptions = SimulationOptions & {};
 
@@ -12,6 +13,7 @@ export class SynchronousSimulation extends Simulation {
   public startTimeOfRound: Date | null = null;
   public statistics: SynchronousSimulationStatistics;
   public globalTimers: OrderedTimerSet = new OrderedTimerSet();
+  public currentThread: SynchronousThread | null = null;
 
   public constructor({ ...options }: SimulationOptions) {
     super(options);

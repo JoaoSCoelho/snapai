@@ -2,7 +2,7 @@ import { Message } from "../../models/Message";
 import { NodeId } from "../../models/Node";
 import { Packet, TransmissionType } from "../../models/Packet";
 
-export class Packet232Bytes extends Packet {
+export class Packet29Bytes extends Packet {
   protected _positiveDelivery: boolean = true; // 1 bit
   protected _arrivingTime: number | null = null; // 64 bits
   protected _sendingTime: number | null = null; // 64 bits
@@ -63,10 +63,11 @@ export class Packet232Bytes extends Packet {
   }
 
   public setParameters(): void {
+    // TODO: it don't will work correctly, think in a form to create a builder packet
     // This packet don't have parameters
   }
 
   public getByteSize(): number {
-    return this.message.getByteSize() + 232;
+    return this.message.getByteSize() + 29;
   }
 }

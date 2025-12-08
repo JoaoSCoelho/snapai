@@ -14,7 +14,10 @@ import type { Sigma } from "sigma";
 import { CameraState } from "sigma/types";
 import { SimulationInfoCardType } from "../components/SimulationInfoBar";
 import { SimulationInfoChipRef } from "../components/SimulationInfoChip";
-import { info } from "console";
+import prettyBytes from "pretty-bytes";
+import { renderToString } from "react-dom/server";
+import { Divider } from "@mui/material";
+import { SimulationInfoChipHelper } from "../utils/SimulationInfoChipHelper";
 
 export type GraphVisualizationContextProps = {
   shouldShowArrows: boolean;
@@ -76,6 +79,7 @@ export const GraphVisualizationProvider = ({
     [SimulationInfoCardType.RemainingEvents]: null,
     [SimulationInfoCardType.RefreshingRate]: null,
     [SimulationInfoCardType.MessagesSentOnRound]: null,
+    [SimulationInfoCardType.MessagesReceivedOnRound]: null,
   });
   const sigmaRef = useRef<Sigma<NodeAttributes, EdgeAttributes> | null>(null);
   const lastInterfaceUpdate = useRef(0);
@@ -90,21 +94,24 @@ export const GraphVisualizationProvider = ({
    */
   const interfaceUpdater = (simulation: Simulation) => {
     const obj = infoBarRef.current;
-    obj.time?.text?.textContent &&
-      (obj.time.text.textContent = simulation.currentTime.toString());
 
-    obj.totalMessagesSent?.text?.textContent &&
-      (obj.totalMessagesSent.text.textContent = simulation.statistics
-        .getSentMessages()
-        .toString());
+    if (obj.time) {
+      SimulationInfoChipHelper.updateForTime(obj.time.update, simulation);
+    }
 
-    obj.totalMessagesSent?.hoverBox?.textContent &&
-      (obj.totalMessagesSent.hoverBox.innerHTML = `<p>Total sent bytes: ${simulation.statistics.getSentBytes()}</p><p>Total sent message bytes: ${simulation.statistics.getSentMessageBytes()}</p>`);
+    if (obj.totalMessagesSent) {
+      SimulationInfoChipHelper.updateForTotalMessagesSent(
+        obj.totalMessagesSent.update,
+        simulation,
+      );
+    }
 
-    obj.totalReceivedMessages?.text?.textContent &&
-      (obj.totalReceivedMessages.text.textContent = simulation.statistics
-        .getReceivedMessages()
-        .toString());
+    if (obj.totalReceivedMessages) {
+      SimulationInfoChipHelper.updateForTotalReceivedMessages(
+        obj.totalReceivedMessages.update,
+        simulation,
+      );
+    }
 
     obj.framingRate?.text?.textContent &&
       (obj.framingRate.text.textContent =
@@ -114,9 +121,11 @@ export const GraphVisualizationProvider = ({
       (obj.refreshingRate.text.textContent =
         simulation.currentThread?.refreshingRate.toFixed(0) ?? "----");
 
+    // TODO: add number of nodes of each type in statistics
     obj.nodes?.text?.textContent &&
       (obj.nodes.text.textContent = simulation.nodeSize().toString());
 
+    // TODO: add number of unidirectional and bidirectional edges
     obj.edges?.text?.textContent &&
       (obj.edges.text.textContent = simulation.edgeSize().toString());
 
@@ -125,18 +134,167 @@ export const GraphVisualizationProvider = ({
         ? (simulation as AsynchronousSimulation).eventQueue.size().toString()
         : "----");
 
-    obj.messagesSentOnRound?.text?.textContent &&
-      (obj.messagesSentOnRound.text.textContent = simulation.isAsyncMode
-        ? "----"
-        : (simulation as SynchronousSimulation).statistics
-            .getLastRoundSentMessages()
-            .toString());
+    if (obj.messagesSentOnRound) {
+      if (obj.messagesSentOnRound.text) {
+        obj.messagesSentOnRound.text.textContent = simulation.isAsyncMode
+          ? "----"
+          : (simulation as SynchronousSimulation).statistics
+              .getLastRoundSentMessages()
+              .toString();
+      }
 
-    if (!interalIsRunning.current && simulation.isRunnig) {
+      if (obj.messagesSentOnRound.hoverBox && !simulation.isAsyncMode) {
+        if (obj.messagesSentOnRound.hoverBox.ariaLabel === "short-info") {
+          obj.messagesSentOnRound.hoverBox.innerHTML = renderToString(
+            <>
+              <p>
+                Bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundSentBytes(),
+                )}
+              </p>
+              <p>
+                Message bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundSentMessageBytes(),
+                )}
+              </p>
+            </>,
+          );
+        } else {
+          obj.messagesSentOnRound.hoverBox.innerHTML = renderToString(
+            <>
+              <p>
+                Bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundSentBytes(),
+                )}
+              </p>
+              <p>
+                Message bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundSentMessageBytes(),
+                )}
+              </p>
+              <Divider />
+              <p className="text-xs text-right">
+                <strong>Totals</strong>
+              </p>
+              <p>
+                Messages:{" "}
+                {(
+                  simulation as SynchronousSimulation
+                ).statistics.getLastRoundSentMessages()}
+              </p>
+              <p>
+                Bytes:{" "}
+                {(
+                  simulation as SynchronousSimulation
+                ).statistics.getLastRoundSentBytes()}
+              </p>
+              <p>
+                Message bytes:{" "}
+                {(
+                  simulation as SynchronousSimulation
+                ).statistics.getLastRoundSentMessageBytes()}
+              </p>
+            </>,
+          );
+        }
+      }
+    }
+
+    if (obj.messagesReceivedOnRound) {
+      if (obj.messagesReceivedOnRound.text) {
+        obj.messagesReceivedOnRound.text.textContent = simulation.isAsyncMode
+          ? "----"
+          : (simulation as SynchronousSimulation).statistics
+              .getLastRoundReceivedMessages()
+              .toString();
+      }
+
+      if (obj.messagesReceivedOnRound.hoverBox && !simulation.isAsyncMode) {
+        if (obj.messagesReceivedOnRound.hoverBox.ariaLabel === "short-info") {
+          obj.messagesReceivedOnRound.hoverBox.innerHTML = renderToString(
+            <>
+              <p>
+                Bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundReceivedBytes(),
+                )}
+              </p>
+              <p>
+                Message bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundReceivedMessageBytes(),
+                )}
+              </p>
+            </>,
+          );
+        } else {
+          obj.messagesReceivedOnRound.hoverBox.innerHTML = renderToString(
+            <>
+              <p>
+                Bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundReceivedBytes(),
+                )}
+              </p>
+              <p>
+                Message bytes:{" "}
+                {prettyBytes(
+                  (
+                    simulation as SynchronousSimulation
+                  ).statistics.getLastRoundReceivedMessageBytes(),
+                )}
+              </p>
+              <Divider />
+              <p className="text-xs text-right">
+                <strong>Totals</strong>
+              </p>
+              <p>
+                Messages:{" "}
+                {(
+                  simulation as SynchronousSimulation
+                ).statistics.getLastRoundReceivedMessages()}
+              </p>
+              <p>
+                Bytes:{" "}
+                {(
+                  simulation as SynchronousSimulation
+                ).statistics.getLastRoundReceivedBytes()}
+              </p>
+              <p>
+                Message bytes:{" "}
+                {(
+                  simulation as SynchronousSimulation
+                ).statistics.getLastRoundReceivedMessageBytes()}
+              </p>
+            </>,
+          );
+        }
+      }
+    }
+
+    if (!interalIsRunning.current && simulation.isRunning) {
       setIsRunning(true);
       interalIsRunning.current = true;
     }
-    if (interalIsRunning.current && !simulation.isRunnig) {
+    if (interalIsRunning.current && !simulation.isRunning) {
       setIsRunning(false);
       interalIsRunning.current = false;
     }

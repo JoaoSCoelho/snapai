@@ -6,6 +6,9 @@ import { Thread } from "./Thread";
 import { Graph } from "../modules/Graph";
 
 export class SynchronousThread extends Thread {
+  private shouldStop = false;
+  public currentRound = 0;
+
   public constructor(
     public readonly simulation: SynchronousSimulation,
     public readonly rounds: number,
@@ -16,18 +19,14 @@ export class SynchronousThread extends Thread {
     public readonly onEnd: () => void = () => {},
     public readonly onInterrupt: () => void = () => {},
     public readonly onRoundEnd: () => void = () => {},
+    public readonly onFinish: () => void = () => {},
+    public readonly onStop: () => void = () => {},
   ) {
     super(simulation);
   }
 
-  /**
-   * Stops the simulation.
-   * This method sets the isRunnig flag to false.
-   * It is used to stop the simulation from running.
-   * @returns A promise that resolves when the simulation has been stopped.
-   */
   public async stop() {
-    this.simulation.isRunnig = false;
+    this.shouldStop = true;
   }
 
   /**
@@ -37,84 +36,111 @@ export class SynchronousThread extends Thread {
    * @returns A promise that resolves when the simulation has finished.
    */
   public async run() {
-    let startTime = new Date();
-    this.simulation.isRunnig = true;
-    this.simulation.logger.log("Simulation started.");
-    if (this.simulation.currentTime === 0) {
-      // @ts-ignore
-      this.simulation.startTime = startTime;
-    }
-    this.simulation.startTimeOfRound = startTime;
-    this.onStart();
-
-    const frameEach = this.frameRate === 0 ? 0 : 1000 / this.frameRate;
-    const roundEach = 1000 / this.refreshRate;
-    const shouldSleepRound = roundEach !== Infinity;
-    let lastFrameTime = Date.now();
-    let refreshingTime = Date.now();
-    let lastTime = Date.now();
-    let lastFrameCount = 0;
-    let framingCount = [];
-    let refreshingCount = [];
-    let pendent = 0;
-    for (let i = 0; i < this.rounds; i++) {
-      if ((this.simulation.isRunnig as boolean) === false) {
-        this.onInterrupt();
-        this.simulation.logger.log(
-          `Simulation stopped in round ${i} of ${this.rounds} in ${(Date.now() - startTime.getTime()) / 1000} s.`,
-        );
-        return;
+    try {
+      let startTime = new Date();
+      this.simulation.isRunning = true;
+      this.simulation.logger.log("Simulation started.");
+      if (this.simulation.currentTime === 0) {
+        // @ts-ignore
+        this.simulation.startTime = startTime;
       }
+      this.simulation.startTimeOfRound = startTime;
+      this.onStart();
 
-      if (shouldSleepRound) {
-        const sleepTime = roundEach - (Date.now() - lastTime) - pendent;
-        pendent = 0;
-        if (sleepTime > 0) {
-          if (sleepTime < 6) {
-            pendent += 6 - sleepTime;
-          }
-          await new Promise((resolve) => setTimeout(resolve, sleepTime));
+      const frameEach = this.frameRate === 0 ? 0 : 1000 / this.frameRate;
+      const roundEach = 1000 / this.refreshRate;
+      const shouldSleepRound = roundEach !== Infinity;
+      let lastFrameTime = Date.now();
+      let refreshingTime = Date.now();
+      let lastTime = Date.now();
+      let lastFrameCount = 0;
+      let framingCount = [];
+      let refreshingCount = [];
+      let pendent = 0;
+      for (
+        this.currentRound = 0;
+        this.currentRound < this.rounds;
+        this.currentRound++
+      ) {
+        if ((this.simulation.isRunning as boolean) === false) {
+          this.onInterrupt();
+          this.onEnd();
+          this.simulation.logger.log(
+            `Simulation is not running in round ${this.currentRound} of ${this.rounds} in ${(Date.now() - startTime.getTime()) / 1000} s.`,
+          );
+          return;
         }
-        lastTime = Date.now();
+        if (this.shouldStop) {
+          this.simulation.logger.log(
+            `Simulation stopped in round ${this.currentRound} of ${this.rounds} in ${(Date.now() - startTime.getTime()) / 1000} s.`,
+          );
+          this.onStop();
+          this.onEnd();
+          this.simulation.isRunning = false;
+          return;
+        }
+
+        if (shouldSleepRound) {
+          const sleepTime = roundEach - (Date.now() - lastTime) - pendent;
+          pendent = 0;
+          if (sleepTime > 0) {
+            if (sleepTime < 6) {
+              pendent += 6 - sleepTime;
+            }
+            await new Promise((resolve) => setTimeout(resolve, sleepTime));
+          }
+          lastTime = Date.now();
+        }
+
+        let passedTime = Date.now() - lastFrameTime;
+        if (passedTime > frameEach) {
+          framingCount.push(1000 / passedTime);
+          if (framingCount.length > 10) framingCount.shift();
+          this.framingRate =
+            framingCount.reduce((a, b) => a + b, 0) / framingCount.length;
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          lastFrameTime = Date.now();
+        }
+
+        passedTime = Date.now() - refreshingTime;
+        if (passedTime > 250) {
+          refreshingCount.push(
+            (1000 / passedTime) * (this.currentRound - lastFrameCount),
+          );
+          if (refreshingCount.length > 10) refreshingCount.shift();
+          this.refreshingRate =
+            refreshingCount.reduce((a, b) => a + b, 0) / refreshingCount.length;
+          lastFrameCount = this.currentRound;
+          refreshingTime = Date.now();
+        }
+
+        this.simulation.currentTime++;
+        this.simulation.isEvenRound = !this.simulation.isEvenRound;
+
+        this.sigma.setGraph(new Graph());
+        await this.simulation.project.preRound();
+        await this.round();
+        await this.simulation.project.postRound();
+        this.onRoundEnd();
+        this.sigma.setGraph(this.simulation.graph);
+        if (this.simulation.project.hasTerminated()) this.stop();
       }
 
-      let passedTime = Date.now() - lastFrameTime;
-      if (passedTime > frameEach) {
-        framingCount.push(1000 / passedTime);
-        if (framingCount.length > 10) framingCount.shift();
-        this.framingRate =
-          framingCount.reduce((a, b) => a + b, 0) / framingCount.length;
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        lastFrameTime = Date.now();
-      }
-
-      passedTime = Date.now() - refreshingTime;
-      if (passedTime > 250) {
-        refreshingCount.push((1000 / passedTime) * (i - lastFrameCount));
-        if (refreshingCount.length > 10) refreshingCount.shift();
-        this.refreshingRate =
-          refreshingCount.reduce((a, b) => a + b, 0) / refreshingCount.length;
-        lastFrameCount = i;
-        refreshingTime = Date.now();
-      }
-
-      this.simulation.currentTime++;
-      this.simulation.isEvenRound = !this.simulation.isEvenRound;
-
-      this.sigma.setGraph(new Graph());
-      await this.simulation.project.preRound();
-      await this.round();
-      await this.simulation.project.postRound();
-      this.onRoundEnd();
-      this.sigma.setGraph(this.simulation.graph);
-      if (this.simulation.project.hasTerminated()) this.stop();
+      this.simulation.isRunning = false;
+      this.onFinish();
+      this.onEnd();
+      this.simulation.logger.log(
+        `Simulation finished ${this.rounds} rounds in ${(Date.now() - startTime.getTime()) / 1000} s.`,
+      );
+    } catch (e) {
+      this.simulation.isRunning = false;
+      this.onInterrupt();
+      this.onEnd();
+      this.simulation.logger.log(
+        `Simulation interrupted in round ${this.rounds} by error: ${e}.`,
+      );
+      throw e;
     }
-
-    this.simulation.isRunnig = false;
-    this.onEnd();
-    this.simulation.logger.log(
-      `Simulation finished ${this.rounds} rounds in ${(Date.now() - startTime.getTime()) / 1000} s.`,
-    );
   }
 
   /**

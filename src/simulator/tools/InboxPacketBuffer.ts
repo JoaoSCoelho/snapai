@@ -54,9 +54,8 @@ export class InboxPacketBuffer {
    */
   public updateMessageBuffer() {
     this.arrivingPackets.clear();
-
     for (const packet of this.getBufferCopy()) {
-      if (packet.arrivingTime ?? 0 <= this.simulation.currentTime) {
+      if ((packet.arrivingTime ?? 0) <= this.simulation.currentTime) {
         if (this.simulation.project.simulationConfig.interferenceEnabled) {
           this.simulation.packetsInTheAir.remove(packet);
         }
@@ -72,10 +71,13 @@ export class InboxPacketBuffer {
           this.simulation.logger.log(
             `Message \"${JSON.stringify(packet.message.data, null, 2)}\" (${packet.originId}->${packet.destinationId}) arrived`,
           );
+          this.simulation.statistics.registerReceivedMessage(packet);
         } else {
           if (this.simulation.project.simulationConfig.nackMessagesEnabled) {
             const origin = this.simulation.getCertainNode(packet.originId);
-
+            this.simulation.logger.log(
+              `NACK \"${JSON.stringify(packet.message.data, null, 2)}\" (${packet.originId}->${packet.destinationId}) arrived`,
+            );
             origin.addNackPacket(packet);
           }
         }

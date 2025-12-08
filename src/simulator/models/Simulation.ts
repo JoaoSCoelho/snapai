@@ -24,7 +24,7 @@ export type SimulationOptions = {
 
 export abstract class Simulation {
   public readonly id: number = ++Global.lastId;
-  public isRunnig: boolean = false;
+  public isRunning: boolean = false;
   public abstract readonly isAsyncMode: boolean;
   public readonly startTime: Date | null = null;
   public readonly project: Project;
@@ -59,7 +59,7 @@ export abstract class Simulation {
    * @returns a promise that resolves when the simulation is finished
    */
   public async run(thread: Thread): Promise<void> {
-    if (this.isRunnig) return;
+    if (this.isRunning) return;
 
     this.currentThread = thread;
 
@@ -73,7 +73,6 @@ export abstract class Simulation {
    */
   public async stop() {
     await this.currentThread?.stop();
-    this.isRunnig = false;
     this.currentThread = null;
   }
 

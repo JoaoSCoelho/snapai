@@ -1,6 +1,6 @@
 import { SimulationConfig } from "../configurations/Simulation/SimulationConfig";
 import { SimulationConfigSchema } from "../configurations/Simulation/simulationConfigSchema";
-import { Packet232Bytes } from "./packets/Packet232Bytes";
+import { Packet29Bytes } from "./packets/Packet29Bytes";
 import { Project } from "../models/Project";
 import { UDGConnectivity } from "./connectivityModels/UDGConnectivity";
 import jsonConfig from "./defaultConfig.json";
@@ -28,7 +28,7 @@ export class DefaultProject extends Project {
     this.addModel("RandomDistribution", RandomDistribution);
     this.addModel("ReliableDelivery", ReliableDelivery);
     this.addModel("UDGConnectivity", UDGConnectivity);
-    this.addPacket("232BytesPacket", Packet232Bytes);
+    this.addPacket("29BytesPacket", Packet29Bytes);
     this.addPacket("VariableBytesPacket", VariableBytesPacket);
     this.addNode("InertNode", InertNode);
   }

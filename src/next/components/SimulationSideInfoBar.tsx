@@ -5,15 +5,10 @@ import {
   SimulationInfoBarRef,
   SimulationInfoCardType,
 } from "./SimulationInfoBar";
-import { useSimulationContext } from "../contexts/SimulationContext";
-import { AsynchronousSimulation } from "@/simulator/models/AsynchronousSimulation";
-import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
-
 export type SimulationSideInfoBarProps = {};
 
 export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
   const { infoBarRef } = useGraphVisualizationContext();
-  const { simulation } = useSimulationContext();
 
   const refFunc = (el: SimulationInfoBarRef | null) => {
     if (el) {
@@ -30,53 +25,21 @@ export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
       <SimulationInfoBar
         ref={refFunc}
         cards={[
-          {
-            type: SimulationInfoCardType.Time,
-            value: simulation?.currentTime ?? null,
-          },
-          {
-            type: SimulationInfoCardType.TotalMessagesSent,
-            value: simulation?.statistics.getSentMessages() ?? null,
-          },
-          {
-            type: SimulationInfoCardType.TotalReceivedMessages,
-            value: simulation?.statistics.getReceivedMessages() ?? null,
-          },
-          {
-            type: SimulationInfoCardType.MessagesSentOnRound,
-            value: simulation?.isAsyncMode
-              ? null
-              : ((simulation as SynchronousSimulation | undefined)?.statistics
-                  .getLastRoundSentMessages()
-                  .toString() ?? null),
-          },
-          {
-            type: SimulationInfoCardType.FramingRate,
-            value: simulation?.currentThread?.framingRate ?? null,
-          },
+          { type: SimulationInfoCardType.Time },
+          { type: SimulationInfoCardType.TotalMessagesSent },
+          { type: SimulationInfoCardType.TotalReceivedMessages },
+          { type: SimulationInfoCardType.MessagesSentOnRound },
+          { type: SimulationInfoCardType.MessagesReceivedOnRound },
+          { type: SimulationInfoCardType.FramingRate },
         ]}
       />
       <SimulationInfoBar
         ref={refFunc}
         cards={[
-          {
-            type: SimulationInfoCardType.Nodes,
-            value: simulation?.nodeSize() ?? null,
-          },
-          {
-            type: SimulationInfoCardType.Edges,
-            value: simulation?.edgeSize() ?? null,
-          },
-          {
-            type: SimulationInfoCardType.RemainingEvents,
-            value: simulation?.isAsyncMode
-              ? (simulation as AsynchronousSimulation)?.eventQueue.size()
-              : null,
-          },
-          {
-            type: SimulationInfoCardType.RefreshingRate,
-            value: simulation?.currentThread?.refreshingRate ?? null,
-          },
+          { type: SimulationInfoCardType.Nodes },
+          { type: SimulationInfoCardType.Edges },
+          { type: SimulationInfoCardType.RemainingEvents },
+          { type: SimulationInfoCardType.RefreshingRate },
         ]}
       />
       <Divider variant="middle" />

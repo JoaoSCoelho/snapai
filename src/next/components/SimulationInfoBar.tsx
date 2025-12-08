@@ -11,11 +11,13 @@ import { Md30FpsSelect, MdOutbox } from "react-icons/md";
 import { HiInboxIn } from "react-icons/hi";
 import { FaFastForward } from "react-icons/fa";
 import { TbMessage2Up } from "react-icons/tb";
+import { TbMessage2Down } from "react-icons/tb";
 
 export enum SimulationInfoCardType {
   TotalMessagesSent = "totalMessagesSent",
   TotalReceivedMessages = "totalReceivedMessages",
   MessagesSentOnRound = "messagesSentOnRound",
+  MessagesReceivedOnRound = "messagesReceivedOnRound",
   FramingRate = "framingRate",
   Time = "time",
   Nodes = "nodes",
@@ -26,7 +28,7 @@ export enum SimulationInfoCardType {
 // TODO: review this component
 export type SimulationInfoCard = {
   type: SimulationInfoCardType;
-  value: string | number | null;
+  value?: string | number | null;
 };
 
 export type SimulationInfoBarRef = Record<
@@ -53,6 +55,7 @@ export const SimulationInfoBar = forwardRef<
     [SimulationInfoCardType.RemainingEvents]: null,
     [SimulationInfoCardType.RefreshingRate]: null,
     [SimulationInfoCardType.MessagesSentOnRound]: null,
+    [SimulationInfoCardType.MessagesReceivedOnRound]: null,
   });
 
   useImperativeHandle(ref, () => chipRefs.current);
@@ -98,6 +101,11 @@ export const SimulationInfoBar = forwardRef<
         } else if (card.type === SimulationInfoCardType.MessagesSentOnRound) {
           title = "Messages sent on round";
           icon = <TbMessage2Up color="#666" fontSize={24} />;
+        } else if (
+          card.type === SimulationInfoCardType.MessagesReceivedOnRound
+        ) {
+          title = "Messages received on round";
+          icon = <TbMessage2Down color="#666" fontSize={24} />;
         } else if (card.type === SimulationInfoCardType.RefreshingRate) {
           title = "Refresh Rate";
           icon = <FaFastForward fontSize="medium" style={{ color: "#666" }} />;
