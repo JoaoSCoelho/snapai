@@ -25,6 +25,7 @@ function TextField({
   nestedIn,
   control,
   register,
+  onChange,
 }: TextFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -65,7 +66,10 @@ function TextField({
               ),
             },
           }}
-          {...register(fullName)}
+          {...register(fullName, {
+            onChange: (e) =>
+              onChange?.(field.name, fullName, e.target.value, false),
+          })}
           {...inputAttr}
         />
       </FormControl>

@@ -13,13 +13,14 @@
     0
   ],
   "loggerOptions": {
-    "useConsole": true
+    "useConsole": false
   },
   "isAsynchronous": false,
   "shouldSaveTrace": true,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": true,
   "connectivityEnabled": true,
+  "mobilityEnabled": true,
   "interferenceEnabled": true,
   "interferenceIsAdditive": true,
   "maxConnectionRadius": 60,

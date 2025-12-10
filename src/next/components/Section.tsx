@@ -7,10 +7,11 @@ export type SectionProps = {
   section: SectionCls;
   control: Control<any>;
   register: UseFormRegister<any>;
-  onParameterizedSelectChange?: (
+  onChange?: (
     name: string,
     fullName: string,
     value: string,
+    isParameterizedSelect?: boolean,
   ) => void;
 };
 

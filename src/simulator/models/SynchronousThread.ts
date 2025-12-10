@@ -154,7 +154,9 @@ export class SynchronousThread extends Thread {
   private async round() {
     this.simulation.handleGlobalTimers();
 
-    this.moveNodes();
+    if (this.simulation.project.simulationConfig.mobilityEnabled) {
+      this.moveNodes();
+    }
 
     if (this.simulation.project.simulationConfig.connectivityEnabled) {
       await this.updateConnections();

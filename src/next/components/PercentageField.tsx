@@ -25,6 +25,7 @@ export default function PercentageField({
   formControlAttr,
   inputAttr,
   control,
+  onChange,
 }: PercentageFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -69,7 +70,11 @@ export default function PercentageField({
           helperText={error}
           id={fullName}
           required={field.required}
-          {...register(fullName, { valueAsNumber: true })}
+          {...register(fullName, {
+            valueAsNumber: true,
+            onChange: (e) =>
+              onChange?.(field.name, fullName, e.target.value, false),
+          })}
           {...inputAttr}
         />
       </FormControl>

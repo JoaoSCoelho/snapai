@@ -1,4 +1,4 @@
-import { Tooltip } from "@mui/material";
+import { Divider, Tooltip } from "@mui/material";
 import clsx from "clsx";
 import Image from "next/image";
 import {
@@ -11,11 +11,13 @@ import {
   useState,
 } from "react";
 import { renderToString } from "react-dom/server";
+import { SimulationInfoChipHelper } from "../utils/SimulationInfoChipHelper";
+import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 
 export type SimulationInfoChipUpdaterProps = {
-  text?: string;
-  hoverBoxShortContent?: ReactNode;
-  hoverBoxFullContent?: ReactNode;
+  text?: string | null;
+  hoverBoxShortContent?: ReactNode | null;
+  hoverBoxFullContent?: ReactNode | null;
 };
 export type SimulationInfoChipUpdater = (
   props: SimulationInfoChipUpdaterProps,
@@ -71,7 +73,12 @@ export const SimulationInfoChip = forwardRef<
     const boxRef = useRef<HTMLDivElement>(null);
     const imageRef = useRef<HTMLImageElement>(null);
     const textRef = useRef<HTMLParagraphElement>(null);
-    const hoverBoxRef = useRef<HTMLDivElement>(null);
+    const hoverBoxShortRef = useRef<HTMLDivElement>(null);
+    const hoverBoxFullRef = useRef<HTMLDivElement>(null);
+    const hoveredRef = useRef(false);
+    const clickedRef = useRef(false);
+    const hoverBoxShortDataRef = useRef<string | null>(null);
+    const hoverBoxFullDataRef = useRef<string | null>(null);
 
     const [hovered, setHovered] = useState(false);
     const [clicked, setClicked] = useState(false);
@@ -80,7 +87,7 @@ export const SimulationInfoChip = forwardRef<
       box: boxRef.current,
       image: imageRef.current,
       text: textRef.current,
-      hoverBox: hoverBoxRef.current,
+      hoverBox: hoverBoxShortRef.current,
       update,
     }));
 
@@ -89,19 +96,57 @@ export const SimulationInfoChip = forwardRef<
       hoverBoxShortContent: newHoverBoxShortContent,
       hoverBoxFullContent: newHoverBoxFullContent,
     }: SimulationInfoChipUpdaterProps) => {
+      if (newText === null) newText = "----";
+      if (newHoverBoxFullContent === null) newHoverBoxFullContent = "----";
+      if (newHoverBoxShortContent === null) newHoverBoxShortContent = "----";
+
       if (textRef.current)
         textRef.current.textContent = newText ?? textRef.current.textContent;
-      if (hoverBoxRef.current) {
-        if (hovered) {
-          hoverBoxRef.current.innerHTML = newHoverBoxShortContent
-            ? renderToString(newHoverBoxShortContent)
-            : hoverBoxRef.current.innerHTML;
-        } else {
-          hoverBoxRef.current.innerHTML = newHoverBoxFullContent
-            ? renderToString(newHoverBoxFullContent)
-            : hoverBoxRef.current.innerHTML;
-        }
+
+      hoverBoxFullDataRef.current = newHoverBoxFullContent
+        ? renderToString(newHoverBoxFullContent)
+        : hoverBoxFullDataRef.current;
+
+      hoverBoxShortDataRef.current = newHoverBoxShortContent
+        ? renderToString(newHoverBoxShortContent)
+        : hoverBoxShortDataRef.current;
+
+      updateHoverBox();
+    };
+
+    const updateHoverBox = () => {
+      updateHoverBoxShort();
+      updateHoverBoxFull();
+    };
+
+    const updateHoverBoxShort = () => {
+      if (hoverBoxShortRef.current) {
+        hoverBoxShortRef.current.innerHTML =
+          hoverBoxShortDataRef.current ?? hoverBoxShortRef.current.innerHTML;
       }
+    };
+
+    const updateHoverBoxFull = () => {
+      if (hoverBoxFullRef.current) {
+        hoverBoxFullRef.current.innerHTML =
+          hoverBoxFullDataRef.current ?? hoverBoxFullRef.current.innerHTML;
+      }
+    };
+
+    const onHover = () => {
+      setHovered(true);
+      hoveredRef.current = true;
+      updateHoverBox();
+    };
+
+    const onLeave = () => {
+      setHovered(false);
+      hoveredRef.current = false;
+    };
+
+    const onClick = () => {
+      setClicked(!clickedRef.current);
+      clickedRef.current = !clickedRef.current;
     };
 
     return (
@@ -132,9 +177,9 @@ export const SimulationInfoChip = forwardRef<
               !clicked && "shadow-md",
               "cursor-pointer",
             )}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            onClick={() => setClicked(!clicked)}
+            onMouseEnter={onHover}
+            onMouseLeave={onLeave}
+            onClick={onClick}
           >
             {icon ??
               (iconImage && (
@@ -164,11 +209,12 @@ export const SimulationInfoChip = forwardRef<
         >
           <div
             id={hoverBoxId}
-            ref={hoverBoxRef}
             aria-label={clicked ? "full-info" : "short-info"}
             className="bg-amber-50 border-amber-200 whitespace-nowrap text-slate-700 w-full z-10 border mt-1 rounded-sm py-1 px-1.5 text-sm"
           >
-            {hoverBoxContent ?? title}
+            <div ref={hoverBoxShortRef}>{hoverBoxContent ?? title}</div>
+            <Divider />
+            <div ref={hoverBoxFullRef}></div>
           </div>
         </div>
       </div>

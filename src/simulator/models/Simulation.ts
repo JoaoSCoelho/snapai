@@ -346,6 +346,10 @@ export abstract class Simulation {
 
       this.addNode(node);
     }
+
+    if (this.project.simulationConfig.connectOnAddNodes) {
+      this.reevaluateConnections();
+    }
   }
 
   /**

@@ -28,6 +28,7 @@ export default function SelectField({
   formControlAttr,
   nestedIn,
   containerAttr,
+  onChange,
 }: SelectFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -52,6 +53,7 @@ export default function SelectField({
                 id={fullName}
                 value={controllerField.value ?? ""}
                 onChange={(e) => {
+                  onChange?.(field.name, fullName, e.target.value, false);
                   controllerField.onChange(e);
                 }}
                 endAdornment={

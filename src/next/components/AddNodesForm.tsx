@@ -1,11 +1,9 @@
 import { z } from "zod";
-import { toast } from "sonner";
 import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import { ModelType } from "@/simulator/utils/modelsUtils";
 import { Simulator } from "@/simulator/Simulator";
 import { useAddNodesContext } from "../contexts/AddNodesContext";
 import { useSimulationContext } from "../contexts/SimulationContext";
-import { ErrorSystem } from "../utils/ErrorSystem";
 import { Layout } from "@/simulator/configurations/layout/Layout";
 import { Section } from "@/simulator/configurations/layout/Section";
 import { Subsection } from "@/simulator/configurations/layout/Subsection";

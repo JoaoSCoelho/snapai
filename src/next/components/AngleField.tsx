@@ -15,6 +15,7 @@ import { useState } from "react";
 import AngleDropdown from "./AngleDropdown";
 import { AngleField as AngleFieldCls } from "@/simulator/configurations/layout/fields/AngleField";
 import { AngleUnit } from "@/simulator/utils/types";
+import { debounce } from "../utils/debounce";
 
 type NumberFieldProps = FormFieldProps & {
   field: AngleFieldCls;
@@ -29,6 +30,7 @@ export default function AngleField({
   inputAttr,
   nestedIn,
   control,
+  onChange,
 }: NumberFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -54,6 +56,12 @@ export default function AngleField({
                 helperText={error?.message}
                 onChange={(e) => {
                   controllerField.onChange(Number(e.target.value));
+                  onChange?.(
+                    field.name,
+                    fullName,
+                    Number(e.target.value),
+                    false,
+                  );
                 }}
                 onFocus={() => {
                   setFocused(true);
@@ -101,6 +109,10 @@ export default function AngleField({
                 minValue={field.min}
                 onChange={(angle) => {
                   controllerField.onChange(angle);
+                  debounce(
+                    () => onChange?.(field.name, fullName, angle, true),
+                    100,
+                  );
                 }}
                 onFocusAdjusments={() => setFocused(true)}
                 onBlurAdjusments={() => setFocused(false)}

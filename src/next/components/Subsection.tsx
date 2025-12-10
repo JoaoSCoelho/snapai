@@ -10,11 +10,6 @@ export type SubsectionProps = {
   subsectionIndex: number;
   control: Control<any>;
   register: UseFormRegister<any>;
-  onParameterizedSelectChange?: (
-    name: string,
-    fullName: string,
-    value: string,
-  ) => void;
 };
 
 export default function Subsection({

@@ -29,6 +29,7 @@ export default function MultiSelectField({
   formControlAttr,
   nestedIn,
   containerAttr,
+  onChange,
 }: MultiSelectFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -55,6 +56,7 @@ export default function MultiSelectField({
                 value={controllerField.value || []}
                 onChange={(e) => {
                   controllerField.onChange(e);
+                  onChange?.(field.name, fullName, e.target.value, false);
                 }}
                 endAdornment={
                   <InputAdornment position="end">

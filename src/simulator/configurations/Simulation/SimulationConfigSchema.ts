@@ -39,7 +39,9 @@ export const simulationConfigSchema = z.object({
   registerStatisticsForEveryRound: z.boolean(),
   nackMessagesEnabled: z.boolean(),
   connectivityEnabled: z.boolean(),
+  mobilityEnabled: z.boolean(),
   interferenceEnabled: z.boolean(),
+  connectOnAddNodes: z.boolean(),
   interferenceIsAdditive: z.boolean(),
   maxConnectionRadius: z.number().min(0).optional(),
   messageTransmissionModel: z.string().refine(

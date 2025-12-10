@@ -13,11 +13,6 @@ export type LineProps = {
   register: UseFormRegister<any>;
   control: Control;
   disabled?: boolean;
-  onParameterizedSelectChange?: (
-    name: string,
-    fullName: string,
-    value: string,
-  ) => void;
 };
 
 export default function Line({

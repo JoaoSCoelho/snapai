@@ -27,6 +27,7 @@ export default function NumberPairField({
   containerAttr,
   nestedIn,
   inputAttr,
+  onChange,
 }: NumberPairFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -43,9 +44,11 @@ export default function NumberPairField({
           const [min, max] = renderField.value ?? ([0, 0] as [number, number]);
           const setMin = (val: number) => {
             renderField.onChange([val, max]);
+            onChange?.(field.name, fullName, [val, max], false);
           };
           const setMax = (val: number) => {
             renderField.onChange([min, val]);
+            onChange?.(field.name, fullName, [min, val], false);
           };
           return (
             <>

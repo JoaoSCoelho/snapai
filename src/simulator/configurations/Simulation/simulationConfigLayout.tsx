@@ -9,6 +9,7 @@ import { Layout } from "../layout/Layout";
 import { ModelSection } from "../layout/ModelSection";
 import { ModelType } from "@/simulator/utils/modelsUtils";
 import { NumberField } from "../layout/fields/NumberField";
+import { DependentSection } from "../layout/DependentSection";
 
 export const simulationConfigLayout = new Layout([
   Section.create({
@@ -114,41 +115,6 @@ export const simulationConfigLayout = new Layout([
                 "If this option is enabled, the simulation will consider interference when transmitting messages.",
             },
           }),
-          CheckboxField.create({
-            name: "interferenceIsAdditive",
-            label: "Interference is additive",
-            occupedColumns: 3,
-            schema: z.boolean(),
-            info: {
-              title:
-                "If this option is enabled, interference can only increase when new packets are added to the air. (Async mode only)",
-              helpText: (
-                <>
-                  <p>
-                    <b>Only in asynchronous mode</b>
-                  </p>
-                  <p>
-                    If this option is disabled, interference may change whenever
-                    packets are added or removed from the air.
-                  </p>
-                  <p>
-                    If this option is enabled, interference can only increase
-                    when new packets are added to the air.
-                  </p>
-                </>
-              ),
-            },
-          }),
-          CheckboxField.create({
-            name: "shouldSaveTrace",
-            label: "Save trace",
-            occupedColumns: 3,
-            schema: z.boolean(),
-            info: {
-              title:
-                "If this option is enabled, the simulation will save the positions of all nodes in all times (only in synchronous mode).",
-            },
-          }),
         ]),
         new Line([
           NumberField.create({
@@ -174,17 +140,6 @@ export const simulationConfigLayout = new Layout([
                 "If this option is enabled, the simulation will generate NACK messages.",
             },
           }),
-
-          CheckboxField.create({
-            name: "registerStatisticsForEveryRound",
-            label: "Register statistics for every round",
-            occupedColumns: 4,
-            schema: z.boolean(),
-            info: {
-              title:
-                "If this option is enabled, the simulation will mantain in memory statistics for every round, otherwise it will only mantain statistics for the last round.",
-            },
-          }),
         ]),
       ]),
       new Subsection(
@@ -206,6 +161,101 @@ export const simulationConfigLayout = new Layout([
         "loggerOptions",
       ),
     ],
+  }),
+  DependentSection.create({
+    subsections: [],
+    dependencies: ["isAsynchronous"],
+    builders: new Map([
+      [
+        "isAsynchronous",
+        (value: boolean) => {
+          if (value) {
+            return [
+              new Subsection(
+                [
+                  new Line([
+                    CheckboxField.create({
+                      name: "interferenceIsAdditive",
+                      label: "Interference is additive",
+                      occupedColumns: 4,
+                      schema: z.boolean(),
+                      info: {
+                        title:
+                          "If this option is enabled, interference can only increase when new packets are added to the air.",
+                        helpText: (
+                          <>
+                            <p>
+                              If this option is disabled, interference may
+                              change whenever packets are added or removed from
+                              the air.
+                            </p>
+                            <p>
+                              If this option is enabled, interference can only
+                              increase when new packets are added to the air.
+                            </p>
+                          </>
+                        ),
+                      },
+                    }),
+                    CheckboxField.create({
+                      name: "connectOnAddNodes",
+                      label: "Evaluate connections when nodes are added",
+                      occupedColumns: 4,
+                      schema: z.boolean(),
+                      info: {
+                        title:
+                          "If this option is enabled, the simulation will evaluate connections when new nodes are added to the simulation.",
+                      },
+                    }),
+                  ]),
+                ],
+                "Asynchronous Mode Options",
+              ),
+            ];
+          } else {
+            return [
+              new Subsection(
+                [
+                  new Line([
+                    CheckboxField.create({
+                      name: "shouldSaveTrace",
+                      label: "Save trace",
+                      occupedColumns: 4,
+                      schema: z.boolean(),
+                      info: {
+                        title:
+                          "If this option is enabled, the simulation will save the positions of all nodes in every rounds.",
+                      },
+                    }),
+                    CheckboxField.create({
+                      name: "registerStatisticsForEveryRound",
+                      label: "Register statistics for every round",
+                      occupedColumns: 4,
+                      schema: z.boolean(),
+                      info: {
+                        title:
+                          "If this option is enabled, the simulation will mantain in memory statistics for every round, otherwise it will only mantain statistics for the last round.",
+                      },
+                    }),
+                    CheckboxField.create({
+                      name: "mobilityEnabled",
+                      label: "Mobility enabled",
+                      occupedColumns: 4,
+                      schema: z.boolean(),
+                      info: {
+                        title:
+                          "If this option is enabled, the simulation will apply mobility to the nodes.",
+                      },
+                    }),
+                  ]),
+                ],
+                "Synchronous Mode Options",
+              ),
+            ];
+          }
+        },
+      ],
+    ]),
   }),
   new ModelSection(ModelType.MessageTransmission),
 ]);

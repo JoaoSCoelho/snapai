@@ -33,17 +33,17 @@ export type FormFieldProps = {
   disabled?: boolean;
   section: Section;
   nestedIn?: string;
-  onParameterizedSelectChange?: (
+  onChange?: (
     name: string,
     fullName: string,
-    value: string,
+    value: any,
+    isParameterizedSelect?: boolean,
   ) => void;
 };
 
 export default function FormField({
   field,
   disabled,
-  onParameterizedSelectChange,
   ...fieldAttrs
 }: FormFieldProps) {
   /**
@@ -121,7 +121,6 @@ export default function FormField({
       <ParameterizedSelectField
         field={field as ParameterizedSelectFieldCls}
         selectAttr={{ disabled: disabled || field.disabled }}
-        onParameterizedSelectChange={onParameterizedSelectChange}
         {...fieldAttrs}
       />
     );

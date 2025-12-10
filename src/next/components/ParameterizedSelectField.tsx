@@ -19,11 +19,6 @@ export type ParameterizedSelectFieldProps = FormFieldProps & {
   field: ParameterizedSelectFieldCls;
   formControlAttr?: FormControlProps;
   selectAttr?: SelectProps;
-  onParameterizedSelectChange?: (
-    name: string,
-    fullName: string,
-    value: string,
-  ) => void;
 };
 
 export default function ParameterizedSelectField({
@@ -33,7 +28,7 @@ export default function ParameterizedSelectField({
   formControlAttr,
   containerAttr,
   nestedIn,
-  onParameterizedSelectChange,
+  onChange,
 }: ParameterizedSelectFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -59,11 +54,7 @@ export default function ParameterizedSelectField({
                 {...controllerField}
                 {...selectAttr}
                 onChange={(e, child) => {
-                  onParameterizedSelectChange?.(
-                    field.name,
-                    fullName,
-                    e.target.value as string,
-                  );
+                  onChange?.(field.name, fullName, e.target.value, true);
                   controllerField.onChange(e, child);
                   selectAttr?.onChange?.(e, child);
                 }}

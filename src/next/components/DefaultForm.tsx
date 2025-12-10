@@ -1,6 +1,4 @@
 import { Layout } from "@/simulator/configurations/layout/Layout";
-import { ModelSection } from "@/simulator/configurations/layout/ModelSection";
-import { NodeSection } from "@/simulator/configurations/layout/NodeSection";
 import { BaseSyntheticEvent, useEffect, useMemo, useState } from "react";
 import { useErrorModal } from "../contexts/ErrorModalContext";
 import z from "zod";
@@ -13,6 +11,7 @@ import clsx from "clsx";
 import Section from "./Section";
 import { EndFormButtonBar } from "./EndFormButtonBar";
 import { ParameterizedSection } from "@/simulator/configurations/layout/ParameterizedSection";
+import { DependentSection } from "@/simulator/configurations/layout/DependentSection";
 
 export type DefaultFormProps<FormSchema extends Record<string, any>> = {
   id: string;
@@ -26,13 +25,6 @@ export type DefaultFormProps<FormSchema extends Record<string, any>> = {
     value: string,
     form: UseFormReturn<FormSchema>,
   ) => void;
-  // /** Executed when the user changes the node name of a NodeSection and after all default routine */
-  // afterNodeNameChange?: (
-  //   name: string,
-  //   fullName: keyof FormSchema,
-  //   value: string,
-  //   form: UseFormReturn<FormSchema>,
-  // ) => void;
   handleFormSubmit: (
     data: FormSchema,
     form: UseFormReturn<FormSchema>,
@@ -108,22 +100,14 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     formState: { errors: formErrors },
   } = form;
 
-  // Memos / Callbacks
-  /** A list of all models sections in the layout */
-  const modelsSections = useMemo(
-    () => layout.sections.filter((s) => s instanceof ModelSection),
-    [layout],
-  );
-
-  /** A list of all nodes sections in the layout */
-  const nodesSections = useMemo(
-    () => layout.sections.filter((s) => s instanceof NodeSection),
-    [layout],
-  );
-
   /** A list of all parameterized sections in the layout */
   const parameterizedSections = useMemo(
     () => layout.sections.filter((s) => s instanceof ParameterizedSection),
+    [layout],
+  );
+
+  const dependentSections = useMemo(
+    () => layout.sections.filter((s) => s instanceof DependentSection),
     [layout],
   );
 
@@ -163,11 +147,78 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
         );
       }
     });
+
+    // Dependent
+    dependentSections.forEach((section) => {
+      section.dependencies.forEach((dependency) => {
+        onDependentSectionChange(
+          dependency,
+          getValues(dependency as any),
+          section,
+        );
+      });
+    });
   }, []);
 
   // Ifs
 
   // Functions
+
+  const onFieldChange = (
+    name: string,
+    fullName: keyof FormSchema,
+    value: string,
+    isParameterizedSelect?: boolean,
+  ) => {
+    if (isParameterizedSelect) {
+      onParameterizedSelectChange(name, fullName, value);
+    }
+
+    dependentSections
+      .filter((s) => s.dependencies.includes(fullName as string))
+      .forEach((s) => {
+        onDependentSectionChange(fullName, value, s);
+      });
+  };
+
+  const onDependentSectionChange = (
+    fullName: keyof FormSchema,
+    value: string,
+    section: DependentSection,
+  ) => {
+    const oldAny = section.subsections
+      .map((s) =>
+        s.lines
+          .map((l) =>
+            l.fields.map((f) =>
+              s.nestedIn ? s.nestedIn + "." + f.name : f.name,
+            ),
+          )
+          .flat(),
+      )
+      .flat()
+      .reduce((acc, f) => {
+        return {
+          ...acc,
+          [f]: z.any(),
+        };
+      }, {}) as Record<string, z.ZodAny>;
+    section.onChange(fullName as string, value);
+
+    setValidatorSchema(
+      z.object({
+        ...validatorSchema.shape,
+        ...section.subsections.reduce((acc, s) => {
+          return {
+            ...acc,
+            ...oldAny,
+            ...s.getSchema().shape,
+          };
+        }, {}),
+      }),
+    );
+    setLayout(layout.copy());
+  };
 
   /**
    * Called when the user changes a parameterized select of in the form.
@@ -276,7 +327,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
             register={register}
             section={section}
             key={section.id + "_" + sectionIndex}
-            onParameterizedSelectChange={onParameterizedSelectChange}
+            onChange={onFieldChange}
           />
         );
       })}

@@ -113,181 +113,47 @@ export const GraphVisualizationProvider = ({
       );
     }
 
-    obj.framingRate?.text?.textContent &&
-      (obj.framingRate.text.textContent =
-        simulation.currentThread?.framingRate.toFixed(0) ?? "----");
+    if (obj.framingRate) {
+      SimulationInfoChipHelper.updateForFramingRate(
+        obj.framingRate.update,
+        simulation,
+      );
+    }
 
-    obj.refreshingRate?.text?.textContent &&
-      (obj.refreshingRate.text.textContent =
-        simulation.currentThread?.refreshingRate.toFixed(0) ?? "----");
+    if (obj.refreshingRate) {
+      SimulationInfoChipHelper.updateForRefreshingRate(
+        obj.refreshingRate.update,
+        simulation,
+      );
+    }
 
-    // TODO: add number of nodes of each type in statistics
-    obj.nodes?.text?.textContent &&
-      (obj.nodes.text.textContent = simulation.nodeSize().toString());
+    if (obj.nodes) {
+      SimulationInfoChipHelper.updateForNodes(obj.nodes.update, simulation);
+    }
 
-    // TODO: add number of unidirectional and bidirectional edges
-    obj.edges?.text?.textContent &&
-      (obj.edges.text.textContent = simulation.edgeSize().toString());
+    if (obj.edges) {
+      SimulationInfoChipHelper.updateForEdges(obj.edges.update, simulation);
+    }
 
-    obj.remainingEvents?.text?.textContent &&
-      (obj.remainingEvents.text.textContent = simulation.isAsyncMode
-        ? (simulation as AsynchronousSimulation).eventQueue.size().toString()
-        : "----");
+    if (obj.remainingEvents) {
+      SimulationInfoChipHelper.updateForRemainingEvents(
+        obj.remainingEvents.update,
+        simulation,
+      );
+    }
 
     if (obj.messagesSentOnRound) {
-      if (obj.messagesSentOnRound.text) {
-        obj.messagesSentOnRound.text.textContent = simulation.isAsyncMode
-          ? "----"
-          : (simulation as SynchronousSimulation).statistics
-              .getLastRoundSentMessages()
-              .toString();
-      }
-
-      if (obj.messagesSentOnRound.hoverBox && !simulation.isAsyncMode) {
-        if (obj.messagesSentOnRound.hoverBox.ariaLabel === "short-info") {
-          obj.messagesSentOnRound.hoverBox.innerHTML = renderToString(
-            <>
-              <p>
-                Bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundSentBytes(),
-                )}
-              </p>
-              <p>
-                Message bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundSentMessageBytes(),
-                )}
-              </p>
-            </>,
-          );
-        } else {
-          obj.messagesSentOnRound.hoverBox.innerHTML = renderToString(
-            <>
-              <p>
-                Bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundSentBytes(),
-                )}
-              </p>
-              <p>
-                Message bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundSentMessageBytes(),
-                )}
-              </p>
-              <Divider />
-              <p className="text-xs text-right">
-                <strong>Totals</strong>
-              </p>
-              <p>
-                Messages:{" "}
-                {(
-                  simulation as SynchronousSimulation
-                ).statistics.getLastRoundSentMessages()}
-              </p>
-              <p>
-                Bytes:{" "}
-                {(
-                  simulation as SynchronousSimulation
-                ).statistics.getLastRoundSentBytes()}
-              </p>
-              <p>
-                Message bytes:{" "}
-                {(
-                  simulation as SynchronousSimulation
-                ).statistics.getLastRoundSentMessageBytes()}
-              </p>
-            </>,
-          );
-        }
-      }
+      SimulationInfoChipHelper.updateForMessagesSentOnRound(
+        obj.messagesSentOnRound.update,
+        simulation,
+      );
     }
 
     if (obj.messagesReceivedOnRound) {
-      if (obj.messagesReceivedOnRound.text) {
-        obj.messagesReceivedOnRound.text.textContent = simulation.isAsyncMode
-          ? "----"
-          : (simulation as SynchronousSimulation).statistics
-              .getLastRoundReceivedMessages()
-              .toString();
-      }
-
-      if (obj.messagesReceivedOnRound.hoverBox && !simulation.isAsyncMode) {
-        if (obj.messagesReceivedOnRound.hoverBox.ariaLabel === "short-info") {
-          obj.messagesReceivedOnRound.hoverBox.innerHTML = renderToString(
-            <>
-              <p>
-                Bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundReceivedBytes(),
-                )}
-              </p>
-              <p>
-                Message bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundReceivedMessageBytes(),
-                )}
-              </p>
-            </>,
-          );
-        } else {
-          obj.messagesReceivedOnRound.hoverBox.innerHTML = renderToString(
-            <>
-              <p>
-                Bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundReceivedBytes(),
-                )}
-              </p>
-              <p>
-                Message bytes:{" "}
-                {prettyBytes(
-                  (
-                    simulation as SynchronousSimulation
-                  ).statistics.getLastRoundReceivedMessageBytes(),
-                )}
-              </p>
-              <Divider />
-              <p className="text-xs text-right">
-                <strong>Totals</strong>
-              </p>
-              <p>
-                Messages:{" "}
-                {(
-                  simulation as SynchronousSimulation
-                ).statistics.getLastRoundReceivedMessages()}
-              </p>
-              <p>
-                Bytes:{" "}
-                {(
-                  simulation as SynchronousSimulation
-                ).statistics.getLastRoundReceivedBytes()}
-              </p>
-              <p>
-                Message bytes:{" "}
-                {(
-                  simulation as SynchronousSimulation
-                ).statistics.getLastRoundReceivedMessageBytes()}
-              </p>
-            </>,
-          );
-        }
-      }
+      SimulationInfoChipHelper.updateForMessagesReceivedOnRound(
+        obj.messagesReceivedOnRound.update,
+        simulation,
+      );
     }
 
     if (!interalIsRunning.current && simulation.isRunning) {

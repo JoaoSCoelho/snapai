@@ -30,6 +30,7 @@ export default function CheckboxField({
   formControlLabelAttr,
   nestedIn,
   control,
+  onChange,
 }: CheckboxFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -70,6 +71,7 @@ export default function CheckboxField({
                     checked={controllerField.value ?? false}
                     onChange={(e) => {
                       controllerField.onChange(e.target.checked);
+                      onChange?.(field.name, fullName, e.target.checked, false);
                     }}
                     {...checkboxAttr}
                   />

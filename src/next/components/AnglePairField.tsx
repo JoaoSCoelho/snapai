@@ -30,6 +30,7 @@ export default function AnglePairField({
   containerAttr,
   inputAttr,
   nestedIn,
+  onChange,
 }: AnglePairFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -51,9 +52,11 @@ export default function AnglePairField({
           const [min, max] = renderField.value ?? ([0, 0] as [number, number]);
           const setMin = (val: number) => {
             renderField.onChange([val, max]);
+            onChange?.(field.name, fullName, [val, max], false);
           };
           const setMax = (val: number) => {
             renderField.onChange([min, val]);
+            onChange?.(field.name, fullName, [min, val], false);
           };
           return (
             <>

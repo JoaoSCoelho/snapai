@@ -9,6 +9,8 @@ import {
 export const defaultSimulationConfig: Partial<SimulationConfigSchema> = {
   simulationName: "default",
   connectivityEnabled: false,
+  mobilityEnabled: true,
+  connectOnAddNodes: true,
   dimX: [0, 0],
   dimY: [0, 0],
   dimZ: [0, 0],
@@ -88,6 +90,14 @@ export class SimulationConfig extends Config<
     return this.data.interferenceEnabled;
   }
 
+  public get mobilityEnabled(): boolean {
+    return this.data.mobilityEnabled;
+  }
+
+  public get connectOnAddNodes(): boolean {
+    return this.data.connectOnAddNodes;
+  }
+
   public get interferenceIsAdditive(): boolean {
     return this.data.interferenceIsAdditive;
   }
@@ -160,6 +170,8 @@ export class SimulationConfig extends Config<
       dimZ: this.data.dimZ,
       loggerOptions: this.data.loggerOptions,
       isAsynchronous: this.data.isAsynchronous,
+      connectOnAddNodes: this.data.connectOnAddNodes,
+      mobilityEnabled: this.data.mobilityEnabled,
       shouldSaveTrace: this.data.shouldSaveTrace,
       maxConnectionRadius: this.data.maxConnectionRadius,
       registerStatisticsForEveryRound:

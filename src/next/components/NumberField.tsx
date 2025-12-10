@@ -26,6 +26,7 @@ export default function NumberField({
   inputAttr,
   nestedIn,
   control,
+  onChange,
 }: NumberFieldProps) {
   const nameAsArray = [nestedIn, field.name].filter(Boolean);
   const fullName = nameAsArray.join(".");
@@ -50,6 +51,7 @@ export default function NumberField({
                 helperText={error?.message}
                 onChange={(e) => {
                   controllerField.onChange(Number(e.target.value));
+                  onChange?.(field.name, fullName, e.target.value, false);
                 }}
                 value={controllerField.value}
                 slotProps={{
