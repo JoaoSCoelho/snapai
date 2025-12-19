@@ -22,6 +22,8 @@ export type TestMessageTransmissionModelParameters = {
 };
 
 export class TestMessageTransmissionModel extends MessageTransmissionModel {
+  public name = "Test Message Transmission";
+
   public constructor(
     public readonly parameters: TestMessageTransmissionModelParameters,
     protected readonly simulation: Simulation,

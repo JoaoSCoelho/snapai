@@ -30,6 +30,9 @@ model NodesFormContext {
   id                          Int      @id @default(autoincrement())
   addedToSimulation           String?
   numberOfNodes               Int
+  size                        Int      @default(5)
+  color                       String   @default("")
+  draggable                   Boolean  @default(true)
   node                        String
   nodeParameters              Json
   usedPacket                  String

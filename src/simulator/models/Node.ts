@@ -551,4 +551,14 @@ export abstract class Node extends BaseNode {
       }
     }
   }
+
+  /**
+   * Returns the Inbox instance associated with this Node.
+   * The Inbox instance holds the packets that are currently in the inbox
+   * of this Node.
+   * @returns The Inbox instance associated with this Node.
+   */
+  getInbox(): Inbox {
+    return this.packetBuffer.getInbox();
+  }
 }

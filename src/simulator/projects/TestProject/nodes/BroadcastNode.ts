@@ -14,7 +14,6 @@ import { Simulation } from "@/simulator/models/Simulation";
 import { Inbox } from "@/simulator/tools/Inbox";
 import { Position } from "@/simulator/tools/Position";
 import { ModelType, ModelTypeToModel } from "@/simulator/utils/modelsUtils";
-import { RandomUtils } from "@/simulator/utils/RandomUtils";
 import z from "zod";
 
 export type BroadcastNodeParametersSchema = {
@@ -24,6 +23,8 @@ export type BroadcastNodeParametersSchema = {
 };
 
 export class BroadcastNode extends Node {
+  public readonly name = "Broadcast Node";
+
   public constructor(
     public readonly id: NodeId,
     public mobilityModel: MobilityModel,

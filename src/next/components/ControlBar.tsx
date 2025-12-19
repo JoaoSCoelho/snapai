@@ -13,7 +13,7 @@ import { Divider } from "@mui/material";
 import ControlInput from "./ControlInput";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import z, { set } from "zod";
+import z from "zod";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import { ErrorSystem } from "../utils/ErrorSystem";
 import { toast } from "sonner";
@@ -22,13 +22,23 @@ import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation"
 import { SynchronousThread } from "@/simulator/models/SynchronousThread";
 import { exportSigmaToSVG } from "../utils/graphAsSvg";
 import ScreenshotMonitorIcon from "@mui/icons-material/ScreenshotMonitor";
-import PolylineIcon from "@mui/icons-material/Polyline";
 import { useLoadingContext } from "../contexts/LoadingContext";
 import Graph from "graphology";
 import { PiFileSvg } from "react-icons/pi";
 import { useRuntimeContext } from "../contexts/RuntimeContext";
-import clsx from "clsx";
-import { MdLinearScale } from "react-icons/md";
+import {
+  MdLabel,
+  MdLabelOff,
+  MdLabelOutline,
+  MdLinearScale,
+  MdOutlineLabelOff,
+} from "react-icons/md";
+import { RiDragDropLine } from "react-icons/ri";
+import { RiDragDropFill } from "react-icons/ri";
+import { HiOutlineVideoCamera } from "react-icons/hi2";
+import { HiOutlineVideoCameraSlash } from "react-icons/hi2";
+import { MdOutlinePinch } from "react-icons/md";
+import { MdPinch } from "react-icons/md";
 
 export type ControlBarProps = {};
 
@@ -52,13 +62,17 @@ export default function ControlBar({}: ControlBarProps) {
   const {
     shouldShowArrows,
     setShouldShowArrows,
-    shouldShowIds,
-    setShouldShowIds,
+    shouldShowLabels,
+    setShouldShowLabels,
     debouncedInterfaceUpdater,
     sigmaRef,
     isRunning,
     setShouldShowEdges,
     shouldShowEdges,
+    nodeDragEnabled,
+    setNodeDragEnabled,
+    cameraEnabled,
+    setCameraEnabled,
   } = useGraphVisualizationContext();
   const { setSimulation, simulation } = useSimulationContext();
 
@@ -103,7 +117,7 @@ export default function ControlBar({}: ControlBarProps) {
   useEffect(() => {
     setReevaluateButtonBg(
       reevaluateButtonState === "success"
-        ? "#fedd2172"
+        ? "#00B7DF72"
         : reevaluateButtonState === "error"
           ? "#ff4d4d72"
           : undefined,
@@ -209,27 +223,18 @@ export default function ControlBar({}: ControlBarProps) {
     if (simulation.isAsyncMode) {
       // TODO: implement it
     } else {
-      simulation.run(
-        new SynchronousThread(
-          simulation as SynchronousSimulation,
-          data.rounds,
-          data.refreshRate,
-          data.frameRate,
-          sigmaRef.current as any,
-          undefined,
-          undefined,
-          undefined,
-          () => {
-            debouncedInterfaceUpdater(simulation);
-          },
-        ),
+      const syncThread = new SynchronousThread(
+        simulation as SynchronousSimulation,
+        data.rounds,
+        data.refreshRate,
+        data.frameRate,
+        sigmaRef.current as any,
       );
+      syncThread.on("roundEnd", () => {
+        debouncedInterfaceUpdater(simulation);
+      });
+      simulation.run(syncThread);
     }
-    updateRuntimeDefaultData({
-      rounds: data.rounds,
-      refreshRate: data.refreshRate ?? undefined,
-      frameRate: data.frameRate ?? undefined,
-    });
   };
 
   const onReevaluateConnectionsButtonClick = async () => {
@@ -279,6 +284,11 @@ export default function ControlBar({}: ControlBarProps) {
 
   const handleRuntimeFormSubmitBuilder = (oneRound: boolean) => {
     return (data: RuntimeFormSchema) => {
+      updateRuntimeDefaultData({
+        rounds: data.rounds,
+        refreshRate: data.refreshRate ?? undefined,
+        frameRate: data.frameRate ?? undefined,
+      });
       if (oneRound) data.rounds = 1;
       if (!data.refreshRate) data.refreshRate = 0;
       if (!data.frameRate) data.frameRate = 0;
@@ -311,10 +321,12 @@ export default function ControlBar({}: ControlBarProps) {
       />
       <ControlButton
         label="Reevaluate Connections"
+        disabled={reevaluateButtonDisabled || reevaluateButtonLoading}
         iconImage={{
           alt: "Network icon",
           src: "/assets/reevaluate-connections.svg",
         }}
+        style={{ backgroundColor: reevaluateButtonBg }}
         onClick={onReevaluateConnectionsButtonClick}
         helpText="Reevaluate the connections between the nodes in the network."
       />
@@ -424,16 +436,45 @@ export default function ControlBar({}: ControlBarProps) {
       <ControlButton
         disabled={isRunning}
         className={"disabled:cursor-not-allowed disabled:opacity-50"}
-        iconImage={{
-          src: `/assets/${shouldShowIds ? "not-" : ""}id.svg`,
-          alt: "ID icon",
-        }}
+        icon={
+          shouldShowLabels ? (
+            <MdLabelOutline className="text-gray-400" />
+          ) : (
+            <MdOutlineLabelOff className="text-gray-400" />
+          )
+        }
         helpText={
           isRunning
             ? "Only usable when the simulation is paused."
-            : `${shouldShowIds ? "Hide" : "Show"} the network nodes IDs.`
+            : `${shouldShowLabels ? "Hide" : "Show"} the network nodes labels.`
         }
-        onClick={() => setShouldShowIds(!shouldShowIds)}
+        onClick={() => setShouldShowLabels(!shouldShowLabels)}
+      />
+      <ControlButton
+        disabled={isRunning}
+        className={"disabled:cursor-not-allowed disabled:opacity-50"}
+        icon={
+          !nodeDragEnabled ? (
+            <MdOutlinePinch className="text-gray-400" />
+          ) : (
+            <MdPinch className="text-gray-400" />
+          )
+        }
+        helpText={`${nodeDragEnabled ? "Disable" : "Enable"} node dragging. Only for nodes that are draggable.`}
+        onClick={() => setNodeDragEnabled(!nodeDragEnabled)}
+      />
+      <ControlButton
+        disabled={isRunning}
+        className={"disabled:cursor-not-allowed disabled:opacity-50"}
+        icon={
+          cameraEnabled ? (
+            <HiOutlineVideoCamera className="text-gray-400" />
+          ) : (
+            <HiOutlineVideoCameraSlash className="text-gray-400" />
+          )
+        }
+        helpText={`${cameraEnabled ? "Disable" : "Enable"} camera panning/zooming.`}
+        onClick={() => setCameraEnabled(!cameraEnabled)}
       />
       <ControlButton
         icon={

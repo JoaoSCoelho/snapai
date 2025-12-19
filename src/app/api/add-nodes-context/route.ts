@@ -37,6 +37,9 @@ export async function POST(request: Request) {
     data: {
       addedToSimulation: data.addedToSimulation,
       numberOfNodes: data.numberOfNodes ?? 0,
+      color: data.color ?? "",
+      size: data.size ?? 5,
+      draggable: data.draggable ?? true,
       node: data.node ?? "",
       nodeParameters: data.nodeParameters ?? {},
       usedPacket: data.usedPacket ?? "",

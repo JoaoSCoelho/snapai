@@ -22,6 +22,8 @@ export type TestNodeParametersSchema = {
 };
 
 export class TestNode extends Node {
+  public readonly name = "Test Node";
+
   public constructor(
     public readonly id: NodeId,
     public mobilityModel: MobilityModel,

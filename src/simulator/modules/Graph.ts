@@ -7,13 +7,22 @@ export type NodeAttributes = {
   x: number;
   y: number;
   z: number;
-  size?: number;
+  size: number;
+  originalSize: number;
   color?: string;
-  dragable?: boolean;
-  forceLabel?: boolean; // TODO: review it
-  highlighted?: boolean;
-  bound?: boolean;
+  draggable: boolean;
+  forceLabel: boolean;
+  highlighted: boolean;
+  forceHighlight: boolean;
+  highlightColor?: string;
+  highlightBaseColor?: string;
+  highlightSize?: number;
+  highlightBaseSize?: number;
+  bound: boolean;
   label?: string;
+  borderColor?: string;
+  type?: "circle" | "bordered";
+  borderSize?: number;
 };
 
 export type EdgeAttributes = {

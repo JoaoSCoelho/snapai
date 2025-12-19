@@ -22,8 +22,8 @@ import { SimulationInfoChipHelper } from "../utils/SimulationInfoChipHelper";
 export type GraphVisualizationContextProps = {
   shouldShowArrows: boolean;
   setShouldShowArrows: (shouldShowArrows: boolean) => void;
-  shouldShowIds: boolean;
-  setShouldShowIds: (shouldShowIds: boolean) => void;
+  shouldShowLabels: boolean;
+  setShouldShowLabels: (shouldShowLabels: boolean) => void;
   shouldShowEdges: boolean;
   setShouldShowEdges: (shouldShowEdges: boolean) => void;
   cameraState: CameraState | null;
@@ -36,6 +36,19 @@ export type GraphVisualizationContextProps = {
   sigmaRef: RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
   onUpdateSigma: () => void;
   isRunning: boolean;
+  focusedNode: string | null;
+  hoveredNode: string | null;
+  setFocusedNode: React.Dispatch<React.SetStateAction<string | null>>;
+  setHoveredNode: React.Dispatch<React.SetStateAction<string | null>>;
+  nodeFocusEnabled: boolean;
+  nodeDragEnabled: boolean;
+  getNodeFocusEnabled: () => boolean;
+  setNodeFocusEnabled: (value: boolean) => void;
+  getNodeDragEnabled: () => boolean;
+  setNodeDragEnabled: (value: boolean) => void;
+  getCameraEnabled: () => boolean;
+  setCameraEnabled: (value: boolean) => void;
+  cameraEnabled: boolean;
 };
 
 const GraphVisualizationContext = createContext<
@@ -50,23 +63,23 @@ export const GraphVisualizationProvider = ({
   children,
 }: GraphVisualizationProviderProps) => {
   const [shouldShowArrows, setShouldShowArrows] = useState<boolean>(true);
-  const [shouldShowIds, setShouldShowIds] = useState<boolean>(true);
+  const [shouldShowLabels, setShouldShowLabels] = useState<boolean>(true);
   const [shouldShowEdges, setShouldShowEdges] = useState<boolean>(true);
   const [cameraState, setCameraState] = useState<CameraState | null>(null);
+  const [cameraStateEnabled, setCameraStateEnabled] = useState<boolean>(true);
   const [sigmaChanged, setSigmaChanged] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [focusedNode, setFocusedNode] = useState<string | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const nodeFocusEnabled = useRef<boolean>(false);
+  const nodeDragEnabled = useRef<boolean>(false);
   const interalIsRunning = useRef<boolean>(false);
+  const cameraEnabled = useRef<boolean>(true);
+  const [stateNodeFocusEnabled, setStateNodeFocusEnabled] =
+    useState<boolean>(false);
+  const [stateNodeDragEnabled, setStateNodeDragEnabled] =
+    useState<boolean>(false);
 
-  const nameArray = [
-    "time",
-    "totalMessagesSent",
-    "totalReceivedMessages",
-    "framingRate",
-    "nodes",
-    "edges",
-    "remainingEvents",
-    "refreshingRate",
-  ];
   const infoBarRef = useRef<
     Record<SimulationInfoCardType, SimulationInfoChipRef | null>
   >({
@@ -187,13 +200,36 @@ export const GraphVisualizationProvider = ({
     setSigmaChanged(!sigmaChanged);
   };
 
+  const setNodeFocusEnabled = (value: boolean) => {
+    nodeFocusEnabled.current = value;
+    setStateNodeFocusEnabled(value);
+  };
+  const setCameraEnabled = (value: boolean) => {
+    cameraEnabled.current = value;
+    setCameraStateEnabled(value);
+  };
+  const setNodeDragEnabled = (value: boolean) => {
+    nodeDragEnabled.current = value;
+    setStateNodeDragEnabled(value);
+  };
+
+  const getNodeFocusEnabled = () => {
+    return nodeFocusEnabled.current;
+  };
+  const getNodeDragEnabled = () => {
+    return nodeDragEnabled.current;
+  };
+  const getCameraEnabled = () => {
+    return cameraEnabled.current;
+  };
+
   return (
     <GraphVisualizationContext.Provider
       value={{
         shouldShowArrows,
         setShouldShowArrows,
-        shouldShowIds,
-        setShouldShowIds,
+        shouldShowLabels,
+        setShouldShowLabels,
         shouldShowEdges,
         setShouldShowEdges,
         isRunning,
@@ -204,6 +240,19 @@ export const GraphVisualizationProvider = ({
         debouncedInterfaceUpdater,
         sigmaRef,
         onUpdateSigma,
+        focusedNode,
+        getNodeFocusEnabled,
+        getNodeDragEnabled,
+        setNodeDragEnabled,
+        nodeFocusEnabled: stateNodeFocusEnabled,
+        nodeDragEnabled: stateNodeDragEnabled,
+        setNodeFocusEnabled,
+        setFocusedNode,
+        hoveredNode,
+        setHoveredNode,
+        cameraEnabled: cameraStateEnabled,
+        getCameraEnabled,
+        setCameraEnabled,
       }}
     >
       {children}

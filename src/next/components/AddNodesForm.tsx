@@ -16,6 +16,8 @@ import { UseFormReturn } from "react-hook-form";
 import { ParameterizedSection } from "@/simulator/configurations/layout/ParameterizedSection";
 import { ClassableParametersSubsectionController } from "@/simulator/modules/ClassableParametersSubsectionController";
 import { ParameterizedModule } from "@/simulator/modules/ParameterizedModule";
+import { ColorField } from "@/simulator/configurations/layout/fields/ColorField";
+import { CheckboxField } from "@/simulator/configurations/layout/fields/CheckboxField";
 
 export type AddNodesFormProps = {
   onSubmit?: (data: AddNodesFormSchema) => void;
@@ -24,6 +26,9 @@ export type AddNodesFormProps = {
 // TODO: add option to select the used Packet;
 export const addNodesFormSchema = z.object({
   numberOfNodes: z.number(),
+  color: z.string().startsWith("#").length(7).optional(),
+  size: z.number().min(0),
+  draggable: z.boolean(),
   node: z.string().refine(
     (value) => {
       return Simulator.inited
@@ -131,10 +136,38 @@ export const addNodesFormLayout = new Layout([
             label: "Number of nodes",
             required: true,
             isFloat: false,
-            occupedColumns: 12,
+            occupedColumns: 3,
             schema: z.number().min(1),
             min: 1,
             info: { title: "Number of nodes to add in the simulation" },
+          }),
+          ColorField.create({
+            name: "color",
+            label: "Color",
+            required: false,
+            occupedColumns: 3,
+            schema: z.string().length(7).startsWith("#"),
+            info: { title: "Color of the nodes in the simulation" },
+          }),
+          NumberField.create({
+            name: "size",
+            label: "Size",
+            required: true,
+            isFloat: false,
+            min: 0,
+            occupedColumns: 3,
+            schema: z.number().min(0),
+            info: { title: "Size of the nodes in the simulation" },
+          }),
+          CheckboxField.create({
+            name: "draggable",
+            label: "Draggable",
+            schema: z.boolean(),
+            info: {
+              title:
+                "If enabled, you can click and drag the nodes with the mouse",
+            },
+            occupedColumns: 3,
           }),
         ]),
       ]),
@@ -172,8 +205,7 @@ export type AddNodesFormSchema = z.infer<typeof addNodesFormSchema>;
 
 export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
   // Contexts
-  const { defaultData, loading, addNodes, savePartialData, setForm } =
-    useAddNodesContext();
+  const { defaultData, loading, addNodes, setForm } = useAddNodesContext();
   const { simulation } = useSimulationContext();
 
   // Ifs

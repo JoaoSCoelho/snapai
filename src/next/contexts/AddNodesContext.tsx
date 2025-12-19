@@ -1,12 +1,10 @@
 "use client";
-import { SearchEngine } from "@/simulator/utils/SearchEngine";
 import axios from "axios";
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { AddNodesFormSchema } from "../components/AddNodesForm";
 import { Simulation } from "@/simulator/models/Simulation";
 import { UseFormReturn } from "react-hook-form";
 import { NodesFormContext } from "@prisma/client";
-import { useConfigContext } from "./ConfigContext";
 import { useGraphVisualizationContext } from "./GraphVisualizationContext";
 
 export type AddNodesContextProps = {
@@ -52,6 +50,9 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
 
         setDefaultData({
           numberOfNodes: response.data.numberOfNodes,
+          color: response.data.color,
+          size: response.data.size,
+          draggable: response.data.draggable,
           node: response.data.node,
           nodeParameters: (response.data.nodeParameters ?? {}) as Record<
             string,

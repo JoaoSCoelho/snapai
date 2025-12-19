@@ -13,6 +13,8 @@ export type RandomMobilityParameters = {
 };
 
 export class RandomMobility extends MobilityModel {
+  public name = "Random";
+
   public constructor(
     public readonly parameters: RandomMobilityParameters,
     protected readonly simulation: Simulation,

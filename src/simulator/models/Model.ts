@@ -10,8 +10,10 @@ export type ConcreteModel<
 
 export abstract class Model extends ParameterizedModule {
   public static readonly type: ModelType;
+
   /** Should be set before use class */
   protected simulation!: Simulation;
+  public abstract name: string;
 
   public constructor(
     public readonly parameters: Record<string, any>,

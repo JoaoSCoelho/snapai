@@ -22,10 +22,14 @@
   "connectivityEnabled": true,
   "mobilityEnabled": true,
   "interferenceEnabled": true,
+  "connectOnAddNodes": true,
   "interferenceIsAdditive": true,
   "maxConnectionRadius": 60,
-  "messageTransmissionModel": "default:ConstantTime",
+  "messageTransmissionModel": "default:RandomTime",
   "messageTransmissionModelParameters": {
-    "time": 1
+    "timeRange": [
+      1,
+      10
+    ]
   }
 }

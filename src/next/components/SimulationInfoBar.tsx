@@ -5,13 +5,15 @@ import {
   SimulationInfoChip,
   SimulationInfoChipRef,
 } from "./SimulationInfoChip";
-import { PiGraphDuotone } from "react-icons/pi";
+
 import { GrNodes } from "react-icons/gr";
 import { Md30FpsSelect, MdOutbox } from "react-icons/md";
 import { HiInboxIn } from "react-icons/hi";
 import { FaFastForward } from "react-icons/fa";
 import { TbMessage2Up } from "react-icons/tb";
 import { TbMessage2Down } from "react-icons/tb";
+import { GrGraphQl } from "react-icons/gr";
+import { BiLogoGraphql } from "react-icons/bi";
 
 export enum SimulationInfoCardType {
   TotalMessagesSent = "totalMessagesSent",
@@ -89,7 +91,7 @@ export const SimulationInfoBar = forwardRef<
           icon = <GrNodes fontSize={24} color="#666" />;
         } else if (card.type === SimulationInfoCardType.Edges) {
           title = "Number of Edges";
-          icon = <PiGraphDuotone fontSize={24} color="#666" />;
+          icon = <BiLogoGraphql fontSize={24} color="#666" />;
         } else if (card.type === SimulationInfoCardType.RemainingEvents) {
           title = "Remaining Events";
           icon = (

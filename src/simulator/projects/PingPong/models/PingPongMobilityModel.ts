@@ -13,6 +13,8 @@ export type PingPongMobilityModelParameters = {
 };
 
 export class PingPongMobilityModel extends MobilityModel {
+  public name = "PingPong Mobility";
+
   public constructor(
     public readonly parameters: PingPongMobilityModelParameters,
     protected readonly simulation: Simulation,

@@ -11,6 +11,7 @@ import { RandomMobility } from "./mobilityModels/RandomMobility";
 import { InertNode } from "./nodes/InertNode";
 import { ReliableDelivery } from "./reliabilityModels/ReliableDelivery";
 import { VariableBytesPacket } from "./packets/VariableBytesPacket";
+import { RandomTime } from "./messageTransmissionModels/RandomTime";
 
 export class DefaultProject extends Project {
   protected constructor() {
@@ -23,6 +24,7 @@ export class DefaultProject extends Project {
     );
 
     this.addModel("ConstantTime", ConstantTime);
+    this.addModel("RandomTime", RandomTime);
     this.addModel("RandomMobility", RandomMobility);
     this.addModel("NoInterference", NoInterference);
     this.addModel("RandomDistribution", RandomDistribution);

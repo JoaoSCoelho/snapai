@@ -11,6 +11,8 @@ export type UDGConnectivityParametersSchema = {
 };
 
 export class UDGConnectivity extends ConnectivityModel {
+  public name = "Unit Disk Graph";
+
   public constructor(
     public readonly parameters: UDGConnectivityParametersSchema,
     protected readonly simulation: Simulation,

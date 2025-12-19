@@ -1,4 +1,4 @@
-import { NumberField } from "@/simulator/configurations/layout/fields/NumberField";
+import { NumberPairField } from "@/simulator/configurations/layout/fields/NumberPairField";
 import { Line } from "@/simulator/configurations/layout/Line";
 import { ParametersSubsection } from "@/simulator/configurations/layout/ParametersSubsection";
 import { MessageTransmissionModel } from "@/simulator/models/MessageTransmissionModel";
@@ -6,22 +6,26 @@ import { Packet } from "@/simulator/models/Packet";
 import { Simulation } from "@/simulator/models/Simulation";
 import z from "zod";
 
-export type ConstantTimeParameters = {
-  time: number;
+export type RandomTimeParameters = {
+  timeRange: [number, number];
 };
 
-export class ConstantTime extends MessageTransmissionModel {
-  public name = "Constant Time";
+export class RandomTime extends MessageTransmissionModel {
+  public name = "Random Time";
 
   constructor(
-    public readonly parameters: ConstantTimeParameters,
+    public readonly parameters: RandomTimeParameters,
     protected readonly simulation: Simulation,
   ) {
     super(parameters, simulation);
   }
 
   public timeToReach(packet: Packet): number {
-    return this.parameters.time;
+    return (
+      Math.random() *
+        (this.parameters.timeRange[1] - this.parameters.timeRange[0]) +
+      this.parameters.timeRange[0]
+    );
   }
 
   /**
@@ -34,17 +38,23 @@ export class ConstantTime extends MessageTransmissionModel {
     return ParametersSubsection.create({
       lines: [
         new Line([
-          NumberField.create({
-            name: "time",
-            label: "Time",
+          NumberPairField.create({
+            name: "timeRange",
+            label: "Time range",
             isFloat: true,
             required: true,
-            occupedColumns: 4,
-            min: 1,
-            schema: z.number().min(1),
+            occupedColumns: 6,
+            minLeft: 1,
+            minRight: 1,
+            schema: z
+              .tuple([z.number().min(1), z.number().min(1)])
+              .refine(([left, right]) => left <= right, {
+                message:
+                  "The minimum value must be less than or equal to the maximum value",
+              }),
             info: {
               title:
-                "The time it takes for a packet to reach the destination node.",
+                "The range of times it takes for a packet to reach the destination node (min, max).",
             },
           }),
         ]),

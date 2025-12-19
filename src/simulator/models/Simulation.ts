@@ -14,6 +14,8 @@ import { Graph } from "../modules/Graph";
 import { Thread } from "./Thread";
 import { NodeCollection } from "../modules/NodeCollection";
 import { EdgeMap } from "../modules/EdgeMap";
+import EventEmitter from "node:events";
+import { strongContrastWithColor } from "../utils/colorUtils";
 
 export type SimulationOptions = {
   loggerOptions?: { useConsole: boolean };
@@ -22,7 +24,13 @@ export type SimulationOptions = {
   nodeCollection: NodeCollection;
 };
 
-export abstract class Simulation {
+export type SimulationEventMap = {
+  preRun: [thread: Thread];
+  addNode: [node: Node];
+  repositionNode: [node: Node, oldPosition: Position, newPosition: Position];
+};
+
+export abstract class Simulation extends EventEmitter<SimulationEventMap> {
   public readonly id: number = ++Global.lastId;
   public isRunning: boolean = false;
   public abstract readonly isAsyncMode: boolean;
@@ -39,6 +47,7 @@ export abstract class Simulation {
   public readonly nodesCollection: NodeCollection;
   public readonly nodes: Map<NodeId, Node> = new Map();
   public readonly edges: EdgeMap = new EdgeMap();
+  public readonly pinnedNodes: Map<NodeId, Node> = new Map();
 
   public constructor({
     loggerOptions,
@@ -46,6 +55,7 @@ export abstract class Simulation {
     messageTransmissionModel,
     nodeCollection,
   }: SimulationOptions) {
+    super();
     this.project = project;
     this.logger = new SimulationLogger(loggerOptions?.useConsole, this);
     this.messageTransmissionModel = messageTransmissionModel;
@@ -64,6 +74,7 @@ export abstract class Simulation {
     this.currentThread = thread;
 
     await this.project.preRun();
+    this.emit("preRun", thread);
     await this.currentThread.run();
   }
 
@@ -80,6 +91,33 @@ export abstract class Simulation {
   public abstract reevaluateConnections(
     callback?: (progress: number) => Promise<void>,
   ): Promise<void>;
+
+  /**
+   * Updates the position of the given node in the simulation graph.
+   * @param node the node to update the position for or its id
+   * @param newPosition the new position of the node
+   */
+  public updateNodePosition(node: Node | NodeId, newPosition: Position) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+    const oldPosition = node.position.copy();
+    newPosition = Position.cropToDimensions(newPosition, [
+      this.project.simulationConfig.dimX,
+      this.project.simulationConfig.dimY,
+      this.project.simulationConfig.dimZ,
+    ]);
+    // This call should be before node reposition
+    this.nodesCollection.reposition(node, newPosition.getCoordinates());
+
+    node.reposition(newPosition);
+    this.graph.updateNodeAttributes(node.id, (att) => ({
+      ...att,
+      x: newPosition.x,
+      y: newPosition.y,
+      z: newPosition.z,
+    }));
+
+    this.emit("repositionNode", node, oldPosition, newPosition.copy());
+  }
 
   /**
    * Retrieves all nodes in the simulation.
@@ -344,7 +382,7 @@ export abstract class Simulation {
 
       node.init();
 
-      this.addNode(node);
+      this.addNode(node, data.size, data.draggable, data.color);
     }
 
     if (this.project.simulationConfig.connectOnAddNodes) {
@@ -360,19 +398,86 @@ export abstract class Simulation {
    * @param {Node} node - The node to add.
    * @throws {Error} If a node with the same id already exists.
    */
-  protected addNode(node: Node) {
+  protected addNode(
+    node: Node,
+    size: number = 5,
+    draggable: boolean = true,
+    color?: string,
+  ) {
     if (this.hasNode(node.id)) throw new Error("Node already exists");
 
     this.graph.addNode(node.id, {
       x: node.position.x,
       y: node.position.y,
       z: node.position.z,
-      size: 5,
+      size: size,
+      originalSize: size,
       implementation: node,
       label: node.id.toString(),
+      draggable: draggable,
+      forceLabel: false,
+      color: color,
+      highlighted: false,
+      forceHighlight: false,
+      bound: false,
     });
     this.nodes.set(node.id, node);
     this.nodesCollection.insert(node);
+    this.emit("addNode", node);
+  }
+
+  public highlightNode(node: Node | NodeId) {
+    node = node instanceof Node ? node.id : node;
+
+    this.graph.setNodeAttribute(node, "highlighted", true);
+  }
+
+  public unhighlightNode(node: Node | NodeId) {
+    node = node instanceof Node ? node.id : node;
+
+    this.graph.setNodeAttribute(node, "highlighted", false);
+  }
+
+  public highlightNodeBorder(node: Node | NodeId, color: string = "#000000") {
+    node = node instanceof Node ? node.id : node;
+
+    const nodeSize = this.graph.getNodeAttribute(node, "originalSize")!;
+
+    this.graph.setNodeAttribute(node, "highlightSize", 0.25);
+    this.graph.setNodeAttribute(node, "size", nodeSize * 1.9);
+    this.graph.setNodeAttribute(node, "highlightColor", "#ffffff00");
+    this.graph.setNodeAttribute(node, "highlightBaseColor", color);
+    this.graph.setNodeAttribute(node, "highlightBaseSize", 0.2);
+  }
+
+  public unhighlightNodeBorder(node: Node | NodeId) {
+    node = node instanceof Node ? node.id : node;
+
+    const nodeSize = this.graph.getNodeAttribute(node, "originalSize")!;
+
+    this.graph.setNodeAttribute(node, "highlightSize", undefined);
+    this.graph.setNodeAttribute(node, "size", nodeSize);
+    this.graph.setNodeAttribute(node, "highlightColor", undefined);
+    this.graph.setNodeAttribute(node, "highlightBaseColor", undefined);
+    this.graph.setNodeAttribute(node, "highlightBaseSize", undefined);
+  }
+
+  public pinNode(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    this.pinnedNodes.set(node.id, node);
+    // @ts-ignore
+    node.pinned = true;
+    this.highlightNodeBorder(node, "#aaaaaa");
+  }
+
+  public unpinNode(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    this.pinnedNodes.delete(node.id);
+    // @ts-ignore
+    node.pinned = false;
+    this.unhighlightNodeBorder(node);
   }
 
   /**

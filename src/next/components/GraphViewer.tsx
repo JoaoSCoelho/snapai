@@ -1,7 +1,15 @@
 "use client";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { Sigma } from "sigma";
-import { createEdgeArrowProgram, EdgeRectangleProgram } from "sigma/rendering";
+import {
+  createEdgeArrowProgram,
+  drawDiscNodeHover,
+  drawDiscNodeLabel,
+  EdgeRectangleProgram,
+  NodeCircleProgram,
+  NodePointProgram,
+  NodeProgram,
+} from "sigma/rendering";
 import { useSimulationContext } from "../contexts/SimulationContext";
 import {
   EdgeAttributes,
@@ -10,6 +18,9 @@ import {
 } from "@/simulator/modules/Graph";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import { NoEdgeProgram } from "../utils/NoEdgeProgram";
+import { Position } from "@/simulator/tools/Position";
+import { MouseCoords, SigmaNodeEventPayload } from "sigma/types";
+import { createNodeBorderProgram, NodeBorderProgram } from "@sigma/node-border";
 
 export type GraphViewerProps = {
   arrowHeadSize?: number;
@@ -26,11 +37,21 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
     const {
       cameraState,
       setCameraState,
-      shouldShowIds,
+      shouldShowLabels,
       shouldShowArrows,
       shouldShowEdges,
       sigmaRef,
+      isRunning,
+      hoveredNode,
+      setFocusedNode,
+      setHoveredNode,
       onUpdateSigma,
+      setNodeFocusEnabled,
+      setNodeDragEnabled,
+      getNodeFocusEnabled,
+      getNodeDragEnabled,
+      getCameraEnabled,
+      cameraEnabled,
     } = useGraphVisualizationContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +74,67 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
         {
           renderEdgeLabels: true, // TODO : review its configurations
           autoCenter: false,
-          renderLabels: shouldShowIds ?? true,
+          renderLabels: shouldShowLabels ?? true,
+          labelColor: {
+            attribute: "color",
+          },
+          defaultNodeType: "bordered",
+          nodeProgramClasses: {
+            bordered: createNodeBorderProgram({
+              drawHover: drawDiscNodeHover,
+              drawLabel: drawDiscNodeLabel,
+              borders: [
+                {
+                  color: {
+                    attribute: "highlightBaseColor",
+                    defaultValue: "#00000000",
+                    transparent: true,
+                  },
+                  size: {
+                    mode: "relative",
+                    attribute: "highlightBaseSize",
+                    defaultValue: 0,
+                  },
+                },
+                {
+                  color: {
+                    attribute: "highlightColor",
+                    defaultValue: "#00000000",
+                    transparent: true,
+                  },
+                  size: {
+                    mode: "relative",
+                    attribute: "highlightSize",
+                    defaultValue: 0,
+                  },
+                },
+
+                {
+                  color: {
+                    attribute: "borderColor",
+                    defaultValue: "#00000000",
+                    transparent: true,
+                  },
+                  size: {
+                    mode: "relative",
+                    attribute: "borderSize",
+                    defaultValue: 0,
+                  },
+                },
+                {
+                  color: {
+                    attribute: "color",
+                    defaultValue: "#666",
+                    transparent: true,
+                  },
+                  size: {
+                    mode: "relative",
+                    value: 1,
+                  },
+                },
+              ],
+            }),
+          },
           defaultEdgeType: shouldShowArrows ? "arrow" : "line",
           edgeProgramClasses: {
             line: shouldShowEdges ? EdgeRectangleProgram : NoEdgeProgram,
@@ -68,93 +149,16 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       );
       onUpdateSigma();
 
-      // enableDrag(); // TODO: enable it
-      // enableNodeInfo(); // TODO: enable it
+      enableNodeDrag();
+      enableNodeHover();
+      enableNodeFocus();
 
       initCamera();
-
-      // let interval: NodeJS.Timeout | null | undefined = null;
-      // const animate = () => {
-      //     if (graphRef.current) {
-      //         graphRef.current.forEachNode((node, attr) => {
-      //             if (attr.bound === true) return null;
-      //             if (node === '0') return null;
-      //             const coords = {
-      //                 x: attr.x + Math.random() - 0.5,
-      //                 y: attr.y + Math.random() - 0.5
-      //             };
-      //             if (coords.x < 0) coords.x = 0;
-      //             if (coords.y < 0) coords.y = 0;
-      //             if (coords.x > 100) coords.x = 100;
-      //             if (coords.y > 100) coords.y = 100;
-
-      //             if (node.length < 2) {
-
-      //                 const newId = uuid();
-      //                 graphRef.current!.updateNodeAttributes(node, (attr) => ({
-      //                     ...attr,
-      //                     ...coords,
-      //                     lastTraceId: newId,
-      //                     label: node
-      //                 }));
-      //                 graphRef.current!.addNode(newId, {
-      //                     ...attr,
-      //                     ...coords,
-      //                     size: 1,
-      //                     id: newId,
-      //                     label: graphRef.current!.nodes().length
-      //                 });
-      //                 if (attr.lastTraceId) {
-      //                     graphRef.current!.addEdge(attr.lastTraceId, newId, {
-      //                         color: attr.color,
-      //                         type: 'line' as const
-      //                     })
-      //                 }
-
-      //                 setGraphData((prev) => ({
-      //                     ...prev,
-      //                     links: [
-      //                         ...prev.links,
-      //                         ...(attr.lastTraceId ?
-      //                             [{
-      //                                 source: attr.lastTraceId,
-      //                                 target: newId,
-      //                                 color: attr.color,
-      //                                 type: 'line' as const
-      //                             }] :
-      //                             []
-      //                         )
-      //                     ],
-      //                     nodes: [
-      //                         ...prev.nodes.filter(n => n.id !== node),
-      //                         {
-      //                             ...attr,
-      //                             ...coords,
-      //                             lastTraceId: newId,
-      //                             id: node,
-      //                             label: node
-      //                         },
-      //                         {
-      //                             ...attr,
-      //                             ...coords,
-      //                             size: 1,
-      //                             id: newId,
-      //                             label: (graphRef.current!.nodes().length - 1).toString()
-      //                         }
-      //                     ]
-      //                 }));
-      //             }
-      //         });
-
-      //     }
-      // };
-      // interval = isRunning ? setInterval(animate) : undefined;
-
-      // return () => interval && clearTimeout(interval);
     }, [
       shouldShowEdges,
-      shouldShowIds,
+      shouldShowLabels,
       arrowHeadSize,
+      cameraEnabled,
       simulation,
       containerRef,
       shouldShowArrows,
@@ -163,7 +167,19 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
     useEffect(() => {
       if (!simulation) return;
       createBoundary(simulation.graph);
+      setNodeDragEnabled(true);
+      setNodeFocusEnabled(true);
     }, [simulation]);
+
+    useEffect(() => {
+      if (isRunning) {
+        setNodeDragEnabled(false);
+        setNodeFocusEnabled(false);
+      } else {
+        setNodeDragEnabled(true);
+        setNodeFocusEnabled(true);
+      }
+    }, [isRunning]);
 
     useImperativeHandle(ref, () => ({
       getSigma: () => sigmaRef.current,
@@ -171,13 +187,26 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
 
     const initCamera = () => {
       if (!sigmaRef.current || !simulation) return;
+      if (!getCameraEnabled()) {
+        sigmaRef.current.getCamera().disable();
+      } else {
+        sigmaRef.current.getCamera().enable();
+      }
       if (cameraState) sigmaRef.current.getCamera().setState(cameraState);
 
-      sigmaRef.current
-        .getCamera()
-        .on("updated", (state) => setCameraState(state));
+      sigmaRef.current.getCamera().on("updated", (state) => {
+        setCameraState(state);
+      });
     };
 
+    /**
+     * Creates boundary nodes and edges in the given graph.
+     * The boundary consists of 4 nodes at the corners of the simulation
+     * area, and 4 edges connecting them in a square shape.
+     * The boundary nodes are fixed and not draggable.
+     * The boundary edges are also not draggable, and are not highlighted.
+     * @param {Graph} g - the graph to create the boundary in
+     */
     const createBoundary = (g: Graph) => {
       if (!simulation) return;
       if (g.hasNode("b-lb")) return;
@@ -219,9 +248,11 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
           size: -1,
           highlighted: false,
           color: "#00000000",
-          dragable: false,
+          draggable: false,
           forceLabel: false,
           bound: true,
+          forceHighlight: false,
+          originalSize: -1,
         }),
       );
       boundData.links.forEach((e) =>
@@ -237,49 +268,83 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       );
     };
 
-    // const enableDrag = () => {
-    //   if (!graphRef.current) return;
-    //   if (!sigmaRef.current) return;
-    //   let draggedNode: string | null = null;
+    /**
+     * Enables node dragging on the graph.
+     * When a node is dragged, the camera is disabled to prevent panning/zooming.
+     * When the mouse is released, the camera is re-enabled and the node position is updated.
+     */
+    const enableNodeDrag = () => {
+      if (!simulation) return;
+      if (!sigmaRef.current) return;
+      let draggedNode: string | null = null;
 
-    //   sigmaRef.current.on("downNode", (e) => {
-    //     if (!graphRef.current?.getNodeAttributes(e.node)?.dragable) return;
-    //     draggedNode = e.node;
-    //     sigmaRef.current!.getCamera().disable(); // Desativa o pan/zoom enquanto arrasta
-    //   });
+      sigmaRef.current.on("downNode", (e) => {
+        if (!simulation.graph.getNodeAttributes(e.node).draggable) return;
+        if (!getNodeDragEnabled()) return;
+        draggedNode = e.node;
+        sigmaRef.current!.getCamera().disable(); // Desativa o pan/zoom enquanto arrasta
+      });
 
-    //   sigmaRef.current.getMouseCaptor().on("mousemove", (e) => {
-    //     if (draggedNode) {
-    //       const pos = sigmaRef.current!.viewportToGraph(e);
-    //       graphRef.current!.setNodeAttribute(draggedNode, "x", pos.x);
-    //       graphRef.current!.setNodeAttribute(draggedNode, "y", pos.y);
-    //       graphRef.current!.setNodeAttribute(
-    //         draggedNode,
-    //         "label",
-    //         `(${pos.x.toFixed(2)},${pos.y.toFixed(2)})`,
-    //       );
-    //     }
-    //   });
+      sigmaRef.current.getMouseCaptor().on("mousemove", (e: MouseCoords) => {
+        if (!getNodeDragEnabled()) return;
+        if (draggedNode) {
+          const pos = sigmaRef.current!.viewportToGraph(e);
+          simulation.updateNodePosition(
+            Number(draggedNode),
+            new Position(pos.x, pos.y),
+          );
+        }
+      });
 
-    //   sigmaRef.current.getMouseCaptor().on("mouseup", () => {
-    //     if (draggedNode) {
-    //       draggedNode = null;
-    //       sigmaRef.current!.getCamera().enable(); // Reativa pan/zoom
-    //     }
-    //   });
-    // };
+      sigmaRef.current.getMouseCaptor().on("mouseup", () => {
+        if (!getNodeDragEnabled()) return;
+        if (draggedNode) {
+          draggedNode = null;
+          if (getCameraEnabled()) sigmaRef.current!.getCamera().enable();
+        }
+      });
+    };
 
-    // const enableNodeInfo = () => {
-    //   if (!graphRef.current) return;
-    //   if (!sigmaRef.current) return;
-    //   sigmaRef.current.on("enterNode", (e) => {
-    //     if (mouseInNode) return;
-    //     setMouseInNode(e.node);
-    //   });
-    //   sigmaRef.current.on("leaveNode", (e) => {
-    //     setMouseInNode(null);
-    //   });
-    // };
+    /**
+     * Enables node hovering on the graph.
+     * When a node is hovered, the hovered node ID is stored in the state.
+     * When the mouse is moved away from the node, the hovered node ID is set to null.
+     */
+    const enableNodeHover = () => {
+      if (!simulation) return;
+      if (!sigmaRef.current) return;
+
+      sigmaRef.current.on("enterNode", (e: SigmaNodeEventPayload) => {
+        if (hoveredNode) return;
+        if (!getNodeFocusEnabled()) return;
+        setHoveredNode(e.node);
+      });
+
+      sigmaRef.current.on("leaveNode", () => {
+        if (!getNodeFocusEnabled()) return;
+        setHoveredNode(null);
+      });
+    };
+
+    /**
+     * Enables node focusing on the graph.
+     * When a node is clicked, the focused node ID is stored in the state.
+     * When the background is clicked, the focused node ID is set to null.
+     */
+    const enableNodeFocus = () => {
+      if (!simulation) return;
+      if (!sigmaRef.current) return;
+
+      sigmaRef.current.on("clickNode", (e: SigmaNodeEventPayload) => {
+        if (!getNodeFocusEnabled()) return;
+        setFocusedNode(e.node);
+      });
+
+      sigmaRef.current.on("clickStage", () => {
+        if (!getNodeFocusEnabled()) return;
+        setFocusedNode(null);
+      });
+    };
 
     return (
       <>

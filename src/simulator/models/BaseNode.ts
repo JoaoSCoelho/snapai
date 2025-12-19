@@ -12,9 +12,15 @@ import { ParameterizedModule } from "../modules/ParameterizedModule";
 import { ParametersSubsection } from "../configurations/layout/ParametersSubsection";
 import { OrderedTimerSet } from "../modules/OrderedTimerSet";
 
-export abstract class BaseNode extends ParameterizedModule {
-  protected readonly timers: OrderedTimerSet = new OrderedTimerSet(); // TODO: Put the comparison function here
+export type BaseNodeEventMap = {
+  reposition: [oldPosition: Position, newPosition: Position];
+};
+
+export abstract class BaseNode extends ParameterizedModule<BaseNodeEventMap> {
+  protected readonly timers: OrderedTimerSet = new OrderedTimerSet();
   protected readonly outEdges: Map<NodeId, Edge> = new Map();
+  public abstract readonly name: string;
+  protected pinned: boolean = false;
 
   public constructor(
     public readonly id: NodeId,
@@ -26,6 +32,10 @@ export abstract class BaseNode extends ParameterizedModule {
     public readonly simulation: Simulation,
   ) {
     super();
+  }
+
+  public arePinned(): boolean {
+    return this.pinned;
   }
 
   /**
@@ -100,8 +110,12 @@ export abstract class BaseNode extends ParameterizedModule {
    * @param position The new position of the node.
    */
   public reposition(position: Position) {
-    this.position = position;
+    const oldPosition = this.position.isInert
+      ? this.position
+      : this.position.copy();
+    this.position = position.isInert ? position : position.copy();
     this.onReposition();
+    this.emit("reposition", oldPosition, position);
   }
 
   /**

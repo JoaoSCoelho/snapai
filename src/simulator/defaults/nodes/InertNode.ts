@@ -10,6 +10,8 @@ import { Position } from "@/simulator/tools/Position";
 import { ModelType, ModelTypeToModel } from "@/simulator/utils/modelsUtils";
 
 export class InertNode extends Node {
+  public readonly name = "Inert Node";
+
   public constructor(
     public readonly id: NodeId,
     public mobilityModel: MobilityModel,

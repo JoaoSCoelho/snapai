@@ -24,6 +24,8 @@ export type RandomMessageNodeParametersSchema = {
 };
 
 export class RandomMessageNode extends Node {
+  public readonly name = "Random message Node";
+
   public constructor(
     public readonly id: NodeId,
     public mobilityModel: MobilityModel,

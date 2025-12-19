@@ -5,7 +5,18 @@ import { SynchronousSimulation } from "./SynchronousSimulation";
 import { Thread } from "./Thread";
 import { Graph } from "../modules/Graph";
 
-export class SynchronousThread extends Thread {
+export type SynchronousThreadEventMap = {
+  start: [];
+  stop: [];
+  end: [];
+  interrupt: [];
+  roundEnd: [];
+  finish: [];
+  preRound: [];
+  postRound: [];
+};
+
+export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
   private shouldStop = false;
   public currentRound = 0;
 
@@ -14,13 +25,7 @@ export class SynchronousThread extends Thread {
     public readonly rounds: number,
     public readonly refreshRate: number,
     public readonly frameRate: number,
-    public readonly sigma: Sigma,
-    public readonly onStart: () => void = () => {},
-    public readonly onEnd: () => void = () => {},
-    public readonly onInterrupt: () => void = () => {},
-    public readonly onRoundEnd: () => void = () => {},
-    public readonly onFinish: () => void = () => {},
-    public readonly onStop: () => void = () => {},
+    public readonly sigma: Sigma, // TODO: call preround and postround to remove and reput sigma graph
   ) {
     super(simulation);
   }
@@ -45,7 +50,7 @@ export class SynchronousThread extends Thread {
         this.simulation.startTime = startTime;
       }
       this.simulation.startTimeOfRound = startTime;
-      this.onStart();
+      this.emit("start");
 
       const frameEach = this.frameRate === 0 ? 0 : 1000 / this.frameRate;
       const roundEach = 1000 / this.refreshRate;
@@ -63,8 +68,8 @@ export class SynchronousThread extends Thread {
         this.currentRound++
       ) {
         if ((this.simulation.isRunning as boolean) === false) {
-          this.onInterrupt();
-          this.onEnd();
+          this.emit("interrupt");
+          this.emit("end");
           this.simulation.logger.log(
             `Simulation is not running in round ${this.currentRound} of ${this.rounds} in ${(Date.now() - startTime.getTime()) / 1000} s.`,
           );
@@ -74,8 +79,8 @@ export class SynchronousThread extends Thread {
           this.simulation.logger.log(
             `Simulation stopped in round ${this.currentRound} of ${this.rounds} in ${(Date.now() - startTime.getTime()) / 1000} s.`,
           );
-          this.onStop();
-          this.onEnd();
+          this.emit("stop");
+          this.emit("end");
           this.simulation.isRunning = false;
           return;
         }
@@ -121,21 +126,21 @@ export class SynchronousThread extends Thread {
         await this.simulation.project.preRound();
         await this.round();
         await this.simulation.project.postRound();
-        this.onRoundEnd();
+        this.emit("roundEnd");
         this.sigma.setGraph(this.simulation.graph);
         if (this.simulation.project.hasTerminated()) this.stop();
       }
 
       this.simulation.isRunning = false;
-      this.onFinish();
-      this.onEnd();
+      this.emit("finish");
+      this.emit("end");
       this.simulation.logger.log(
         `Simulation finished ${this.rounds} rounds in ${(Date.now() - startTime.getTime()) / 1000} s.`,
       );
     } catch (e) {
       this.simulation.isRunning = false;
-      this.onInterrupt();
-      this.onEnd();
+      this.emit("interrupt");
+      this.emit("end");
       this.simulation.logger.log(
         `Simulation interrupted in round ${this.rounds} by error: ${e}.`,
       );
@@ -181,31 +186,6 @@ export class SynchronousThread extends Thread {
   }
 
   /**
-   * Repositions a node in the simulation.
-   * This method is used to update the position of a node in the simulation.
-   * It calls the reposition method of the node with the next position as given by the mobility model.
-   * The node attributes in the simulation graph are then updated with the new position of the node.
-   * @param node The node to reposition.
-   */
-  private repositionNode(node: Node): void {
-    const newPosition = node.mobilityModel.getNextPosition(node);
-
-    // This call should be before node reposition
-    this.simulation.nodesCollection.reposition(
-      node,
-      newPosition.getCoordinates(),
-    );
-
-    node.reposition(newPosition);
-    this.simulation.graph.updateNodeAttributes(node.id, (att) => ({
-      ...att,
-      x: newPosition.x,
-      y: newPosition.y,
-      z: newPosition.z,
-    }));
-  }
-
-  /**
    * Updates the connections of all nodes in the simulation.
    * This method goes through all nodes and checks if they are connected according to their connectivity model.
    * If a connection is found and there is no edge between the nodes, an edge is added to the simulation graph.
@@ -225,5 +205,18 @@ export class SynchronousThread extends Thread {
     for (const [, node] of this.simulation.nodes) {
       node.step();
     }
+  }
+
+  /**
+   * Repositions a node in the simulation.
+   * This method is used to update the position of a node in the simulation.
+   * It calls the reposition method of the node with the next position as given by the mobility model.
+   * The node attributes in the simulation graph are then updated with the new position of the node.
+   * @param node The node to reposition.
+   */
+  private repositionNode(node: Node): void {
+    const newPosition = node.mobilityModel.getNextPosition(node);
+
+    this.simulation.updateNodePosition(node, newPosition);
   }
 }

@@ -1,6 +1,10 @@
+import EventEmitter from "node:events";
 import { ParametersSubsection } from "../configurations/layout/ParametersSubsection";
+import { DefaultEventMap, EventMap } from "../utils/types";
 
-export abstract class ParameterizedModule {
+export abstract class ParameterizedModule<
+  T extends EventMap<T> = DefaultEventMap,
+> extends EventEmitter<T> {
   /**
    * **Child classes should implements this static method to get the parameters subsection layout.**
    *

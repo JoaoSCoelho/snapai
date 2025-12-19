@@ -5,10 +5,12 @@ import {
   SimulationInfoBarRef,
   SimulationInfoCardType,
 } from "./SimulationInfoBar";
+import NodeInfo from "./NodeInfo";
 export type SimulationSideInfoBarProps = {};
 
 export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
-  const { infoBarRef } = useGraphVisualizationContext();
+  const { infoBarRef, focusedNode, hoveredNode } =
+    useGraphVisualizationContext();
 
   const refFunc = (el: SimulationInfoBarRef | null) => {
     if (el) {
@@ -43,8 +45,8 @@ export function SimulationSideInfoBar({}: SimulationSideInfoBarProps) {
         ]}
       />
       <Divider variant="middle" />
-      {/* <NodeInfo node={mouseInNode ?? undefined} />
-        <Logs logs={logs} /> // TODO: implement it */}
+      <NodeInfo node={hoveredNode ?? focusedNode ?? undefined} />
+      {/* <Logs logs={logs} /> // TODO: implement it */}
     </div>
   );
 }
