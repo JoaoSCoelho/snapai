@@ -86,18 +86,6 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
               borders: [
                 {
                   color: {
-                    attribute: "highlightBaseColor",
-                    defaultValue: "#00000000",
-                    transparent: true,
-                  },
-                  size: {
-                    mode: "relative",
-                    attribute: "highlightBaseSize",
-                    defaultValue: 0,
-                  },
-                },
-                {
-                  color: {
                     attribute: "highlightColor",
                     defaultValue: "#00000000",
                     transparent: true,
@@ -105,6 +93,18 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
                   size: {
                     mode: "relative",
                     attribute: "highlightSize",
+                    defaultValue: 0,
+                  },
+                },
+                {
+                  color: {
+                    attribute: "highlightBaseColor",
+                    defaultValue: "#00000000",
+                    transparent: true,
+                  },
+                  size: {
+                    mode: "relative",
+                    attribute: "highlightBaseSize",
                     defaultValue: 0,
                   },
                 },
@@ -116,7 +116,7 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
                     transparent: true,
                   },
                   size: {
-                    mode: "relative",
+                    mode: "pixels",
                     attribute: "borderSize",
                     defaultValue: 0,
                   },

@@ -1,12 +1,10 @@
 import { Divider, Tooltip } from "@mui/material";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSimulationContext } from "../contexts/SimulationContext";
 import { NodeAttributes } from "@/simulator/modules/Graph";
-import { FaCheck, FaInbox, FaRegCheckCircle, FaRoute } from "react-icons/fa";
+import { FaInbox, FaRegCheckCircle, FaRoute } from "react-icons/fa";
 import { GiCancel } from "react-icons/gi";
-import { FaOrcid } from "react-icons/fa";
 import { BiSolidRename } from "react-icons/bi";
-import TurnSharpRightIcon from "@mui/icons-material/TurnSharpRight";
 import { PiHighlighter, PiPlugsConnectedFill } from "react-icons/pi";
 import GppGoodIcon from "@mui/icons-material/GppGood";
 import LeakRemoveIcon from "@mui/icons-material/LeakRemove";
@@ -18,35 +16,38 @@ import {
   MdCallMade,
   MdCallReceived,
   MdLabel,
-  MdLabelOutline,
   MdOutlineLabelOff,
   MdOutlinePinch,
   MdPinch,
 } from "react-icons/md";
-import { CopyableText } from "./CopyableText";
 import { Position } from "@/simulator/tools/Position";
-import { PiPushPinFill } from "react-icons/pi";
-import { PiPushPinSlashFill } from "react-icons/pi";
 import { PiHighlighterFill } from "react-icons/pi";
 import Image from "next/image";
-import { TbTag } from "react-icons/tb";
-import { TbTagFilled } from "react-icons/tb";
 import { IoColorFill } from "react-icons/io5";
 import { RxSize } from "react-icons/rx";
 import { RiPushpin2Fill } from "react-icons/ri";
 import { RiPushpin2Line } from "react-icons/ri";
 import { FaAddressCard } from "react-icons/fa6";
+import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
+import clsx from "clsx";
+import { throttle } from "../utils/debounce";
+import { TbColorFilter } from "react-icons/tb";
+import { RiCustomSize } from "react-icons/ri";
+import { MdOutlineColorLens } from "react-icons/md";
+import { FaHighlighter } from "react-icons/fa";
 
 export type NodeInfoProps = {
   node?: string;
 };
 
 const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
-  const [refresh, setRefresh] = useState(0);
-  const [, forceRender] = useReducer((x) => x + 1, 0);
-  const [node, setNode] = useState<NodeAttributes | null>(null);
+  const { isRunning } = useGraphVisualizationContext();
   const { simulation } = useSimulationContext();
+
+  const [refresh, setRefresh] = useState(0);
+  const [node, setNode] = useState<NodeAttributes | null>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
+  const borderColorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!simulation) return;
@@ -60,7 +61,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
       return;
     }
     setNode(node);
-    const repositionListener = (_: any, newPos: Position) => {
+    const repositionListener = throttle((_: any, newPos: Position) => {
       setNode((old) => ({
         ...old,
         x: newPos.x,
@@ -74,7 +75,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         highlighted: node.highlighted,
         forceHighlight: node.forceHighlight,
       }));
-    };
+    }, 100);
     node.implementation.on("reposition", repositionListener);
 
     return () => {
@@ -142,23 +143,36 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
             <BiSolidRename />
             Label:
           </span>
-          <Tooltip arrow title="Edit label">
-            <input
-              aria-label="label input"
-              key={node.implementation!.id}
-              onChange={(e) => {
-                simulation.graph.setNodeAttribute(
-                  node.implementation!.id,
-                  "label",
-                  e.target.value,
-                );
+          {!isRunning ? (
+            <Tooltip arrow title="Edit label">
+              <input
+                aria-label="label input"
+                key={node.implementation!.id}
+                onChange={(e) => {
+                  simulation.graph.setNodeAttribute(
+                    node.implementation!.id,
+                    "label",
+                    e.target.value,
+                  );
+                }}
+                type="text"
+                className="font-extrabold not-focus:cursor-pointer not-focus:hover:underline"
+                style={{ width: "15ch", textOverflow: "ellipsis" }}
+                defaultValue={node.label ?? "----"}
+              />
+            </Tooltip>
+          ) : (
+            <span
+              className="font-extrabold"
+              style={{
+                width: "15ch",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
               }}
-              type="text"
-              className="font-extrabold not-focus:cursor-pointer not-focus:hover:underline"
-              style={{ width: "15ch", textOverflow: "ellipsis" }}
-              defaultValue={node.label ?? "----"}
-            />
-          </Tooltip>
+            >
+              {node.label ?? "----"}
+            </span>
+          )}
         </div>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
         <div className="font-mono flex items-center gap-2">
@@ -210,7 +224,9 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                 Coordinate <b>X</b> of the node position.
               </p>
               <p className="text-center font-black text-xs">{node.x}</p>
-              <p className="opacity-80 text-center">(Click to edit)</p>
+              {!isRunning && (
+                <p className="opacity-80 text-center">(Click to edit)</p>
+              )}
             </>
           }
           arrow
@@ -221,21 +237,34 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
               X:
             </span>
             <span className="font-extrabold text-sm ">
-              <input
-                aria-label="Coordinate X"
-                type="number"
-                lang="en"
-                step="0.0000000001"
-                className="no-spinner not-focus:cursor-pointer not-focus:hover:underline"
-                style={{ width: "15ch", textOverflow: "ellipsis" }}
-                value={node.x}
-                onChange={(e) => {
-                  simulation.updateNodePosition(
-                    node.implementation!.id,
-                    new Position(Number(e.target.value), node.y, node.z),
-                  );
-                }}
-              />
+              {isRunning ? (
+                <span
+                  className="font-extrabold block"
+                  style={{
+                    width: "15ch",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                  }}
+                >
+                  {node.x}
+                </span>
+              ) : (
+                <input
+                  aria-label="Coordinate X"
+                  type="number"
+                  lang="en"
+                  step="0.0000000001"
+                  className="no-spinner not-focus:cursor-pointer not-focus:hover:underline"
+                  style={{ width: "15ch", textOverflow: "ellipsis" }}
+                  value={node.x}
+                  onChange={(e) => {
+                    simulation.updateNodePosition(
+                      node.implementation!.id,
+                      new Position(Number(e.target.value), node.y, node.z),
+                    );
+                  }}
+                />
+              )}
             </span>
           </div>
         </Tooltip>
@@ -247,7 +276,9 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                 Coordinate <b>Y</b> of the node position.
               </p>
               <p className="text-center font-black text-xs">{node.y}</p>
-              <p className="opacity-80 text-center">(Click to edit.)</p>
+              {!isRunning && (
+                <p className="opacity-80 text-center">(Click to edit)</p>
+              )}
             </>
           }
           arrow
@@ -258,21 +289,34 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
               Y:
             </span>
             <span className="font-extrabold text-sm">
-              <input
-                aria-label="Coordinate Y"
-                type="number"
-                lang="en"
-                step="0.0000000001"
-                className="no-spinner not-focus:cursor-pointer not-focus:hover:underline"
-                value={node.y}
-                style={{ width: "15ch", textOverflow: "ellipsis" }}
-                onChange={(e) => {
-                  simulation.updateNodePosition(
-                    node.implementation!.id,
-                    new Position(node.x, Number(e.target.value), node.z),
-                  );
-                }}
-              />
+              {isRunning ? (
+                <span
+                  className="font-extrabold block"
+                  style={{
+                    width: "15ch",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                  }}
+                >
+                  {node.y}
+                </span>
+              ) : (
+                <input
+                  aria-label="Coordinate Y"
+                  type="number"
+                  lang="en"
+                  step="0.0000000001"
+                  className="no-spinner not-focus:cursor-pointer not-focus:hover:underline"
+                  value={node.y}
+                  style={{ width: "15ch", textOverflow: "ellipsis" }}
+                  onChange={(e) => {
+                    simulation.updateNodePosition(
+                      node.implementation!.id,
+                      new Position(node.x, Number(e.target.value), node.z),
+                    );
+                  }}
+                />
+              )}
             </span>
           </div>
         </Tooltip>
@@ -284,7 +328,9 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                 Coordinate <b>Z</b> of the node position.
               </p>
               <p className="text-center font-black text-xs">{node.z}</p>
-              <p className="opacity-80 text-center">(Click to edit)</p>
+              {!isRunning && (
+                <p className="opacity-80 text-center">(Click to edit)</p>
+              )}
             </>
           }
           arrow
@@ -295,21 +341,34 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
               Z:
             </span>
             <span className="font-extrabold text-sm">
-              <input
-                aria-label="Coordinate Z"
-                type="number"
-                lang="en"
-                step="0.0000000001"
-                className="no-spinner not-focus:cursor-pointer not-focus:hover:underline"
-                value={node.z}
-                style={{ width: "15ch", textOverflow: "ellipsis" }}
-                onChange={(e) => {
-                  simulation.updateNodePosition(
-                    node.implementation!.id,
-                    new Position(node.x, node.y, Number(e.target.value)),
-                  );
-                }}
-              />{" "}
+              {isRunning ? (
+                <span
+                  className="font-extrabold block"
+                  style={{
+                    width: "15ch",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                  }}
+                >
+                  {node.z}
+                </span>
+              ) : (
+                <input
+                  aria-label="Coordinate Z"
+                  type="number"
+                  lang="en"
+                  step="0.0000000001"
+                  className="no-spinner not-focus:cursor-pointer not-focus:hover:underline"
+                  value={node.z}
+                  style={{ width: "15ch", textOverflow: "ellipsis" }}
+                  onChange={(e) => {
+                    simulation.updateNodePosition(
+                      node.implementation!.id,
+                      new Position(node.x, node.y, Number(e.target.value)),
+                    );
+                  }}
+                />
+              )}
             </span>
           </div>
         </Tooltip>
@@ -398,6 +457,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
               "forceHighlight",
               !node.forceHighlight,
             );
+            setRefresh((r) => r + 1);
           }}
         >
           <span className="flex items-center gap-2">
@@ -419,6 +479,42 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
           </span>
         </div>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
+        <Tooltip
+          arrow
+          title={`Click to ${node.forceLabel ? "disable" : "enable"} force label.`}
+        >
+          <div
+            onClick={() => {
+              simulation.graph.setNodeAttribute(
+                node.implementation!.id,
+                "forceLabel",
+                !node.forceLabel,
+              );
+              setRefresh((r) => r + 1);
+            }}
+            className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
+          >
+            <span className="flex items-center gap-2">
+              {node.forceLabel ? <MdLabel /> : <MdOutlineLabelOff />}
+              Force show label:
+            </span>
+
+            <span className="font-extrabold ">
+              {node.forceLabel ? (
+                <span className="flex items-center gap-2">
+                  <FaRegCheckCircle />
+                </span>
+              ) : node.forceLabel === false ? (
+                <span className="flex items-center gap-2">
+                  <GiCancel />
+                </span>
+              ) : (
+                "----"
+              )}
+            </span>
+          </div>
+        </Tooltip>
+        <Divider flexItem orientation="vertical" variant="fullWidth" />
 
         <Tooltip
           arrow
@@ -431,7 +527,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                 "draggable",
                 !node.draggable,
               );
-              setRefresh(refresh + 1);
+              setRefresh((r) => r + 1);
             }}
             className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
           >
@@ -500,11 +596,17 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
             <IoColorFill />
             Color:
           </span>
-          <Tooltip arrow title="Click to change color">
+          <Tooltip
+            arrow={!isRunning}
+            title={!isRunning && "Click to change color"}
+          >
             <span
-              className="font-extrabold flex items-center cursor-pointer hover:underline"
+              className={clsx(
+                "font-extrabold flex items-center ",
+                !isRunning && "hover:underline cursor-pointer",
+              )}
               onClick={() => {
-                colorInputRef.current?.click();
+                !isRunning && colorInputRef.current?.click();
               }}
             >
               {node.color ? (
@@ -514,20 +616,22 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                     style={{ backgroundColor: node.color }}
                   ></span>
                   {node.color}
-                  <input
-                    aria-label="change color"
-                    ref={colorInputRef}
-                    type="color"
-                    value={node.color ?? "#000000"}
-                    onChange={(e) => {
-                      simulation.graph.setNodeAttribute(
-                        node.implementation!.id,
-                        "color",
-                        e.target.value,
-                      );
-                    }}
-                    className="absolute opacity-0 pointer-events-none"
-                  />
+                  {!isRunning && (
+                    <input
+                      aria-label="change color"
+                      ref={colorInputRef}
+                      type="color"
+                      value={node.color ?? "#000000"}
+                      onChange={(e) => {
+                        simulation.graph.setNodeAttribute(
+                          node.implementation!.id,
+                          "color",
+                          e.target.value,
+                        );
+                      }}
+                      className="absolute opacity-0 pointer-events-none"
+                    />
+                  )}
                 </>
               ) : (
                 "----"
@@ -553,42 +657,151 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         </div>
       </div>
       <div className="flex gap-2 justify-between">
-        <Tooltip
-          arrow
-          title={`Click to ${node.forceLabel ? "disable" : "enable"} force label.`}
-        >
-          <div
-            onClick={() => {
-              simulation.graph.setNodeAttribute(
-                node.implementation!.id,
-                "forceLabel",
-                !node.forceLabel,
-              );
-              setRefresh(refresh + 1);
-            }}
-            className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
+        <div className="font-mono flex items-center gap-2">
+          <span className="flex items-center gap-2">
+            <TbColorFilter />
+            Border color:
+          </span>
+          <Tooltip
+            arrow={!isRunning}
+            title={!isRunning && "Click to change border color"}
           >
-            <span className="flex items-center gap-2">
-              {node.forceLabel ? <MdLabel /> : <MdOutlineLabelOff />}
-              Force show label:
-            </span>
-
-            <span className="font-extrabold ">
-              {node.forceLabel ? (
-                <span className="flex items-center gap-2">
-                  <FaRegCheckCircle />
-                </span>
-              ) : node.forceLabel === false ? (
-                <span className="flex items-center gap-2">
-                  <GiCancel />
-                </span>
-              ) : (
-                "----"
+            <span
+              className={clsx(
+                "font-extrabold flex items-center",
+                !isRunning && "cursor-pointer hover:underline",
               )}
+              onClick={() => {
+                !isRunning && borderColorInputRef.current?.click();
+              }}
+            >
+              {
+                <>
+                  <span
+                    className="inline-block w-4 h-4 rounded-full mr-2"
+                    style={{ backgroundColor: node.borderColor ?? "#00000000" }}
+                  ></span>
+                  {node.borderColor ?? "----"}
+                  {!isRunning && (
+                    <input
+                      aria-label="change border color"
+                      ref={borderColorInputRef}
+                      type="color"
+                      value={node.borderColor ?? "#ffffff"}
+                      onChange={(e) => {
+                        simulation.graph.setNodeAttribute(
+                          node.implementation!.id,
+                          "borderColor",
+                          e.target.value,
+                        );
+                      }}
+                      className="absolute opacity-0 pointer-events-none"
+                    />
+                  )}
+                </>
+              }
             </span>
-          </div>
-        </Tooltip>
+          </Tooltip>
+        </div>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
+        <div className="font-mono flex items-center gap-2">
+          <span className="flex items-center gap-2">
+            <RiCustomSize />
+            Border size:
+          </span>
+          <Tooltip arrow={!isRunning} title={!isRunning && "Edit border size"}>
+            {isRunning ? (
+              <span
+                className="font-extrabold block text-ellipsis"
+                style={{
+                  width: "7ch",
+                }}
+              >
+                {node.borderSize ?? 0}
+              </span>
+            ) : (
+              <input
+                aria-label="borderSize"
+                className="font-extrabold no-spinner not-focus:cursor-pointer not-focus:hover:underline text-ellipsis"
+                defaultValue={node.borderSize ?? 0}
+                key={node.implementation.id}
+                type="number"
+                step={0.01}
+                style={{
+                  width: "7ch",
+                }}
+                onChange={(e) => {
+                  simulation.graph.setNodeAttribute(
+                    node.implementation!.id,
+                    "borderSize",
+                    Number(e.target.value),
+                  );
+                }}
+              />
+            )}
+          </Tooltip>
+        </div>
+      </div>
+      <div className="flex gap-2 justify-between">
+        <div className="font-mono flex items-center gap-2">
+          <span className="flex items-center gap-2">
+            <FaHighlighter />
+            Highlight border color:
+          </span>
+          <span className="font-extrabold flex items-center">
+            {
+              <>
+                <span
+                  className="inline-block w-4 h-4 rounded-full mr-2"
+                  style={{
+                    backgroundColor: node.highlightColor ?? "#00000000",
+                  }}
+                ></span>
+                {node.highlightColor ?? "----"}
+              </>
+            }
+          </span>
+        </div>
+        <Divider flexItem orientation="vertical" variant="fullWidth" />
+        <div className="font-mono flex items-center gap-2">
+          <span className="flex items-center gap-2">
+            <RiCustomSize />
+            Highlight border size:
+          </span>
+          <span className="font-extrabold">{node.highlightSize ?? "----"}</span>
+        </div>
+      </div>
+      <div className="flex gap-2 justify-between">
+        <div className="font-mono flex items-center gap-2">
+          <span className="flex items-center gap-2">
+            <FaHighlighter />
+            Highlight base color:
+          </span>
+          <span className="font-extrabold flex items-center">
+            {
+              <>
+                <span
+                  className="inline-block w-4 h-4 rounded-full mr-2"
+                  style={{
+                    backgroundColor: node.highlightBaseColor ?? "#00000000",
+                  }}
+                ></span>
+                {node.highlightBaseColor ?? "----"}
+              </>
+            }
+          </span>
+        </div>
+        <Divider flexItem orientation="vertical" variant="fullWidth" />
+
+        <div className="font-mono flex items-center gap-2">
+          <span className="flex items-center gap-2">
+            <RiCustomSize />
+            Highlight base size:
+          </span>
+          <span className="font-extrabold">
+            {node.highlightBaseSize ?? "----"}
+          </span>
+        </div>
       </div>
     </div>
   );

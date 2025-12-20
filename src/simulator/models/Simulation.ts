@@ -443,11 +443,11 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
 
     const nodeSize = this.graph.getNodeAttribute(node, "originalSize")!;
 
-    this.graph.setNodeAttribute(node, "highlightSize", 0.25);
+    this.graph.setNodeAttribute(node, "highlightBaseSize", 0.25);
     this.graph.setNodeAttribute(node, "size", nodeSize * 1.9);
-    this.graph.setNodeAttribute(node, "highlightColor", "#ffffff00");
-    this.graph.setNodeAttribute(node, "highlightBaseColor", color);
-    this.graph.setNodeAttribute(node, "highlightBaseSize", 0.2);
+    this.graph.setNodeAttribute(node, "highlightBaseColor", "#ffffff00");
+    this.graph.setNodeAttribute(node, "highlightColor", color);
+    this.graph.setNodeAttribute(node, "highlightSize", 0.2);
   }
 
   public unhighlightNodeBorder(node: Node | NodeId) {
