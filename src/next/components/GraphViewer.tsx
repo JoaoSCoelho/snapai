@@ -19,8 +19,9 @@ import {
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import { NoEdgeProgram } from "../utils/NoEdgeProgram";
 import { Position } from "@/simulator/tools/Position";
-import { MouseCoords, SigmaNodeEventPayload } from "sigma/types";
+import { CameraState, MouseCoords, SigmaNodeEventPayload } from "sigma/types";
 import { createNodeBorderProgram, NodeBorderProgram } from "@sigma/node-border";
+import { debounce, throttle } from "../utils/debounce";
 
 export type GraphViewerProps = {
   arrowHeadSize?: number;
@@ -136,6 +137,22 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
             }),
           },
           defaultEdgeType: shouldShowArrows ? "arrow" : "line",
+          edgeReducer(edge, attr) {
+            if (attr.bound) return attr;
+            if (attr.highlighted) {
+              return {
+                color: "#666666",
+                size: 2,
+                zIndex: 1000000,
+                type: `${attr.type ?? (shouldShowArrows ? "arrow" : "line")}Highlight`,
+              };
+            } else {
+              return {
+                color: attr.color,
+                size: attr.width,
+              };
+            }
+          },
           edgeProgramClasses: {
             line: shouldShowEdges ? EdgeRectangleProgram : NoEdgeProgram,
             arrow: shouldShowEdges
@@ -144,6 +161,11 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
                   widenessToThicknessRatio: 2 * (arrowHeadSize ?? 1),
                 })
               : NoEdgeProgram,
+            arrowHighlight: createEdgeArrowProgram({
+              lengthToThicknessRatio: 2.5 * (arrowHeadSize ?? 1),
+              widenessToThicknessRatio: 2 * (arrowHeadSize ?? 1),
+            }),
+            lineHighlight: EdgeRectangleProgram,
           },
         },
       );
@@ -194,9 +216,11 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       }
       if (cameraState) sigmaRef.current.getCamera().setState(cameraState);
 
-      sigmaRef.current.getCamera().on("updated", (state) => {
+      const updateCameraState = debounce((state: CameraState) => {
         setCameraState(state);
-      });
+      }, 100);
+
+      sigmaRef.current.getCamera().on("updated", updateCameraState);
     };
 
     /**
@@ -245,14 +269,13 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
         g.addNode(n.id, {
           ...n,
           z: 0,
+          label: "",
           size: -1,
           highlighted: false,
           color: "#00000000",
           draggable: false,
           forceLabel: false,
           bound: true,
-          forceHighlight: false,
-          originalSize: -1,
         }),
       );
       boundData.links.forEach((e) =>
@@ -279,7 +302,7 @@ export const GraphViewer = forwardRef<GraphViewerRef, GraphViewerProps>(
       let draggedNode: string | null = null;
 
       sigmaRef.current.on("downNode", (e) => {
-        if (!simulation.graph.getNodeAttributes(e.node).draggable) return;
+        if (!simulation.isNodeDraggable(Number(e.node))) return;
         if (!getNodeDragEnabled()) return;
         draggedNode = e.node;
         sigmaRef.current!.getCamera().disable(); // Desativa o pan/zoom enquanto arrasta

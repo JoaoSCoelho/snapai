@@ -16,9 +16,9 @@ export default function ProjectConfigForm({ project }: ProjectConfigFormProps) {
   if (!project.projectConfig)
     throw new Error('This component requires a project with a "projectConfig"');
 
-  const handleFormSubmit = async (data: ProjectConfigFormSchema) => {
+  async function handleFormSubmit(data: ProjectConfigFormSchema) {
     await saveProjectConfig(project, data);
-  };
+  }
 
   return (
     <DefaultForm<ProjectConfigFormSchema>

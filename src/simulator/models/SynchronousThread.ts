@@ -13,7 +13,7 @@ export type SynchronousThreadEventMap = {
   roundEnd: [];
   finish: [];
   preRound: [];
-  postRound: [];
+  frame: [reason: "refresh" | "frame"];
 };
 
 export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
@@ -25,7 +25,6 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
     public readonly rounds: number,
     public readonly refreshRate: number,
     public readonly frameRate: number,
-    public readonly sigma: Sigma, // TODO: call preround and postround to remove and reput sigma graph
   ) {
     super(simulation);
   }
@@ -51,7 +50,6 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
       }
       this.simulation.startTimeOfRound = startTime;
       this.emit("start");
-
       const frameEach = this.frameRate === 0 ? 0 : 1000 / this.frameRate;
       const roundEach = 1000 / this.refreshRate;
       const shouldSleepRound = roundEach !== Infinity;
@@ -79,9 +77,9 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
           this.simulation.logger.log(
             `Simulation stopped in round ${this.currentRound} of ${this.rounds} in ${(Date.now() - startTime.getTime()) / 1000} s.`,
           );
+          this.simulation.isRunning = false;
           this.emit("stop");
           this.emit("end");
-          this.simulation.isRunning = false;
           return;
         }
 
@@ -92,6 +90,8 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
             if (sleepTime < 6) {
               pendent += 6 - sleepTime;
             }
+
+            this.emit("frame", "refresh");
             await new Promise((resolve) => setTimeout(resolve, sleepTime));
           }
           lastTime = Date.now();
@@ -103,8 +103,11 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
           if (framingCount.length > 10) framingCount.shift();
           this.framingRate =
             framingCount.reduce((a, b) => a + b, 0) / framingCount.length;
-          await new Promise((resolve) => setTimeout(resolve, 0));
+
           lastFrameTime = Date.now();
+
+          this.emit("frame", "frame");
+          await new Promise((resolve) => setTimeout(resolve, 0));
         }
 
         passedTime = Date.now() - refreshingTime;
@@ -122,12 +125,12 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
         this.simulation.currentTime++;
         this.simulation.isEvenRound = !this.simulation.isEvenRound;
 
-        this.sigma.setGraph(new Graph());
+        this.emit("preRound");
+
         await this.simulation.project.preRound();
         await this.round();
         await this.simulation.project.postRound();
         this.emit("roundEnd");
-        this.sigma.setGraph(this.simulation.graph);
         if (this.simulation.project.hasTerminated()) this.stop();
       }
 
@@ -181,7 +184,7 @@ export class SynchronousThread extends Thread<SynchronousThreadEventMap> {
    */
   private moveNodes() {
     for (const [, node] of this.simulation.nodes) {
-      this.repositionNode(node);
+      if (node.mobilityEnabled) this.repositionNode(node);
     }
   }
 

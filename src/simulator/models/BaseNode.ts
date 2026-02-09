@@ -11,16 +11,42 @@ import { Edge } from "./Edge";
 import { ParameterizedModule } from "../modules/ParameterizedModule";
 import { ParametersSubsection } from "../configurations/layout/ParametersSubsection";
 import { OrderedTimerSet } from "../modules/OrderedTimerSet";
+import { Color } from "../tools/Color";
 
 export type BaseNodeEventMap = {
   reposition: [oldPosition: Position, newPosition: Position];
+};
+
+export type Border = {
+  color: Color;
+  size: number;
+};
+
+export type HighlightBorder = Border & {
+  baseColor: Color;
+  baseSize: number;
+};
+
+export enum NodeType {
+  Circle = "circle",
+  Bordered = "bordered",
+}
+
+export type HighlightBorderCall = {
+  border: HighlightBorder;
+  nodeSizeFactor: number;
+  caller: string;
 };
 
 export abstract class BaseNode extends ParameterizedModule<BaseNodeEventMap> {
   protected readonly timers: OrderedTimerSet = new OrderedTimerSet();
   protected readonly outEdges: Map<NodeId, Edge> = new Map();
   public abstract readonly name: string;
-  protected pinned: boolean = false;
+  public pinned: boolean = false;
+  protected highlightCallStack: Set<string> = new Set();
+  protected highlightBorderCallStack: HighlightBorderCall[] = [];
+  protected highlighted: boolean;
+  protected _highlightBorder: HighlightBorder | null = null;
 
   public constructor(
     public readonly id: NodeId,
@@ -28,14 +54,91 @@ export abstract class BaseNode extends ParameterizedModule<BaseNodeEventMap> {
     public connectivityModel: ConnectivityModel,
     public interferenceModel: InterferenceModel,
     public reliabilityModel: ReliabilityModel,
+    public mobilityEnabled: boolean,
+    public connectivityEnabled: boolean,
     public position: Position,
     public readonly simulation: Simulation,
+    public size: number,
+    public readonly originalSize: number,
+    public color: Color,
+    public draggable: boolean,
+    public forceLabel: boolean,
+    public forceHighlight: boolean,
+    public label: string = id.toString(),
+    public border: Border | null = null,
+    public type: NodeType | null = null,
   ) {
     super();
+    this.highlighted = this.forceHighlight;
   }
 
   public arePinned(): boolean {
     return this.pinned;
+  }
+
+  public areHighlighted(): boolean {
+    return this.highlighted;
+  }
+
+  public highlight(caller: string) {
+    this.highlightCallStack.add(caller);
+    this.highlighted = true;
+  }
+
+  /**
+   * Unhighlights the node and removes the given caller from the highlight call stack.
+   * If the highlight call stack is empty after removing the caller, the node is no longer highlighted.
+   * @param caller The caller to remove from the highlight call stack.
+   */
+  public unhighlight(caller: string) {
+    this.highlightCallStack.delete(caller);
+    this.highlighted = this.highlightCallStack.size > 0 || this.forceHighlight;
+  }
+
+  /**
+   * Sets the highlight border of the node to the given border and adds the given caller to the highlight border call stack.
+   * The highlight border call stack is used to track which highlight borders were set by which callers.
+   * @param border The highlight border to set.
+   * @param caller The caller to add to the highlight border call stack.
+   */
+  public highlightBorder(
+    border: HighlightBorder,
+    caller: string,
+    nodeSizeFactor: number = 1,
+  ) {
+    this.highlightBorderCallStack.push({ border, nodeSizeFactor, caller });
+    this._highlightBorder = border;
+    this.size = this.originalSize * nodeSizeFactor;
+  }
+
+  /**
+   * Removes the given caller from the highlight border call stack and sets the highlight border of the node to the highlight border that was set by the previous caller in the call stack.
+   * If the highlight border call stack is empty after removing the caller, the node's highlight border is set to null.
+   * @param caller The caller to remove from the highlight border call stack.
+   */
+  public unhighlightBorder(caller: string) {
+    this.highlightBorderCallStack = this.highlightBorderCallStack.filter(
+      (call) => call.caller !== caller,
+    );
+    this._highlightBorder = this.highlightBorderCallStack.length
+      ? this.highlightBorderCallStack[this.highlightBorderCallStack.length - 1]
+          .border
+      : null;
+    this.size = this.highlightBorderCallStack.length
+      ? this.originalSize *
+        this.highlightBorderCallStack[this.highlightBorderCallStack.length - 1]
+          .nodeSizeFactor
+      : this.originalSize;
+  }
+
+  /**
+   * Gets the highlight border of the node.
+   * The highlight border is the border that was set by the most recent caller in the highlight border call stack.
+   * If the highlight border call stack is empty, null is returned.
+   * @returns The highlight border of the node or null if the highlight border call stack is empty.
+   */
+  public getHighlightBorder(): HighlightBorder | null {
+    return this._highlightBorder;
   }
 
   /**

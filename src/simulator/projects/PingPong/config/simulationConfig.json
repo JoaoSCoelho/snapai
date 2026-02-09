@@ -8,16 +8,22 @@
     50,
     10000
   ],
+  "dimZ": [
+    0,
+    0
+  ],
   "loggerOptions": {
     "useConsole": true
   },
-  "interferenceIsAdditive": true,
   "isAsynchronous": false,
   "shouldSaveTrace": true,
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": false,
   "connectivityEnabled": true,
+  "mobilityEnabled": true,
   "interferenceEnabled": false,
+  "connectOnAddNodes": true,
+  "interferenceIsAdditive": true,
   "messageTransmissionModel": "default:ConstantTime",
   "messageTransmissionModelParameters": {
     "time": 1

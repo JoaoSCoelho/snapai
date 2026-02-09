@@ -16,6 +16,8 @@ import { NodeCollection } from "../modules/NodeCollection";
 import { EdgeMap } from "../modules/EdgeMap";
 import EventEmitter from "node:events";
 import { strongContrastWithColor } from "../utils/colorUtils";
+import { NodeType } from "./BaseNode";
+import { Color } from "../tools/Color";
 
 export type SimulationOptions = {
   loggerOptions?: { useConsole: boolean };
@@ -133,7 +135,7 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
    * The tree is used to efficiently query nodes in range.
    * @returns {NodeCollection} The tree of nodes in the simulation.
    */
-  public getNodesTree(): NodeCollection {
+  public getNodesCollection(): NodeCollection {
     return this.nodesCollection;
   }
 
@@ -169,6 +171,17 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
    */
   public getNode(id: number): Node | undefined {
     return this.nodes.get(id);
+  }
+
+  /**
+   * Retrieves the attributes of a node.
+   * @param {Node | number} node - The node to retrieve the attributes for or its ID.
+   * @returns {NodeAttributes} The attributes of the node.
+   */
+  public getNodeAttributes(node: Node | NodeId) {
+    node = node instanceof Node ? node.id : node;
+
+    return this.graph.getNodeAttributes(node);
   }
 
   /**
@@ -254,7 +267,6 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
       {
         implementation: edge,
         width: 1,
-        // type: "arrow", // TODO: turn it dinamically
       },
     );
     this.edges.set(`${edge.source}:${edge.target}`, edge);
@@ -314,31 +326,35 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
    * @param {AddNodesFormSchema} data - The data to add the batch of nodes.
    * @throws {Error} If a node does not satisfy its requirements.
    */
-  public addBatchOfNodes(data: AddNodesFormSchema) {
-    for (let _ = 0; _ < data.numberOfNodes; _++) {
-      const NodeCls = SearchEngine.getNodeByIdentifier(data.node);
-      const MobilityModelCls = SearchEngine.getGenericModel(
-        data.mobilityModel,
-        ModelType.Mobility,
-      );
-      const ConnectivityModelCls = SearchEngine.getGenericModel(
-        data.connectivityModel,
-        ModelType.Connectivity,
-      );
-      const ReliabilityModelCls = SearchEngine.getGenericModel(
-        data.reliabilityModel,
-        ModelType.Reliability,
-      );
-      const InterferenceModelCls = SearchEngine.getGenericModel(
-        data.interferenceModel,
-        ModelType.Interference,
-      );
-      const DistributionModelCls = SearchEngine.getGenericModel(
-        data.distributionModel,
-        ModelType.Distribution,
-      );
-      const UsedPacketCls = SearchEngine.getPacketByIdentifier(data.usedPacket);
+  public async addBatchOfNodes(data: AddNodesFormSchema) {
+    const DistributionModelCls = SearchEngine.getGenericModel(
+      data.distributionModel,
+      ModelType.Distribution,
+    );
+    const distributionModel = new DistributionModelCls(
+      data.distributionModelParameters,
+      this,
+    );
+    const NodeCls = SearchEngine.getNodeByIdentifier(data.node);
+    const MobilityModelCls = SearchEngine.getGenericModel(
+      data.mobilityModel,
+      ModelType.Mobility,
+    );
+    const ConnectivityModelCls = SearchEngine.getGenericModel(
+      data.connectivityModel,
+      ModelType.Connectivity,
+    );
+    const ReliabilityModelCls = SearchEngine.getGenericModel(
+      data.reliabilityModel,
+      ModelType.Reliability,
+    );
+    const InterferenceModelCls = SearchEngine.getGenericModel(
+      data.interferenceModel,
+      ModelType.Interference,
+    );
 
+    const UsedPacketCls = SearchEngine.getPacketByIdentifier(data.usedPacket);
+    for (let _ = 0; _ < data.numberOfNodes; _++) {
       const mobilityModel = new MobilityModelCls(
         data.mobilityModelParameters,
         this,
@@ -355,10 +371,6 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
         data.interferenceModelParameters,
         this,
       );
-      const distributionModel = new DistributionModelCls(
-        data.distributionModelParameters,
-        this,
-      );
 
       const node = new NodeCls(
         ++this.lastNodeId,
@@ -366,13 +378,37 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
         connectivityModel,
         interferenceModel,
         reliabilityModel,
+        data.mobilityEnabled,
+        data.connectivityEnabled,
         UsedPacketCls,
         Position.inert(),
         data.nodeParameters,
         this,
+        data.size,
+        data.size,
+        Color.fromHex(data.color as `#${string}`),
+        data.draggable,
+        data.forceLabel,
+        data.forceHighlight,
+        data.label || undefined,
+        data.borderColor || data.borderSize
+          ? {
+              color: Color.fromHex(
+                (data.borderColor ?? "#000000") as `#${string}`,
+              ),
+              size: data.borderSize ?? 0,
+            }
+          : undefined,
       );
 
-      node.reposition(distributionModel.getNextPosition(node)); // Set the initial position of the node based on the distributionModel.
+      const initialPosition = distributionModel.getNextPosition(node);
+      node.reposition(
+        Position.cropToDimensions(initialPosition, [
+          this.project.simulationConfig.dimX,
+          this.project.simulationConfig.dimY,
+          this.project.simulationConfig.dimZ,
+        ]),
+      );
 
       if (!node.checkRequirements()) {
         throw new Error(
@@ -382,11 +418,11 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
 
       node.init();
 
-      this.addNode(node, data.size, data.draggable, data.color);
+      this.addNode(node);
     }
 
     if (this.project.simulationConfig.connectOnAddNodes) {
-      this.reevaluateConnections();
+      await this.reevaluateConnections();
     }
   }
 
@@ -398,27 +434,27 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
    * @param {Node} node - The node to add.
    * @throws {Error} If a node with the same id already exists.
    */
-  protected addNode(
-    node: Node,
-    size: number = 5,
-    draggable: boolean = true,
-    color?: string,
-  ) {
+  protected addNode(node: Node) {
     if (this.hasNode(node.id)) throw new Error("Node already exists");
 
     this.graph.addNode(node.id, {
       x: node.position.x,
       y: node.position.y,
       z: node.position.z,
-      size: size,
-      originalSize: size,
+      size: node.size,
       implementation: node,
-      label: node.id.toString(),
-      draggable: draggable,
-      forceLabel: false,
-      color: color,
-      highlighted: false,
-      forceHighlight: false,
+      label: node.label,
+      draggable: node.draggable,
+      forceLabel: node.forceLabel,
+      color: node.color.toHex(),
+      highlighted: node.areHighlighted(),
+      borderColor: node.border?.color.toHex(),
+      borderSize: node.border?.size,
+      highlightBaseColor: node.getHighlightBorder()?.baseColor.toHex(),
+      highlightBaseSize: node.getHighlightBorder()?.baseSize,
+      highlightColor: node.getHighlightBorder()?.color.toHex(),
+      highlightSize: node.getHighlightBorder()?.size,
+      type: node.type ?? undefined,
       bound: false,
     });
     this.nodes.set(node.id, node);
@@ -426,58 +462,205 @@ export abstract class Simulation extends EventEmitter<SimulationEventMap> {
     this.emit("addNode", node);
   }
 
-  public highlightNode(node: Node | NodeId) {
-    node = node instanceof Node ? node.id : node;
+  public highlightNode(node: Node | NodeId, caller: string) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
 
-    this.graph.setNodeAttribute(node, "highlighted", true);
+    node.highlight(caller);
+    this.graph.setNodeAttribute(node.id, "highlighted", node.areHighlighted());
   }
 
-  public unhighlightNode(node: Node | NodeId) {
-    node = node instanceof Node ? node.id : node;
+  public unhighlightNode(node: Node | NodeId, caller: string) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
 
-    this.graph.setNodeAttribute(node, "highlighted", false);
+    node.unhighlight(caller);
+    this.graph.setNodeAttribute(node.id, "highlighted", node.areHighlighted());
   }
 
-  public highlightNodeBorder(node: Node | NodeId, color: string = "#000000") {
-    node = node instanceof Node ? node.id : node;
+  public highlightNodeBorder(
+    node: Node | NodeId,
+    caller: string,
+    color: string = "#000000",
+  ) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
 
-    const nodeSize = this.graph.getNodeAttribute(node, "originalSize")!;
+    node.highlightBorder(
+      {
+        baseSize: 0.25,
+        baseColor: Color.fromAlphaHex("#ffffff00"),
+        color: Color.fromAlphaHex(color as `#${string}`),
+        size: 0.2,
+      },
+      caller,
+      1.9,
+    );
 
-    this.graph.setNodeAttribute(node, "highlightBaseSize", 0.25);
-    this.graph.setNodeAttribute(node, "size", nodeSize * 1.9);
-    this.graph.setNodeAttribute(node, "highlightBaseColor", "#ffffff00");
-    this.graph.setNodeAttribute(node, "highlightColor", color);
-    this.graph.setNodeAttribute(node, "highlightSize", 0.2);
+    this.updateHighlightBorderAttributes(node);
   }
 
-  public unhighlightNodeBorder(node: Node | NodeId) {
-    node = node instanceof Node ? node.id : node;
+  public unhighlightNodeBorder(node: Node | NodeId, caller: string) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
 
-    const nodeSize = this.graph.getNodeAttribute(node, "originalSize")!;
+    node.unhighlightBorder(caller);
 
-    this.graph.setNodeAttribute(node, "highlightSize", undefined);
-    this.graph.setNodeAttribute(node, "size", nodeSize);
-    this.graph.setNodeAttribute(node, "highlightColor", undefined);
-    this.graph.setNodeAttribute(node, "highlightBaseColor", undefined);
-    this.graph.setNodeAttribute(node, "highlightBaseSize", undefined);
+    this.updateHighlightBorderAttributes(node);
+  }
+
+  public updateHighlightBorderAttributes(node: Node) {
+    const highlightBorder = node.getHighlightBorder();
+
+    this.graph.setNodeAttribute(node.id, "size", node.size);
+    this.graph.setNodeAttribute(
+      node.id,
+      "highlightBaseSize",
+      highlightBorder?.baseSize,
+    );
+    this.graph.setNodeAttribute(
+      node.id,
+      "highlightBaseColor",
+      highlightBorder?.baseColor.toAlphaHex(),
+    );
+    this.graph.setNodeAttribute(
+      node.id,
+      "highlightColor",
+      highlightBorder?.color.toAlphaHex(),
+    );
+    this.graph.setNodeAttribute(
+      node.id,
+      "highlightSize",
+      highlightBorder?.size,
+    );
   }
 
   public pinNode(node: Node | NodeId) {
     node = node instanceof Node ? node : this.getCertainNode(node);
 
     this.pinnedNodes.set(node.id, node);
-    // @ts-ignore
     node.pinned = true;
-    this.highlightNodeBorder(node, "#aaaaaa");
+    this.highlightNodeBorder(node, "pin", "#aaaaaa");
   }
 
   public unpinNode(node: Node | NodeId) {
     node = node instanceof Node ? node : this.getCertainNode(node);
 
     this.pinnedNodes.delete(node.id);
-    // @ts-ignore
     node.pinned = false;
-    this.unhighlightNodeBorder(node);
+    this.unhighlightNodeBorder(node, "pin");
+  }
+
+  /**
+   * Checks if a node is draggable.
+   * @param {Node | NodeId} node - The node to check.
+   * @returns {boolean} Whether the node is draggable.
+   */
+  public isNodeDraggable(node: Node | NodeId): boolean {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    return node.draggable;
+  }
+
+  public setNodeLabel(node: Node | NodeId, label: string) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.label = label;
+    this.graph.setNodeAttribute(node.id, "label", label);
+  }
+
+  public forceNodeHighlight(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.forceHighlight = true;
+    this.highlightNode(node, "forceHighlight");
+  }
+
+  public unforceNodeHighlight(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.forceHighlight = false;
+    this.unhighlightNode(node, "forceHighlight");
+  }
+
+  public toggleForceNodeHighlight(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    if (node.forceHighlight) {
+      this.unforceNodeHighlight(node);
+    } else {
+      this.forceNodeHighlight(node);
+    }
+  }
+
+  public forceNodeLabel(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.forceLabel = true;
+    this.graph.setNodeAttribute(node.id, "forceLabel", node.forceLabel);
+  }
+
+  public unforceNodeLabel(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.forceLabel = false;
+    this.graph.setNodeAttribute(node.id, "forceLabel", node.forceLabel);
+  }
+
+  public toggleForceNodeLabel(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    if (node.forceLabel) {
+      this.unforceNodeLabel(node);
+    } else {
+      this.forceNodeLabel(node);
+    }
+  }
+
+  public toggleNodeDraggable(node: Node | NodeId) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.draggable = !node.draggable;
+    this.graph.setNodeAttribute(node.id, "draggable", node.draggable);
+  }
+
+  public setNodeColor(node: Node | NodeId, color: string) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.color = Color.fromAlphaHex(color as `#${string}`);
+    this.graph.setNodeAttribute(node.id, "color", node.color.toAlphaHex());
+  }
+
+  public setNodeBorderColor(node: Node | NodeId, color: string | null) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.border =
+      color === null
+        ? node.border?.size
+          ? node.border
+          : null
+        : {
+            size: node.border?.size ?? 0,
+            color: Color.fromAlphaHex(color as `#${string}`),
+          };
+
+    this.graph.setNodeAttribute(
+      node.id,
+      "borderColor",
+      node.border?.color.toAlphaHex(),
+    );
+  }
+
+  public setNodeBorderSize(node: Node | NodeId, size: number | null) {
+    node = node instanceof Node ? node : this.getCertainNode(node);
+
+    node.border =
+      size === null
+        ? node.border?.color
+          ? node.border
+          : null
+        : {
+            size,
+            color: node.border?.color ?? Color.fromHex("#000000"),
+          };
+
+    this.graph.setNodeAttribute(node.id, "borderSize", node.border?.size);
   }
 
   /**

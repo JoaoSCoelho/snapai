@@ -18,17 +18,24 @@ import { ClassableParametersSubsectionController } from "@/simulator/modules/Cla
 import { ParameterizedModule } from "@/simulator/modules/ParameterizedModule";
 import { ColorField } from "@/simulator/configurations/layout/fields/ColorField";
 import { CheckboxField } from "@/simulator/configurations/layout/fields/CheckboxField";
+import { TextField } from "@/simulator/configurations/layout/fields/TextField";
 
 export type AddNodesFormProps = {
   onSubmit?: (data: AddNodesFormSchema) => void;
 };
 
-// TODO: add option to select the used Packet;
 export const addNodesFormSchema = z.object({
   numberOfNodes: z.number(),
-  color: z.string().startsWith("#").length(7).optional(),
+  color: z.string().startsWith("#").length(7),
   size: z.number().min(0),
   draggable: z.boolean(),
+  mobilityEnabled: z.boolean(),
+  connectivityEnabled: z.boolean(),
+  forceLabel: z.boolean(),
+  forceHighlight: z.boolean(),
+  label: z.string().optional(),
+  borderColor: z.string().startsWith("#").length(7).optional(),
+  borderSize: z.number().min(0).optional(),
   node: z.string().refine(
     (value) => {
       return Simulator.inited
@@ -144,7 +151,7 @@ export const addNodesFormLayout = new Layout([
           ColorField.create({
             name: "color",
             label: "Color",
-            required: false,
+            required: true,
             occupedColumns: 3,
             schema: z.string().length(7).startsWith("#"),
             info: { title: "Color of the nodes in the simulation" },
@@ -168,6 +175,83 @@ export const addNodesFormLayout = new Layout([
                 "If enabled, you can click and drag the nodes with the mouse",
             },
             occupedColumns: 3,
+          }),
+        ]),
+        new Line([
+          CheckboxField.create({
+            name: "mobilityEnabled",
+            label: "Mobility",
+            schema: z.boolean(),
+            info: {
+              title:
+                "If enabled, the nodes can move in the simulation, otherwise they will be static in the initial position.",
+            },
+            occupedColumns: 3,
+          }),
+          CheckboxField.create({
+            name: "connectivityEnabled",
+            label: "Connectivity",
+            schema: z.boolean(),
+            info: {
+              title:
+                "If enabled, the nodes can connect with other nodes. OBS: Other nodes can also connect with this nodes anyway.",
+            },
+            occupedColumns: 3,
+          }),
+          CheckboxField.create({
+            name: "forceLabel",
+            label: "Force label",
+            schema: z.boolean(),
+            info: {
+              title:
+                "If enabled, the label of the nodes will be forced to be visible.",
+            },
+            occupedColumns: 3,
+          }),
+          CheckboxField.create({
+            name: "forceHighlight",
+            label: "Force highlight",
+            schema: z.boolean(),
+            info: {
+              title:
+                "If enabled, the nodes will be highlighted in the simulation.",
+            },
+            occupedColumns: 3,
+          }),
+        ]),
+        new Line([
+          TextField.create({
+            name: "label",
+            label: "Label",
+            required: false,
+            schema: z.string().optional(),
+            info: {
+              title:
+                "Label of the nodes in the simulation. If empty, the ID will be used",
+            },
+            occupedColumns: 6,
+          }),
+          ColorField.create({
+            name: "borderColor",
+            label: "Border Color",
+            occupedColumns: 3,
+            required: false,
+            schema: z.string().length(7).startsWith("#").optional(),
+            info: {
+              title: "Color of the border of the nodes in the simulation",
+            },
+          }),
+          NumberField.create({
+            name: "borderSize",
+            label: "Border Size",
+            required: false,
+            isFloat: true,
+            occupedColumns: 3,
+            min: 0,
+            schema: z.number().min(0).optional(),
+            info: {
+              title: "Size of the border of the nodes in the simulation",
+            },
           }),
         ]),
       ]),
@@ -226,14 +310,15 @@ export default function AddNodesForm({ onSubmit }: AddNodesFormProps) {
   }
 
   // Functions
-  const onFormSubmit = async (data: AddNodesFormSchema) => {
+  async function onFormSubmit(data: AddNodesFormSchema) {
+    if (!simulation) return;
     await addNodes(simulation, data);
     onSubmit?.(data);
-  };
+  }
 
-  const onLoad = (form: UseFormReturn<AddNodesFormSchema>) => {
+  function onLoad(form: UseFormReturn<AddNodesFormSchema>) {
     setForm(form);
-  };
+  }
 
   return (
     <DefaultForm<AddNodesFormSchema>

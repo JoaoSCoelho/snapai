@@ -16,6 +16,7 @@ import AngleDropdown from "./AngleDropdown";
 import { AngleField as AngleFieldCls } from "@/simulator/configurations/layout/fields/AngleField";
 import { AngleUnit } from "@/simulator/utils/types";
 import { debounce } from "../utils/debounce";
+import { GiCancel } from "react-icons/gi";
 
 type NumberFieldProps = FormFieldProps & {
   field: AngleFieldCls;
@@ -82,6 +83,19 @@ export default function AngleField({
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
+                        {!field.required && (
+                          <IconButton
+                            sx={{ mr: "-8px" }}
+                            onClick={() => {
+                              controllerField.onChange("");
+                              onChange?.(field.name, fullName, "", false);
+                            }}
+                            type="button"
+                            title="Clear input"
+                          >
+                            <GiCancel fontSize="large" />
+                          </IconButton>
+                        )}
                         <Tooltip
                           arrow
                           placement="bottom-end"

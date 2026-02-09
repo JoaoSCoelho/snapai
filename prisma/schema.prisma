@@ -33,6 +33,13 @@ model NodesFormContext {
   size                        Int      @default(5)
   color                       String   @default("")
   draggable                   Boolean  @default(true)
+  mobilityEnabled             Boolean  @default(false)
+  connectivityEnabled         Boolean  @default(false)
+  forceLabel                  Boolean  @default(false)
+  forceHighlight              Boolean  @default(false)
+  borderColor                 String?
+  borderSize                  Int?
+  label                       String   @default("")
   node                        String
   nodeParameters              Json
   usedPacket                  String

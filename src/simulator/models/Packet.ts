@@ -10,10 +10,7 @@ export enum TransmissionType {
 }
 
 export type ConcretePacket = new (
-  message: Message,
-  originId: NodeId,
-  destinationId: NodeId,
-  transmissionType: TransmissionType,
+  ...args: ConstructorParameters<typeof Packet>
 ) => Packet;
 
 export abstract class Packet extends ParameterizedModule {

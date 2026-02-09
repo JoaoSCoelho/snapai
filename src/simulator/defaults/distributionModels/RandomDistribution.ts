@@ -10,7 +10,7 @@ import { Position } from "@/simulator/tools/Position";
 import { RandomUtils } from "@/simulator/utils/RandomUtils";
 import z from "zod";
 
-export type RandomMobilityParameters = DistributionModelBaseParameters & {
+export type RandomDistributionParameters = DistributionModelBaseParameters & {
   topology: "2D" | "3D";
 };
 
@@ -18,7 +18,7 @@ export class RandomDistribution extends DistributionModel {
   public name = "Random";
 
   public constructor(
-    public readonly parameters: RandomMobilityParameters,
+    public readonly parameters: RandomDistributionParameters,
     protected readonly simulation: Simulation,
   ) {
     super(parameters, simulation);

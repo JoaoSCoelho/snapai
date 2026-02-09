@@ -52,6 +52,13 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
           numberOfNodes: response.data.numberOfNodes,
           color: response.data.color,
           size: response.data.size,
+          connectivityEnabled: response.data.connectivityEnabled,
+          forceHighlight: response.data.forceHighlight,
+          forceLabel: response.data.forceLabel,
+          mobilityEnabled: response.data.mobilityEnabled,
+          label: response.data.label,
+          borderColor: response.data.borderColor ?? undefined,
+          borderSize: response.data.borderSize ?? undefined,
           draggable: response.data.draggable,
           node: response.data.node,
           nodeParameters: (response.data.nodeParameters ?? {}) as Record<
@@ -97,7 +104,7 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
     savePartialData();
   };
 
-  const savePartialData = async () => {
+  async function savePartialData() {
     if (!form) return;
 
     const values = form.getValues();
@@ -109,7 +116,7 @@ export const AddNodesProvider = ({ children }: AddNodesProviderProps) => {
       "/api/add-nodes-context",
       values,
     );
-  };
+  }
 
   return (
     <AddNodesContext.Provider

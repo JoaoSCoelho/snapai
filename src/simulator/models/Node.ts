@@ -3,7 +3,7 @@ import { InboxPacketBuffer } from "../tools/InboxPacketBuffer";
 import { NackBox } from "../tools/NackBox";
 import { Position } from "../tools/Position";
 import { AsynchronousSimulation } from "./AsynchronousSimulation";
-import { BaseNode } from "./BaseNode";
+import { BaseNode, Border, HighlightBorder, NodeType } from "./BaseNode";
 import { ConnectivityModel } from "./ConnectivityModel";
 import { Edge } from "./Edge";
 import { InterferenceModel } from "./InterferenceModel";
@@ -15,19 +15,12 @@ import { ReliabilityModel } from "./ReliabilityModel";
 import { Simulation } from "./Simulation";
 import { Timer } from "./Timer";
 import { SynchronousSimulation } from "./SynchronousSimulation";
+import { Color } from "../tools/Color";
 
 export type NodeId = number;
 
 export type ConcreteNode = new (
-  id: NodeId,
-  mobilityModel: MobilityModel,
-  connectivityModel: ConnectivityModel,
-  interferenceModel: InterferenceModel,
-  reliabilityModel: ReliabilityModel,
-  UsedPacket: ConcretePacket,
-  position: Position,
-  parameters: Record<string, any>,
-  simulation: Simulation,
+  ...args: ConstructorParameters<typeof Node>
 ) => Node;
 
 export abstract class Node extends BaseNode {
@@ -45,10 +38,21 @@ export abstract class Node extends BaseNode {
     public connectivityModel: ConnectivityModel,
     public interferenceModel: InterferenceModel,
     public reliabilityModel: ReliabilityModel,
+    public mobilityEnabled: boolean,
+    public connectivityEnabled: boolean,
     public UsedPacket: ConcretePacket,
     public position: Position,
     public readonly parameters: Record<string, any>,
     public readonly simulation: Simulation,
+    public size: number,
+    public readonly originalSize: number,
+    public color: Color,
+    public draggable: boolean,
+    public forceLabel: boolean,
+    public forceHighlight: boolean,
+    public label: string = id.toString(),
+    public border: Border | null = null,
+    public type: NodeType | null = null,
   ) {
     super(
       id,
@@ -56,8 +60,19 @@ export abstract class Node extends BaseNode {
       connectivityModel,
       interferenceModel,
       reliabilityModel,
+      mobilityEnabled,
+      connectivityEnabled,
       position,
       simulation,
+      size,
+      originalSize,
+      color,
+      draggable,
+      forceLabel,
+      forceHighlight,
+      label,
+      border,
+      type,
     );
   }
 

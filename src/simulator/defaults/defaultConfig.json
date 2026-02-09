@@ -17,14 +17,14 @@
   },
   "isAsynchronous": false,
   "shouldSaveTrace": true,
-  "registerStatisticsForEveryRound": true,
+  "registerStatisticsForEveryRound": false,
   "nackMessagesEnabled": true,
   "connectivityEnabled": true,
   "mobilityEnabled": true,
   "interferenceEnabled": true,
   "connectOnAddNodes": true,
   "interferenceIsAdditive": true,
-  "maxConnectionRadius": 60,
+  "maxConnectionRadius": 100,
   "messageTransmissionModel": "default:RandomTime",
   "messageTransmissionModelParameters": {
     "timeRange": [

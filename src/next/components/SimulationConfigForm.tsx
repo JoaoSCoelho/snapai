@@ -31,9 +31,9 @@ export default function SimulationConfigForm({
 
   // Functions
 
-  const handleFormSubmit = async (data: SimulationConfigFormSchema) => {
+  async function handleFormSubmit(data: SimulationConfigFormSchema) {
     await saveSimulationConfig(project, data);
-  };
+  }
 
   return (
     <DefaultForm<SimulationConfigFormSchema>

@@ -17,6 +17,7 @@ import { AnglePairField as AnglePairFieldCls } from "@/simulator/configurations/
 import AngleDropdown from "./AngleDropdown";
 import { useState } from "react";
 import { AngleUnit } from "@/simulator/utils/types";
+import { GiCancel } from "react-icons/gi";
 
 export type AnglePairFieldProps = FormFieldProps & {
   field: AnglePairFieldCls;
@@ -57,6 +58,10 @@ export default function AnglePairField({
           const setMax = (val: number) => {
             renderField.onChange([min, val]);
             onChange?.(field.name, fullName, [min, val], false);
+          };
+          const resetFields = () => {
+            renderField.onChange(["", ""]);
+            onChange?.(field.name, fullName, ["", ""], false);
           };
           return (
             <>
@@ -142,6 +147,16 @@ export default function AnglePairField({
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
+                          {
+                            <IconButton
+                              sx={{ mr: "-8px" }}
+                              onClick={resetFields}
+                              type="button"
+                              title="Clear input"
+                            >
+                              <GiCancel fontSize="large" />
+                            </IconButton>
+                          }
                           <Tooltip
                             arrow
                             placement="bottom-end"

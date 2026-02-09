@@ -12,6 +12,9 @@ import { InertNode } from "./nodes/InertNode";
 import { ReliableDelivery } from "./reliabilityModels/ReliableDelivery";
 import { VariableBytesPacket } from "./packets/VariableBytesPacket";
 import { RandomTime } from "./messageTransmissionModels/RandomTime";
+import { QUDGConnectivity } from "./connectivityModels/QUDGConnectivity";
+import { PositionedDistribution } from "./distributionModels/PositionedDistribution";
+import { CircularDistribution } from "./distributionModels/CircularDistribution";
 
 export class DefaultProject extends Project {
   protected constructor() {
@@ -28,8 +31,11 @@ export class DefaultProject extends Project {
     this.addModel("RandomMobility", RandomMobility);
     this.addModel("NoInterference", NoInterference);
     this.addModel("RandomDistribution", RandomDistribution);
+    this.addModel("PositionedDistribution", PositionedDistribution);
+    this.addModel("CircularDistribution", CircularDistribution);
     this.addModel("ReliableDelivery", ReliableDelivery);
     this.addModel("UDGConnectivity", UDGConnectivity);
+    this.addModel("QUDGConnectivity", QUDGConnectivity);
     this.addPacket("29BytesPacket", Packet29Bytes);
     this.addPacket("VariableBytesPacket", VariableBytesPacket);
     this.addNode("InertNode", InertNode);

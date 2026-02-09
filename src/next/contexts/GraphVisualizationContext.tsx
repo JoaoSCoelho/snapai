@@ -32,7 +32,6 @@ export type GraphVisualizationContextProps = {
     Record<SimulationInfoCardType, SimulationInfoChipRef | null>
   >;
   interfaceUpdater: (simulation: Simulation) => void;
-  debouncedInterfaceUpdater: (simulation: Simulation) => void;
   sigmaRef: RefObject<Sigma<NodeAttributes, EdgeAttributes> | null>;
   onUpdateSigma: () => void;
   isRunning: boolean;
@@ -73,7 +72,7 @@ export const GraphVisualizationProvider = ({
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const nodeFocusEnabled = useRef<boolean>(false);
   const nodeDragEnabled = useRef<boolean>(false);
-  const interalIsRunning = useRef<boolean>(false);
+  const internalIsRunning = useRef<boolean>(false);
   const cameraEnabled = useRef<boolean>(true);
   const [stateNodeFocusEnabled, setStateNodeFocusEnabled] =
     useState<boolean>(false);
@@ -105,7 +104,7 @@ export const GraphVisualizationProvider = ({
    * The function does not return any value, it only updates the interface elements.
    * @param {Simulation} simulation The current state of the simulation.
    */
-  const interfaceUpdater = (simulation: Simulation) => {
+  function interfaceUpdater(simulation: Simulation) {
     const obj = infoBarRef.current;
 
     if (obj.time) {
@@ -169,15 +168,15 @@ export const GraphVisualizationProvider = ({
       );
     }
 
-    if (!interalIsRunning.current && simulation.isRunning) {
+    if (!internalIsRunning.current && simulation.isRunning) {
       setIsRunning(true);
-      interalIsRunning.current = true;
+      internalIsRunning.current = true;
     }
-    if (interalIsRunning.current && !simulation.isRunning) {
+    if (internalIsRunning.current && !simulation.isRunning) {
       setIsRunning(false);
-      interalIsRunning.current = false;
+      internalIsRunning.current = false;
     }
-  };
+  }
 
   /**
    * A debounced version of the interfaceUpdater function.
@@ -187,13 +186,13 @@ export const GraphVisualizationProvider = ({
   const debouncedInterfaceUpdater = (simulation: Simulation) => {
     interfaceUpdaterTimeout.current &&
       clearTimeout(interfaceUpdaterTimeout.current);
-    if (Date.now() - lastInterfaceUpdate.current > 60) {
+    if (Date.now() - lastInterfaceUpdate.current > 100) {
       interfaceUpdater(simulation);
       lastInterfaceUpdate.current = Date.now();
     }
     interfaceUpdaterTimeout.current = setTimeout(() => {
       interfaceUpdater(simulation);
-    }, 60);
+    }, 100);
   };
 
   const onUpdateSigma = () => {
@@ -236,8 +235,7 @@ export const GraphVisualizationProvider = ({
         cameraState,
         setCameraState,
         infoBarRef,
-        interfaceUpdater,
-        debouncedInterfaceUpdater,
+        interfaceUpdater: debouncedInterfaceUpdater,
         sigmaRef,
         onUpdateSigma,
         focusedNode,

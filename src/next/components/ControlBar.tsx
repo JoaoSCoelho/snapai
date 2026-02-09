@@ -64,7 +64,7 @@ export default function ControlBar({}: ControlBarProps) {
     setShouldShowArrows,
     shouldShowLabels,
     setShouldShowLabels,
-    debouncedInterfaceUpdater,
+    interfaceUpdater,
     sigmaRef,
     isRunning,
     setShouldShowEdges,
@@ -191,7 +191,6 @@ export default function ControlBar({}: ControlBarProps) {
     openAddNodesDialog();
   };
   const onPauseButtonClick = () => {
-    // TODO: implement it
     if (!simulation)
       return ErrorSystem.emitError(
         new Error("Simulation not initialized"),
@@ -208,7 +207,7 @@ export default function ControlBar({}: ControlBarProps) {
   const onGraphToSvgButtonClick = () => {
     toSvg();
   };
-  const onPlay = (data: Required<RuntimeFormSchema>) => {
+  async function onPlay(data: Required<RuntimeFormSchema>) {
     if (!simulation)
       return ErrorSystem.emitError(
         new Error("Simulation not initialized"),
@@ -220,6 +219,7 @@ export default function ControlBar({}: ControlBarProps) {
         new Error("Sigma not initialized"),
         "Sigma not initialized",
       );
+
     if (simulation.isAsyncMode) {
       // TODO: implement it
     } else {
@@ -228,14 +228,27 @@ export default function ControlBar({}: ControlBarProps) {
         data.rounds,
         data.refreshRate,
         data.frameRate,
-        sigmaRef.current as any,
       );
-      syncThread.on("roundEnd", () => {
-        debouncedInterfaceUpdater(simulation);
+      let graphOn = true;
+      syncThread.on("frame", () => {
+        sigmaRef.current!.setGraph(simulation.graph);
+        graphOn = true;
+        interfaceUpdater(simulation);
       });
-      simulation.run(syncThread);
+      syncThread.on("preRound", () => {
+        if (graphOn) {
+          sigmaRef.current!.setGraph(new Graph());
+          graphOn = false;
+        }
+      });
+      syncThread.on("end", () => {
+        sigmaRef.current!.setGraph(simulation.graph);
+        graphOn = true;
+        interfaceUpdater(simulation);
+      });
+      await simulation.run(syncThread);
     }
-  };
+  }
 
   const onReevaluateConnectionsButtonClick = async () => {
     setReevaluateButtonLoading(true);
@@ -256,12 +269,11 @@ export default function ControlBar({}: ControlBarProps) {
     await simulation
       .reevaluateConnections(async (prog) => {
         showLoading(`${prog * 100}%`);
-        debouncedInterfaceUpdater(simulation);
       })
       .then(
         () => {
           toast.success("Connections reevaluated");
-          debouncedInterfaceUpdater(simulation);
+          interfaceUpdater(simulation);
           setReevaluateButtonState("success");
         },
         (e) => {
@@ -278,23 +290,24 @@ export default function ControlBar({}: ControlBarProps) {
     }, 1000);
   };
 
-  const handleRuntimeFormSubmit = (data: Required<RuntimeFormSchema>) => {
-    if (onPlay) onPlay(data);
-  };
+  async function handleRuntimeFormSubmit(data: Required<RuntimeFormSchema>) {
+    if (onPlay) await onPlay(data);
+  }
 
-  const handleRuntimeFormSubmitBuilder = (oneRound: boolean) => {
+  function handleRuntimeFormSubmitBuilder(oneRound: boolean) {
     return (data: RuntimeFormSchema) => {
       updateRuntimeDefaultData({
         rounds: data.rounds,
         refreshRate: data.refreshRate ?? undefined,
         frameRate: data.frameRate ?? undefined,
       });
+
       if (oneRound) data.rounds = 1;
       if (!data.refreshRate) data.refreshRate = 0;
       if (!data.frameRate) data.frameRate = 0;
       return handleRuntimeFormSubmit(data as Required<RuntimeFormSchema>);
     };
-  };
+  }
 
   return (
     <div className="control-bar gap-1 flex">

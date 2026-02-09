@@ -2,8 +2,6 @@
 import { Simulation } from "@/simulator/models/Simulation";
 import React, { createContext, useState, useContext } from "react";
 import { useGraphVisualizationContext } from "./GraphVisualizationContext";
-import { SynchronousSimulation } from "@/simulator/models/SynchronousSimulation";
-import { AsynchronousSimulation } from "@/simulator/models/AsynchronousSimulation";
 
 export type SimulationContextProps = {
   simulation: Simulation | null;

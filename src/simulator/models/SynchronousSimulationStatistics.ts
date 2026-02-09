@@ -75,7 +75,6 @@ export class SynchronousSimulationStatistics extends SimulationStatistics {
    */
   public registerSentMessage(packet: Packet): this {
     super.registerSentMessage(packet);
-
     if (this.simulation.currentTime !== this.lastSendingRoundTime) {
       // Reset last round
       this.lastRoundSentMessages = 0;

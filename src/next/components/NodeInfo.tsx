@@ -1,5 +1,5 @@
 import { Divider, Tooltip } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useSimulationContext } from "../contexts/SimulationContext";
 import { NodeAttributes } from "@/simulator/modules/Graph";
 import { FaInbox, FaRegCheckCircle, FaRoute } from "react-icons/fa";
@@ -9,12 +9,13 @@ import { PiHighlighter, PiPlugsConnectedFill } from "react-icons/pi";
 import GppGoodIcon from "@mui/icons-material/GppGood";
 import LeakRemoveIcon from "@mui/icons-material/LeakRemove";
 import { TbAxisX, TbAxisY } from "react-icons/tb";
-import { LuAxis3D } from "react-icons/lu";
+import { LuAxis3D, LuRoute, LuRouteOff } from "react-icons/lu";
 import { TbCircuitChangeover } from "react-icons/tb";
 import { PiGraphFill } from "react-icons/pi";
 import {
   MdCallMade,
   MdCallReceived,
+  MdHub,
   MdLabel,
   MdOutlineLabelOff,
   MdOutlinePinch,
@@ -24,10 +25,10 @@ import { Position } from "@/simulator/tools/Position";
 import { PiHighlighterFill } from "react-icons/pi";
 import Image from "next/image";
 import { IoColorFill } from "react-icons/io5";
-import { RxSize } from "react-icons/rx";
+import { RxLapTimer, RxSize } from "react-icons/rx";
 import { RiPushpin2Fill } from "react-icons/ri";
 import { RiPushpin2Line } from "react-icons/ri";
-import { FaAddressCard } from "react-icons/fa6";
+import { FaAddressCard, FaLink, FaLinkSlash } from "react-icons/fa6";
 import { useGraphVisualizationContext } from "../contexts/GraphVisualizationContext";
 import clsx from "clsx";
 import { throttle } from "../utils/debounce";
@@ -55,7 +56,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
       setNode(null);
       return;
     }
-    const node = simulation.graph.getNodeAttributes(nodeId);
+    const node = simulation.getNodeAttributes(Number(nodeId));
     if (!node || !node.implementation) {
       setNode(null);
       return;
@@ -68,12 +69,12 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         y: newPos.y,
         z: newPos.z,
         size: node.size,
-        originalSize: node.size,
         draggable: node.draggable,
         forceLabel: node.forceLabel,
         bound: node.bound,
         highlighted: node.highlighted,
-        forceHighlight: node.forceHighlight,
+        color: node.color,
+        label: node.label,
       }));
     }, 100);
     node.implementation.on("reposition", repositionListener);
@@ -87,13 +88,13 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
 
   const highlightNode = () => {
     if (!node) return;
-    simulation.highlightNode(node.implementation!.id);
+    simulation.highlightNode(node.implementation!.id, "card-hover");
     setRefresh((_) => _ + 1);
   };
 
   const resetHighlight = () => {
-    if (!node || node.forceHighlight) return;
-    simulation.unhighlightNode(node.implementation!.id);
+    if (!node) return;
+    simulation.unhighlightNode(node.implementation!.id, "card-hover");
     setRefresh((_) => _ + 1);
   };
 
@@ -101,11 +102,11 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
   return (
     <div
       className="font-mono bg-amber-50 w-fit rounded-md border border-amber-200 text-slate-700 px-3 py-2"
-      onMouseOver={() => {
-        highlightNode();
+      onMouseEnter={() => {
+        if (!node.highlighted) highlightNode();
       }}
-      onMouseOut={() => {
-        resetHighlight();
+      onMouseLeave={() => {
+        if (node.highlighted) resetHighlight();
       }}
     >
       <div className="flex gap-2 justify-between">
@@ -149,11 +150,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                 aria-label="label input"
                 key={node.implementation!.id}
                 onChange={(e) => {
-                  simulation.graph.setNodeAttribute(
-                    node.implementation!.id,
-                    "label",
-                    e.target.value,
-                  );
+                  simulation.setNodeLabel(node.implementation!, e.target.value);
                 }}
                 type="text"
                 className="font-extrabold not-focus:cursor-pointer not-focus:hover:underline"
@@ -413,7 +410,80 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
           {node.implementation!.interferenceModel.name ?? "----"}
         </span>
       </div>
+      <div className="flex gap-2 justify-between">
+        <Tooltip
+          arrow
+          title={`Click to ${node.implementation!.mobilityEnabled ? "disable" : "enable"} mobility`}
+        >
+          <div
+            className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
+            onClick={() => {
+              node.implementation!.mobilityEnabled =
+                !node.implementation!.mobilityEnabled;
+              setRefresh((r) => r + 1);
+            }}
+          >
+            <span className="flex items-center gap-2">
+              {node.implementation.mobilityEnabled ? (
+                <LuRoute />
+              ) : (
+                <LuRouteOff />
+              )}
+              Mobility enabled:
+            </span>
+            <span className="font-extrabold">
+              {node.implementation!.mobilityEnabled ? (
+                <span className="flex items-center gap-2">
+                  <FaRegCheckCircle />
+                </span>
+              ) : node.implementation!.mobilityEnabled === false ? (
+                <span className="flex items-center gap-2">
+                  <GiCancel />
+                </span>
+              ) : (
+                "----"
+              )}
+            </span>
+          </div>
+        </Tooltip>
+        <Divider flexItem orientation="vertical" variant="fullWidth" />
+        <Tooltip
+          arrow
+          title={`Click to ${node.implementation!.connectivityEnabled ? "disable" : "enable"} connectivity.`}
+        >
+          <div
+            onClick={() => {
+              node.implementation!.connectivityEnabled =
+                !node.implementation!.connectivityEnabled;
+              setRefresh((r) => r + 1);
+            }}
+            className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
+          >
+            <span className="flex items-center gap-2">
+              {node.implementation!.connectivityEnabled ? (
+                <FaLink />
+              ) : (
+                <FaLinkSlash />
+              )}
+              Connectivity enabled:
+            </span>
 
+            <span className="font-extrabold ">
+              {node.implementation!.connectivityEnabled ? (
+                <span className="flex items-center gap-2">
+                  <FaRegCheckCircle />
+                </span>
+              ) : node.implementation!.connectivityEnabled === false ? (
+                <span className="flex items-center gap-2">
+                  <GiCancel />
+                </span>
+              ) : (
+                "----"
+              )}
+            </span>
+          </div>
+        </Tooltip>
+      </div>
       <div className="flex gap-2 justify-between">
         <Tooltip
           title="Number of messages in the inbox of the node for the current time."
@@ -426,6 +496,18 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
             </span>
             <span className="font-extrabold">
               {node.implementation!.getInbox().size() ?? "----"}
+            </span>
+          </div>
+        </Tooltip>
+        <Divider flexItem orientation="vertical" variant="fullWidth" />
+        <Tooltip title="Number of timers registered at the node." arrow>
+          <div className="font-mono flex items-center gap-2">
+            <span className="flex items-center gap-2">
+              <RxLapTimer />
+              Timers:
+            </span>
+            <span className="font-extrabold">
+              {node.implementation!.getTimers().size() ?? "----"}
             </span>
           </div>
         </Tooltip>
@@ -449,35 +531,40 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         </div>
       </div>
       <div className="flex gap-2 justify-between">
-        <div
-          className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
-          onClick={() => {
-            simulation.graph.setNodeAttribute(
-              node.implementation!.id,
-              "forceHighlight",
-              !node.forceHighlight,
-            );
-            setRefresh((r) => r + 1);
-          }}
+        <Tooltip
+          arrow
+          title={`Click to ${node.implementation.forceHighlight ? "disable" : "enable"} force highlight.`}
         >
-          <span className="flex items-center gap-2">
-            {!node.forceHighlight ? <PiHighlighter /> : <PiHighlighterFill />}
-            Highlighted:
-          </span>
-          <span className="font-extrabold">
-            {node.forceHighlight ? (
-              <span className="flex items-center gap-2">
-                <FaRegCheckCircle />
-              </span>
-            ) : node.forceHighlight === false ? (
-              <span className="flex items-center gap-2">
-                <GiCancel />
-              </span>
-            ) : (
-              "----"
-            )}
-          </span>
-        </div>
+          <div
+            className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
+            onClick={() => {
+              simulation.toggleForceNodeHighlight(node.implementation!.id);
+              setRefresh((r) => r + 1);
+            }}
+          >
+            <span className="flex items-center gap-2">
+              {!node.implementation.forceHighlight ? (
+                <PiHighlighter />
+              ) : (
+                <PiHighlighterFill />
+              )}
+              Highlighted:
+            </span>
+            <span className="font-extrabold">
+              {node.implementation.forceHighlight ? (
+                <span className="flex items-center gap-2">
+                  <FaRegCheckCircle />
+                </span>
+              ) : node.implementation.forceHighlight === false ? (
+                <span className="flex items-center gap-2">
+                  <GiCancel />
+                </span>
+              ) : (
+                "----"
+              )}
+            </span>
+          </div>
+        </Tooltip>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
         <Tooltip
           arrow
@@ -485,18 +572,14 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         >
           <div
             onClick={() => {
-              simulation.graph.setNodeAttribute(
-                node.implementation!.id,
-                "forceLabel",
-                !node.forceLabel,
-              );
+              simulation.toggleForceNodeLabel(node.implementation!.id);
               setRefresh((r) => r + 1);
             }}
             className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
           >
             <span className="flex items-center gap-2">
               {node.forceLabel ? <MdLabel /> : <MdOutlineLabelOff />}
-              Force show label:
+              Force label:
             </span>
 
             <span className="font-extrabold ">
@@ -522,11 +605,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         >
           <div
             onClick={() => {
-              simulation.graph.setNodeAttribute(
-                node.implementation!.id,
-                "draggable",
-                !node.draggable,
-              );
+              simulation.toggleNodeDraggable(node.implementation!.id);
               setRefresh((r) => r + 1);
             }}
             className="font-mono flex items-center gap-2 cursor-pointer hover:underline"
@@ -556,12 +635,12 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
         <div className="font-mono flex items-center gap-2">
           <span className="flex items-center gap-2">
             <MdCallReceived />
-            In degree:
+            In:
           </span>
 
           <span className="font-extrabold">
             {simulation.graph.hasNode(nodeId) &&
-              simulation!.graph.inDegree(nodeId)}
+              simulation.graph.inDegree(nodeId)}
           </span>
         </div>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
@@ -573,21 +652,84 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
 
           <span className="font-extrabold">
             {simulation.graph.hasNode(nodeId) &&
-              simulation!.graph.degree(nodeId)}
+              simulation.graph.degree(nodeId)}
           </span>
         </div>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
         <div className="font-mono flex items-center gap-2">
           <span className="flex items-center gap-2">
             <MdCallMade />
-            Out degree:
+            Out:
           </span>
 
           <span className="font-extrabold">
             {simulation.graph.hasNode(nodeId) &&
-              simulation!.graph.outDegree(nodeId)}
+              simulation.graph.outDegree(nodeId)}
           </span>
         </div>
+        <Divider flexItem orientation="vertical" variant="fullWidth" />
+        <Tooltip
+          arrow
+          title={
+            <div className="text-center">
+              <p>Neighbors</p>
+              <p>
+                {node.implementation
+                  .getOutgoingEdges()
+                  .values()
+                  .reduce((acc, edge, i) => {
+                    acc.push(edge.target);
+                    return acc;
+                  }, [] as number[])
+                  .join(", ")}
+              </p>
+            </div>
+          }
+        >
+          <div
+            className="font-mono flex items-center gap-2"
+            onMouseEnter={() => {
+              if (isRunning) return;
+              node.implementation?.getOutgoingEdges().forEach((edge) => {
+                simulation.highlightNodeBorder(
+                  edge.target,
+                  "nodeInfoNeighbors",
+                  "#666666",
+                );
+                simulation.graph.setEdgeAttribute(edge.id, `highlighted`, true);
+              });
+            }}
+            onMouseLeave={() => {
+              if (isRunning) return;
+              node.implementation?.getOutgoingEdges().forEach((edge) => {
+                simulation.graph.setEdgeAttribute(
+                  edge.id,
+                  `highlighted`,
+                  false,
+                );
+                simulation.unhighlightNodeBorder(
+                  edge.target,
+                  "nodeInfoNeighbors",
+                );
+              });
+            }}
+          >
+            <span className="flex items-center gap-2">
+              <MdHub />
+              Neighbors:
+            </span>
+            <span className="font-extrabold max-w-50 block whitespace-nowrap overflow-hidden text-ellipsis">
+              {node.implementation
+                .getOutgoingEdges()
+                .values()
+                .reduce((acc, edge, i) => {
+                  acc.push(edge.target);
+                  return acc;
+                }, [] as number[])
+                .join(", ")}
+            </span>
+          </div>
+        </Tooltip>
       </div>
 
       <div className="flex gap-2 justify-between">
@@ -623,9 +765,8 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                       type="color"
                       value={node.color ?? "#000000"}
                       onChange={(e) => {
-                        simulation.graph.setNodeAttribute(
+                        simulation.setNodeColor(
                           node.implementation!.id,
-                          "color",
                           e.target.value,
                         );
                       }}
@@ -645,7 +786,9 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
             <RxSize />
             Size:
           </span>
-          <span className="font-extrabold">{node.originalSize ?? "----"}</span>
+          <span className="font-extrabold">
+            {node.implementation.originalSize ?? "----"}
+          </span>
         </div>
         <Divider flexItem orientation="vertical" variant="fullWidth" />
         <div className="font-mono flex items-center gap-2">
@@ -689,9 +832,8 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                       type="color"
                       value={node.borderColor ?? "#ffffff"}
                       onChange={(e) => {
-                        simulation.graph.setNodeAttribute(
-                          node.implementation!.id,
-                          "borderColor",
+                        simulation.setNodeBorderColor(
+                          node.implementation!,
                           e.target.value,
                         );
                       }}
@@ -714,7 +856,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
               <span
                 className="font-extrabold block text-ellipsis"
                 style={{
-                  width: "7ch",
+                  width: "5ch",
                 }}
               >
                 {node.borderSize ?? 0}
@@ -728,12 +870,11 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
                 type="number"
                 step={0.01}
                 style={{
-                  width: "7ch",
+                  width: "5ch",
                 }}
                 onChange={(e) => {
-                  simulation.graph.setNodeAttribute(
-                    node.implementation!.id,
-                    "borderSize",
+                  simulation.setNodeBorderSize(
+                    node.implementation!,
                     Number(e.target.value),
                   );
                 }}
@@ -768,7 +909,9 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
             <RiCustomSize />
             Highlight border size:
           </span>
-          <span className="font-extrabold">{node.highlightSize ?? "----"}</span>
+          <span className="font-extrabold" style={{ width: "5ch" }}>
+            {node.highlightSize ?? "----"}
+          </span>
         </div>
       </div>
       <div className="flex gap-2 justify-between">
@@ -798,7 +941,7 @@ const NodeInfo = ({ node: nodeId }: NodeInfoProps) => {
             <RiCustomSize />
             Highlight base size:
           </span>
-          <span className="font-extrabold">
+          <span className="font-extrabold" style={{ width: "5ch" }}>
             {node.highlightBaseSize ?? "----"}
           </span>
         </div>

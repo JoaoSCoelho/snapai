@@ -24,30 +24,6 @@ export type TestNodeParametersSchema = {
 export class TestNode extends Node {
   public readonly name = "Test Node";
 
-  public constructor(
-    public readonly id: NodeId,
-    public mobilityModel: MobilityModel,
-    public connectivityModel: ConnectivityModel,
-    public interferenceModel: InterferenceModel,
-    public reliabilityModel: ReliabilityModel,
-    public UsedPacket: ConcretePacket,
-    public position: Position,
-    public readonly parameters: TestNodeParametersSchema,
-    public readonly simulation: Simulation,
-  ) {
-    super(
-      id,
-      mobilityModel,
-      connectivityModel,
-      interferenceModel,
-      reliabilityModel,
-      UsedPacket,
-      position,
-      parameters,
-      simulation,
-    );
-  }
-
   public static getParametersSubsection() {
     return ParametersSubsection.create({
       lines: [

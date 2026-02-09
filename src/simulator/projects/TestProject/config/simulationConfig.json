@@ -20,7 +20,9 @@
   "registerStatisticsForEveryRound": true,
   "nackMessagesEnabled": false,
   "connectivityEnabled": true,
+  "mobilityEnabled": true,
   "interferenceEnabled": true,
+  "connectOnAddNodes": true,
   "interferenceIsAdditive": true,
   "messageTransmissionModel": "TestProject:TestMessageTransmissionModel",
   "messageTransmissionModelParameters": {
@@ -30,11 +32,11 @@
       0
     ],
     "checkbox": true,
-    "angle": 0,
+    "angle": 3.4299999999999997,
     "color": "#000000",
     "anglePair": [
-      138.1910677352222,
-      28.036255623043257
+      5,
+      ""
     ]
   }
 }

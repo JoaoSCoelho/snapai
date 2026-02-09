@@ -24,6 +24,8 @@ import AnglePairField from "./AnglePairField";
 import { Section } from "@/simulator/configurations/layout/Section";
 import ParameterizedSelectField from "./ParameterizedSelectField";
 import { ParameterizedSelectField as ParameterizedSelectFieldCls } from "@/simulator/configurations/layout/fields/ParameterizedSelectField";
+import { NumberTripleField as NumberTripleFieldCls } from "@/simulator/configurations/layout/fields/NumberTripleField";
+import NumberTripleField from "./NumberTripleField";
 
 export type FormFieldProps = {
   field: Field;
@@ -112,6 +114,14 @@ export default function FormField({
     return (
       <NumberPairField
         field={field as NumberPairFieldCls}
+        inputAttr={{ disabled: disabled || field.disabled }}
+        {...fieldAttrs}
+      />
+    );
+  } else if (field instanceof NumberTripleFieldCls) {
+    return (
+      <NumberTripleField
+        field={field as NumberTripleFieldCls}
         inputAttr={{ disabled: disabled || field.disabled }}
         {...fieldAttrs}
       />

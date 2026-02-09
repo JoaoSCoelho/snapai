@@ -27,10 +27,10 @@ export function RuntimeProvider({ children }: { children: ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const updateDefaultData = (data: RuntimeFormSchema) => {
+  function updateDefaultData(data: RuntimeFormSchema) {
     setDefaultData(data);
     axios.post<any, any, RuntimeFormSchema>("/api/runtime-context", data);
-  };
+  }
 
   useEffect(() => {
     setIsLoading(true);

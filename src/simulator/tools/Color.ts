@@ -3,6 +3,7 @@ export class Color {
     public readonly r: number = 0,
     public readonly g: number = 0,
     public readonly b: number = 0,
+    public readonly a: number = 255,
   ) {}
 
   /**
@@ -19,6 +20,15 @@ export class Color {
     return new Color(r, g, b);
   }
 
+  public static fromRGBA(
+    r: number,
+    g: number,
+    b: number,
+    a: number = 255,
+  ): Color {
+    return new Color(r, g, b, a);
+  }
+
   /**
    * Creates a Color object from a hexadecimal string in the format #RRGGBB.
    * @param {string} hex The hexadecimal string to convert.
@@ -31,7 +41,16 @@ export class Color {
     const r = parseInt(hex.substring(1, 3), 16);
     const g = parseInt(hex.substring(3, 5), 16);
     const b = parseInt(hex.substring(5, 7), 16);
+
     return new Color(r, g, b);
+  }
+
+  public static fromAlphaHex(hex: `#${string}`): Color {
+    const r = parseInt(hex.substring(1, 3), 16);
+    const g = parseInt(hex.substring(3, 5), 16);
+    const b = parseInt(hex.substring(5, 7), 16);
+    const a = hex.length === 9 ? parseInt(hex.substring(7, 9), 16) : 255;
+    return new Color(r, g, b, a);
   }
 
   /**
@@ -45,11 +64,23 @@ export class Color {
     return `#${r}${g}${b}`;
   }
 
+  public toAlphaHex(): `#${string}` {
+    const r = this.r.toString(16).padStart(2, "0");
+    const g = this.g.toString(16).padStart(2, "0");
+    const b = this.b.toString(16).padStart(2, "0");
+    const a = this.a.toString(16).padStart(2, "0");
+    return `#${r}${g}${b}${a}`;
+  }
+
   /**
    * Returns the color as an RGB array.
    * @returns An array of three numbers in the range [0, 255] representing the red, green, and blue components of the color.
    */
   public toRgb(): [number, number, number] {
     return [this.r, this.g, this.b];
+  }
+
+  public toRgba(): [number, number, number, number] {
+    return [this.r, this.g, this.b, this.a];
   }
 }

@@ -97,6 +97,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     reset,
     getValues,
     setValue,
+    setError,
     formState: { errors: formErrors },
   } = form;
 
@@ -276,6 +277,13 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
     afterParameterizedSelectChange?.(name, fullName, selected, form);
   };
 
+  function triggerData(data: FormSchema) {
+    const result = validatorSchema.safeParse(data);
+    if (!result.success) {
+      setError
+    }
+  }
+
   /**
    * Submits the form and handles the result of the givenHandleFormSubmit callback.
    * If the callback resolves, it displays a success toast with the given successSubmitMessage.
@@ -284,7 +292,8 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
    * @param {FormSchema} data - The data of the form.
    * @returns {Promise<void>} - A promise that resolves when the form is submitted and the callback is handled.
    */
-  const handleFormSubmit = async (data: FormSchema): Promise<void> => {
+  async function handleFormSubmit(data: FormSchema): Promise<void> {
+
     await givenHandleFormSubmit(data, form).then(
       () => {
         if (successSubmitMessage) toast.success(successSubmitMessage);
@@ -295,7 +304,7 @@ export function DefaultForm<FormSchema extends Record<string, any>>({
         else throw error;
       },
     );
-  };
+  }
 
   /**
    * Called when the reset button is clicked.
